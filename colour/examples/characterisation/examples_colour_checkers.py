@@ -1,51 +1,47 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases colour rendition charts computations.
-"""
-
-from __future__ import division, unicode_literals
+"""Showcases colour rendition charts computations."""
 
 import numpy as np
 from pprint import pprint
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
-message_box('Colour Rendition Charts Computations')
+message_box("Colour Rendition Charts Computations")
 
-message_box('Colour rendition charts chromaticity coordinates dataset.')
-pprint(sorted(colour.COLOURCHECKERS.keys()))
+message_box("Colour rendition charts chromaticity coordinates dataset.")
+pprint(sorted(colour.CCS_COLOURCHECKERS.keys()))
 
-print('\n')
+print("\n")
 
-message_box('Colour rendition charts spectral power distributions dataset.')
-pprint(colour.COLOURCHECKERS_SPDS.keys())
+message_box("Colour rendition charts spectral distributions dataset.")
+pprint(colour.SDS_COLOURCHECKERS.keys())
 
-print('\n')
+print("\n")
 
-message_box(('"ColorChecker 2005" colour rendition chart chromaticity '
-             'coordinates data:\n'
-             '\n\t("Patch Number", "Patch Name", "x", "y", "Y")'))
-name, data, illuminant = colour.COLOURCHECKERS['ColorChecker 2005']
-for index, name, x, y, Y in data:
-    print(index, name, x, y, Y)
+message_box(
+    '"ColorChecker 2005" colour rendition chart chromaticity coordinates data:\n\n'
+    '\t("Patch Number", "Patch Name", "xyY")'
+)
+name, data, illuminant = colour.CCS_COLOURCHECKERS["ColorChecker 2005"]
+for name, xyY in data.items():
+    print(name, xyY)
 
-print('\n')
+print("\n")
 
-message_box(('Converting "ColorChecker 2005" colour rendition chart "CIE xyY" '
-             'colourspace values to "sRGB" colourspace "RGB" values:\n'
-             '\n\t("Patch Name", ["R", "G", "B"])'))
-for index, name, x, y, Y in data:
+message_box(
+    'Converting the "ColorChecker 2005" colour rendition chart "CIE xyY" '
+    'colourspace values to "sRGB" colourspace "RGB" values:\n\n'
+    '\t("Patch Name", ["R", "G", "B"])'
+)
+for name, xyY in data.items():
     RGB = colour.XYZ_to_RGB(
-        colour.xyY_to_XYZ(np.array([x, y, Y])),
+        colour.xyY_to_XYZ(xyY),
         illuminant,
-        colour.ILLUMINANTS[
-            'CIE 1931 2 Degree Standard Observer']['D65'],
-        colour.sRGB_COLOURSPACE.XYZ_to_RGB_matrix,
-        'Bradford',
-        colour.sRGB_COLOURSPACE.encoding_cctf)
+        colour.CCS_ILLUMINANTS["CIE 1931 2 Degree Standard Observer"]["D65"],
+        colour.RGB_COLOURSPACES["sRGB"].matrix_XYZ_to_RGB,
+        "Bradford",
+        colour.RGB_COLOURSPACES["sRGB"].cctf_encoding,
+    )
 
-    RGB = [int(round(x * 255)) if x >= 0 else 0 for x in np.ravel(RGB)]
-    print('"{0}": {1}'.format(name, RGB))
+    RGB_i = [int(round(x * 255)) if x >= 0 else 0 for x in np.ravel(RGB)]
+    print(f'"{name}": {RGB_i}')

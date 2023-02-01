@@ -1,77 +1,197 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-Pypi Setup
-==========
+Colour - Setup
+==============
 """
 
-from __future__ import unicode_literals
-
-import os
-import sys
-
+import codecs
 from setuptools import setup
-from setuptools import find_packages
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+package_dir = {"": "."}
 
-__all__ = ['SHORT_DESCRIPTION',
-           'LONG_DESCRIPTION',
-           'INSTALLATION_REQUIREMENTS',
-           'PLOTTING_REQUIREMENTS',
-           'DOCS_REQUIREMENTS',
-           'TESTS_REQUIREMENTS']
+packages = [
+    "colour",
+    "colour.adaptation",
+    "colour.adaptation.datasets",
+    "colour.adaptation.tests",
+    "colour.algebra",
+    "colour.algebra.coordinates",
+    "colour.algebra.coordinates.tests",
+    "colour.algebra.tests",
+    "colour.appearance",
+    "colour.appearance.tests",
+    "colour.biochemistry",
+    "colour.biochemistry.tests",
+    "colour.blindness",
+    "colour.blindness.datasets",
+    "colour.blindness.tests",
+    "colour.characterisation",
+    "colour.characterisation.datasets",
+    "colour.characterisation.datasets.cameras",
+    "colour.characterisation.datasets.cameras.dslr",
+    "colour.characterisation.datasets.colour_checkers",
+    "colour.characterisation.datasets.displays",
+    "colour.characterisation.datasets.displays.crt",
+    "colour.characterisation.datasets.displays.lcd",
+    "colour.characterisation.datasets.filters",
+    "colour.characterisation.datasets.lenses",
+    "colour.characterisation.tests",
+    "colour.colorimetry",
+    "colour.colorimetry.datasets",
+    "colour.colorimetry.datasets.illuminants",
+    "colour.colorimetry.datasets.light_sources",
+    "colour.colorimetry.tests",
+    "colour.constants",
+    "colour.continuous",
+    "colour.continuous.tests",
+    "colour.contrast",
+    "colour.contrast.tests",
+    "colour.corresponding",
+    "colour.corresponding.datasets",
+    "colour.corresponding.tests",
+    "colour.difference",
+    "colour.difference.tests",
+    "colour.examples",
+    "colour.examples.adaptation",
+    "colour.examples.algebra",
+    "colour.examples.appearance",
+    "colour.examples.blindness",
+    "colour.examples.characterisation",
+    "colour.examples.colorimetry",
+    "colour.examples.contrast",
+    "colour.examples.corresponding",
+    "colour.examples.difference",
+    "colour.examples.geometry",
+    "colour.examples.graph",
+    "colour.examples.io",
+    "colour.examples.models",
+    "colour.examples.notation",
+    "colour.examples.phenomena",
+    "colour.examples.plotting",
+    "colour.examples.quality",
+    "colour.examples.recovery",
+    "colour.examples.temperature",
+    "colour.examples.volume",
+    "colour.geometry",
+    "colour.geometry.tests",
+    "colour.graph",
+    "colour.graph.tests",
+    "colour.hints",
+    "colour.io",
+    "colour.io.luts",
+    "colour.io.luts.tests",
+    "colour.io.tests",
+    "colour.models",
+    "colour.models.datasets",
+    "colour.models.rgb",
+    "colour.models.rgb.datasets",
+    "colour.models.rgb.datasets.tests",
+    "colour.models.rgb.tests",
+    "colour.models.rgb.transfer_functions",
+    "colour.models.rgb.transfer_functions.tests",
+    "colour.models.tests",
+    "colour.notation",
+    "colour.notation.datasets",
+    "colour.notation.datasets.munsell",
+    "colour.notation.tests",
+    "colour.phenomena",
+    "colour.phenomena.tests",
+    "colour.plotting",
+    "colour.plotting.datasets",
+    "colour.plotting.tests",
+    "colour.plotting.tm3018",
+    "colour.plotting.tm3018.tests",
+    "colour.quality",
+    "colour.quality.datasets",
+    "colour.quality.tests",
+    "colour.recovery",
+    "colour.recovery.datasets",
+    "colour.recovery.tests",
+    "colour.temperature",
+    "colour.temperature.tests",
+    "colour.utilities",
+    "colour.utilities.tests",
+    "colour.volume",
+    "colour.volume.datasets",
+    "colour.volume.tests",
+]
 
-SHORT_DESCRIPTION = 'Colour Science for Python'
+package_data = {
+    "": ["*"],
+    "colour.characterisation.datasets": ["rawtoaces/*"],
+    "colour.examples.io": ["resources/*"],
+    "colour.examples.plotting": ["resources/*"],
+    "colour.io.luts.tests": [
+        "resources/cinespace/*",
+        "resources/iridas_cube/*",
+        "resources/resolve_cube/*",
+        "resources/sony_spi1d/*",
+        "resources/sony_spi3d/*",
+        "resources/sony_spimtx/*",
+    ],
+    "colour.io.tests": ["resources/*"],
+    "colour.plotting.tm3018": ["resources/*"],
+}
 
-LONG_DESCRIPTION = open('README.rst').read()
+install_requires = [
+    "imageio>=2,<3",
+    "numpy>=1.20,<2",
+    "scipy>=1.7,<2",
+    "typing-extensions>=4,<5",
+]
 
-INSTALLATION_REQUIREMENTS = ['scipy>=0.16.0']
+extras_require = {
+    "development": [
+        "biblib-simple",
+        "black",
+        "blackdoc",
+        "coverage!=6.3",
+        "coveralls",
+        "flake8",
+        "flynt",
+        "invoke",
+        "jupyter",
+        "mypy",
+        "pre-commit",
+        "pydata-sphinx-theme",
+        "pydocstyle",
+        "pytest",
+        "pytest-cov",
+        "pytest-xdist",
+        "pyupgrade",
+        "restructuredtext-lint",
+        "sphinx>=4,<5",
+        "sphinxcontrib-bibtex",
+        "toml",
+        "twine",
+    ],
+    "graphviz": ["pygraphviz>=1,<2"],
+    "meshing": ["trimesh>=3,<4"],
+    "optional": ["networkx>=2.6,<3", "pandas>=1.3,<2", "tqdm>=4,<5"],
+    "plotting": ["matplotlib>=3.4,!=3.5.0,!=3.5.1"],
+    "read-the-docs": [
+        "matplotlib>=3.4,!=3.5.0,!=3.5.1",
+        "networkx>=2.6,<3",
+        "pygraphviz>=1,<2",
+        "trimesh>=3,<4",
+        "pydata-sphinx-theme",
+        "sphinxcontrib-bibtex",
+    ],
+}
 
-PLOTTING_REQUIREMENTS = ['matplotlib>=1.3.1']
-
-DOCS_REQUIREMENTS = ['sphinx>=1.2.2']
-
-TESTS_REQUIREMENTS = ['coverage>=3.7.1',
-                      'flake8>=2.1.0',
-                      'nose>=1.3.4']
-
-if sys.version_info[:2] <= (3, 2):
-    TESTS_REQUIREMENTS += ['mock==1.0.1']
-
-if os.environ.get('READTHEDOCS') == 'True':
-    INSTALLATION_REQUIREMENTS = ['numpy>=1.8.1', 'mock==1.0.1']
-
-setup(name='colour-science',
-      version='0.3.8',
-      author=__author__,
-      author_email=__email__,
-      include_package_data=True,
-      packages=find_packages(),
-      scripts=[],
-      url='http://github.com/colour-science/colour',
-      license='',
-      description=SHORT_DESCRIPTION,
-      long_description=LONG_DESCRIPTION,
-      install_requires=INSTALLATION_REQUIREMENTS,
-      extras_require={
-          'docs': DOCS_REQUIREMENTS,
-          'plotting': PLOTTING_REQUIREMENTS,
-          'tests': TESTS_REQUIREMENTS},
-      classifiers=['Development Status :: 3 - Alpha',
-                   'Environment :: Console',
-                   'Intended Audience :: Developers',
-                   'Intended Audience :: Science/Research',
-                   'License :: OSI Approved',
-                   'Natural Language :: English',
-                   'Operating System :: OS Independent',
-                   'Programming Language :: Python :: 2.7',
-                   'Programming Language :: Python :: 3',
-                   'Topic :: Scientific/Engineering',
-                   'Topic :: Software Development'])
+setup(
+    name="colour-science",
+    version="0.4.2",
+    description="Colour Science for Python",
+    long_description=codecs.open("README.rst", encoding="utf8").read(),
+    author="Colour Developers",
+    author_email="colour-developers@colour-science.org",
+    maintainer="Colour Developers",
+    maintainer_email="colour-developers@colour-science.org",
+    url="https://www.colour-science.org/",
+    package_dir=package_dir,
+    packages=packages,
+    package_data=package_data,
+    install_requires=install_requires,
+    extras_require=extras_require,
+    python_requires=">=3.9,<3.12",
+)

@@ -1,34 +1,47 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 CIE Chromaticity Diagrams Plotting
 ==================================
 
 Defines the *CIE* chromaticity diagrams plotting objects:
 
--   :func:`CIE_1931_chromaticity_diagram_plot`
--   :func:`CIE_1960_UCS_chromaticity_diagram_plot`
--   :func:`CIE_1976_UCS_chromaticity_diagram_plot`
--   :func:`spds_CIE_1931_chromaticity_diagram_plot`
--   :func:`spds_CIE_1960_UCS_chromaticity_diagram_plot`
--   :func:`spds_CIE_1976_UCS_chromaticity_diagram_plot`
+-   :func:`colour.plotting.plot_chromaticity_diagram_CIE1931`
+-   :func:`colour.plotting.plot_chromaticity_diagram_CIE1960UCS`
+-   :func:`colour.plotting.plot_chromaticity_diagram_CIE1976UCS`
+-   :func:`colour.plotting.plot_sds_in_chromaticity_diagram_CIE1931`
+-   :func:`colour.plotting.plot_sds_in_chromaticity_diagram_CIE1960UCS`
+-   :func:`colour.plotting.plot_sds_in_chromaticity_diagram_CIE1976UCS`
 """
 
-from __future__ import division
+from __future__ import annotations
 
 import bisect
-import os
-
-import matplotlib
-import matplotlib.image
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
 import numpy as np
-import pylab
-from scipy.spatial import Delaunay
+from matplotlib.collections import LineCollection
+from matplotlib.patches import Polygon
 
-from colour.algebra import normalise_vector
-from colour.colorimetry import spectral_to_XYZ
+from colour.algebra import normalise_maximum, normalise_vector
+from colour.colorimetry import (
+    MultiSpectralDistributions,
+    SDS_ILLUMINANTS,
+    SpectralDistribution,
+    sd_to_XYZ,
+    sds_and_msds_to_sds,
+)
+from colour.hints import (
+    Any,
+    ArrayLike,
+    Dict,
+    Callable,
+    List,
+    Literal,
+    NDArrayFloat,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 from colour.models import (
     Luv_to_uv,
     Luv_uv_to_xy,
@@ -36,785 +49,1343 @@ from colour.models import (
     UCS_uv_to_xy,
     XYZ_to_Luv,
     XYZ_to_UCS,
-    XYZ_to_sRGB,
     XYZ_to_xy,
-    xy_to_XYZ)
+    xy_to_XYZ,
+)
+from colour.notation import HEX_to_RGB
 from colour.plotting import (
-    DEFAULT_FIGURE_WIDTH,
-    DEFAULT_PLOTTING_ILLUMINANT,
-    PLOTTING_RESOURCES_DIRECTORY,
-    canvas,
-    decorate,
-    boundaries,
-    display,
-    get_cmfs)
-from colour.utilities import normalise_maximum, tsplit, tstack
+    CONSTANTS_COLOUR_STYLE,
+    CONSTANTS_ARROW_STYLE,
+    XYZ_to_plotting_colourspace,
+    artist,
+    filter_cmfs,
+    filter_illuminants,
+    override_style,
+    render,
+    update_settings_collection,
+)
+from colour.utilities import (
+    as_float_array,
+    domain_range_scale,
+    first_item,
+    is_string,
+    optional,
+    tsplit,
+    tstack,
+    validate_method,
+)
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-__all__ = ['CIE_1931_chromaticity_diagram_colours_plot',
-           'CIE_1931_chromaticity_diagram_plot',
-           'CIE_1960_UCS_chromaticity_diagram_colours_plot',
-           'CIE_1960_UCS_chromaticity_diagram_plot',
-           'CIE_1976_UCS_chromaticity_diagram_colours_plot',
-           'CIE_1976_UCS_chromaticity_diagram_plot',
-           'spds_CIE_1931_chromaticity_diagram_plot',
-           'spds_CIE_1960_UCS_chromaticity_diagram_plot',
-           'spds_CIE_1976_UCS_chromaticity_diagram_plot']
+__all__ = [
+    "plot_spectral_locus",
+    "plot_chromaticity_diagram_colours",
+    "plot_chromaticity_diagram",
+    "plot_chromaticity_diagram_CIE1931",
+    "plot_chromaticity_diagram_CIE1960UCS",
+    "plot_chromaticity_diagram_CIE1976UCS",
+    "plot_sds_in_chromaticity_diagram",
+    "plot_sds_in_chromaticity_diagram_CIE1931",
+    "plot_sds_in_chromaticity_diagram_CIE1960UCS",
+    "plot_sds_in_chromaticity_diagram_CIE1976UCS",
+]
 
 
-def CIE_1931_chromaticity_diagram_colours_plot(
-        surface=1,
-        samples=4096,
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        **kwargs):
+@override_style()
+def plot_spectral_locus(
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    spectral_locus_colours: Optional[Union[ArrayLike, str]] = None,
+    spectral_locus_opacity: float = 1,
+    spectral_locus_labels: Optional[Sequence] = None,
+    method: Union[
+        Literal["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"], str
+    ] = "CIE 1931",
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots the *CIE 1931 Chromaticity Diagram* colours.
+    Plot the *Spectral Locus* according to given method.
 
     Parameters
     ----------
-    surface : numeric, optional
-        Generated markers surface.
-    samples : numeric, optional
-        Samples count on one axis.
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    spectral_locus_colours
+        Colours of the *Spectral Locus*, if ``spectral_locus_colours`` is set
+        to *RGB*, the colours will be computed according to the corresponding
+        chromaticity coordinates.
+    spectral_locus_opacity
+        Opacity of the *Spectral Locus*.
+    spectral_locus_labels
+        Array of wavelength labels used to customise which labels will be drawn
+        around the spectral locus. Passing an empty array will result in no
+        wavelength labels being drawn.
+    method
+        *Chromaticity Diagram* method.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`, :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> CIE_1931_chromaticity_diagram_colours_plot()  # doctest: +SKIP
+    >>> plot_spectral_locus(spectral_locus_colours="RGB")  # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Spectral_Locus.png
+        :align: center
+        :alt: plot_spectral_locus
     """
 
-    settings = {'figure_size': (64, 64)}
+    method = validate_method(
+        method, ["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"]
+    )
+
+    spectral_locus_colours = optional(
+        spectral_locus_colours, CONSTANTS_COLOUR_STYLE.colour.dark
+    )
+
+    settings: Dict[str, Any] = {"uniform": True}
     settings.update(kwargs)
 
-    canvas(**settings)
+    _figure, axes = artist(**settings)
 
-    cmfs = get_cmfs(cmfs)
+    cmfs = cast(
+        MultiSpectralDistributions, first_item(filter_cmfs(cmfs).values())
+    )
 
-    illuminant = DEFAULT_PLOTTING_ILLUMINANT
+    illuminant = CONSTANTS_COLOUR_STYLE.colour.colourspace.whitepoint
 
-    triangulation = Delaunay(XYZ_to_xy(cmfs.values, illuminant),
-                             qhull_options='QJ')
-    xx, yy = np.meshgrid(np.linspace(0, 1, samples),
-                         np.linspace(0, 1, samples))
-    xy = tstack((xx, yy))
-    xy = xy[triangulation.find_simplex(xy) > 0]
-
-    XYZ = xy_to_XYZ(xy)
-
-    RGB = normalise_maximum(XYZ_to_sRGB(XYZ, illuminant), axis=-1)
-
-    x_dot, y_dot = tsplit(xy)
-
-    pylab.scatter(x_dot, y_dot, color=RGB, s=surface)
-
-    settings.update({
-        'x_ticker': False,
-        'y_ticker': False,
-        'bounding_box': (0, 1, 0, 1)})
-    settings.update(kwargs)
-
-    ax = matplotlib.pyplot.gca()
-    matplotlib.pyplot.setp(ax, frame_on=False)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
-
-
-def CIE_1931_chromaticity_diagram_plot(
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        show_diagram_colours=True,
-        **kwargs):
-    """
-    Plots the *CIE 1931 Chromaticity Diagram*.
-
-    Parameters
-    ----------
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    show_diagram_colours : bool, optional
-        Display the chromaticity diagram background colours.
-    \**kwargs : dict, optional
-        Keywords arguments.
-
-    Returns
-    -------
-    Figure
-        Current figure or None.
-
-    Examples
-    --------
-    >>> CIE_1931_chromaticity_diagram_plot()  # doctest: +SKIP
-    """
-
-    settings = {'figure_size': (DEFAULT_FIGURE_WIDTH, DEFAULT_FIGURE_WIDTH)}
-    settings.update(kwargs)
-
-    canvas(**settings)
-
-    cmfs = get_cmfs(cmfs)
-
-    illuminant = DEFAULT_PLOTTING_ILLUMINANT
-
-    if show_diagram_colours:
-        image = matplotlib.image.imread(
-            os.path.join(PLOTTING_RESOURCES_DIRECTORY,
-                         'CIE_1931_Chromaticity_Diagram_{0}.png'.format(
-                             cmfs.name.replace(' ', '_'))))
-        pylab.imshow(image, interpolation=None, extent=(0, 1, 0, 1))
-
-    labels = (
-        390, 460, 470, 480, 490, 500, 510, 520, 540, 560, 580, 600, 620, 700)
-
-    wavelengths = cmfs.wavelengths
+    wavelengths = list(cmfs.wavelengths)
     equal_energy = np.array([1 / 3] * 2)
 
-    xy = XYZ_to_xy(cmfs.values, illuminant)
+    labels = tuple()
+    if method == "cie 1931":
+        ij = XYZ_to_xy(cmfs.values, illuminant)
+        labels = optional(
+            spectral_locus_labels,
+            (
+                390,
+                460,
+                470,
+                480,
+                490,
+                500,
+                510,
+                520,
+                540,
+                560,
+                580,
+                600,
+                620,
+                700,
+            ),
+        )
+    elif method == "cie 1960 ucs":
+        ij = UCS_to_uv(XYZ_to_UCS(cmfs.values))
+        labels = optional(
+            spectral_locus_labels,
+            (
+                420,
+                440,
+                450,
+                460,
+                470,
+                480,
+                490,
+                500,
+                510,
+                520,
+                530,
+                540,
+                550,
+                560,
+                570,
+                580,
+                590,
+                600,
+                610,
+                620,
+                630,
+                645,
+                680,
+            ),
+        )
+    elif method == "cie 1976 ucs":
+        ij = Luv_to_uv(XYZ_to_Luv(cmfs.values, illuminant), illuminant)
+        labels = optional(
+            spectral_locus_labels,
+            (
+                420,
+                440,
+                450,
+                460,
+                470,
+                480,
+                490,
+                500,
+                510,
+                520,
+                530,
+                540,
+                550,
+                560,
+                570,
+                580,
+                590,
+                600,
+                610,
+                620,
+                630,
+                645,
+                680,
+            ),
+        )
 
-    wavelengths_chromaticity_coordinates = dict(tuple(zip(wavelengths, xy)))
+    pl_ij = np.reshape(
+        tstack(
+            [
+                np.linspace(ij[0][0], ij[-1][0], 20),
+                np.linspace(ij[0][1], ij[-1][1], 20),
+            ]
+        ),
+        (-1, 1, 2),
+    )
+    sl_ij = np.copy(ij).reshape(-1, 1, 2)
 
-    pylab.plot(xy[..., 0], xy[..., 1], color='black', linewidth=2)
-    pylab.plot((xy[-1][0], xy[0][0]),
-               (xy[-1][1], xy[0][1]),
-               color='black',
-               linewidth=2)
+    purple_line_colours: Optional[Union[ArrayLike, str]]
+    if str(spectral_locus_colours).upper() == "RGB":
+        spectral_locus_colours = normalise_maximum(
+            XYZ_to_plotting_colourspace(cmfs.values), axis=-1
+        )
 
+        if method == "cie 1931":
+            XYZ = xy_to_XYZ(pl_ij)
+        elif method == "cie 1960 ucs":
+            XYZ = xy_to_XYZ(UCS_uv_to_xy(pl_ij))
+        elif method == "cie 1976 ucs":
+            XYZ = xy_to_XYZ(Luv_uv_to_xy(pl_ij))
+
+        purple_line_colours = normalise_maximum(
+            XYZ_to_plotting_colourspace(np.reshape(XYZ, (-1, 3))), axis=-1
+        )
+    else:
+        purple_line_colours = spectral_locus_colours
+
+    for slp_ij, slp_colours in (
+        (pl_ij, purple_line_colours),
+        (sl_ij, spectral_locus_colours),
+    ):
+        line_collection = LineCollection(
+            np.concatenate([slp_ij[:-1], slp_ij[1:]], axis=1),
+            colors=slp_colours,
+            alpha=spectral_locus_opacity,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.midground_scatter,
+        )
+        axes.add_collection(line_collection)
+
+    wl_ij = dict(zip(wavelengths, ij))
     for label in labels:
-        x, y = wavelengths_chromaticity_coordinates.get(label)
-        pylab.plot(x, y, 'o', color='black', linewidth=2)
+        ij_l = wl_ij.get(label)
+
+        if ij_l is None:
+            continue
+
+        ij_l = as_float_array([ij_l])
+        i, j = tsplit(ij_l)
 
         index = bisect.bisect(wavelengths, label)
         left = wavelengths[index - 1] if index >= 0 else wavelengths[index]
-        right = (wavelengths[index]
-                 if index < len(wavelengths) else
-                 wavelengths[-1])
+        right = (
+            wavelengths[index] if index < len(wavelengths) else wavelengths[-1]
+        )
 
-        dx = (wavelengths_chromaticity_coordinates.get(right)[0] -
-              wavelengths_chromaticity_coordinates.get(left)[0])
-        dy = (wavelengths_chromaticity_coordinates.get(right)[1] -
-              wavelengths_chromaticity_coordinates.get(left)[1])
+        dx = wl_ij[right][0] - wl_ij[left][0]
+        dy = wl_ij[right][1] - wl_ij[left][1]
 
-        xy = np.array([x, y])
         direction = np.array([-dy, dx])
 
-        normal = (np.array([-dy, dx])
-                  if np.dot(normalise_vector(xy - equal_energy),
-                            normalise_vector(direction)) > 0 else
-                  np.array([dy, -dx]))
-        normal = normalise_vector(normal)
-        normal /= 25
+        normal = (
+            np.array([-dy, dx])
+            if np.dot(
+                normalise_vector(ij_l - equal_energy),
+                normalise_vector(direction),
+            )
+            > 0
+            else np.array([dy, -dx])
+        )
+        normal = normalise_vector(normal) / 30
 
-        pylab.plot((x, x + normal[0] * 0.75),
-                   (y, y + normal[1] * 0.75),
-                   color='black',
-                   linewidth=1.5)
-        pylab.text(x + normal[0],
-                   y + normal[1],
-                   label,
-                   color='black',
-                   clip_on=True,
-                   ha='left' if normal[0] >= 0 else 'right',
-                   va='center',
-                   fontdict={'size': 'small'})
+        label_colour = (
+            spectral_locus_colours
+            if is_string(spectral_locus_colours)
+            else cast(NDArrayFloat, spectral_locus_colours)[index]
+        )
+        axes.plot(
+            (i, i + normal[0] * 0.75),
+            (j, j + normal[1] * 0.75),
+            color=label_colour,
+            alpha=spectral_locus_opacity,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.background_line,
+        )
 
-    ticks = np.arange(-10, 10, 0.1)
+        axes.plot(
+            i,
+            j,
+            "o",
+            color=label_colour,
+            alpha=spectral_locus_opacity,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.background_line,
+        )
 
-    pylab.xticks(ticks)
-    pylab.yticks(ticks)
+        axes.text(
+            i + normal[0],
+            j + normal[1],
+            label,
+            clip_on=True,
+            ha="left" if normal[0] >= 0 else "right",
+            va="center",
+            fontdict={"size": "small"},
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.background_label,
+        )
 
-    settings.update({
-        'title': 'CIE 1931 Chromaticity Diagram - {0}'.format(cmfs.title),
-        'x_label': 'CIE x',
-        'y_label': 'CIE y',
-        'grid': True,
-        'bounding_box': (0, 1, 0, 1)})
+    settings = {"axes": axes}
     settings.update(kwargs)
 
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return render(**kwargs)
 
 
-def CIE_1960_UCS_chromaticity_diagram_colours_plot(
-        surface=1,
-        samples=4096,
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        **kwargs):
+@override_style()
+def plot_chromaticity_diagram_colours(
+    samples: int = 256,
+    diagram_colours: Optional[Union[ArrayLike, str]] = None,
+    diagram_opacity: float = 1,
+    diagram_clipping_path: Optional[ArrayLike] = None,
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    method: Union[
+        Literal["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"], str
+    ] = "CIE 1931",
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots the *CIE 1960 UCS Chromaticity Diagram* colours.
+    Plot the *Chromaticity Diagram* colours according to given method.
 
     Parameters
     ----------
-    surface : numeric, optional
-        Generated markers surface.
-    samples : numeric, optional
-        Samples count on one axis.
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    samples
+        Samples count on one axis when computing the *Chromaticity Diagram*
+        colours.
+    diagram_colours
+        Colours of the *Chromaticity Diagram*, if ``diagram_colours`` is set
+        to *RGB*, the colours will be computed according to the corresponding
+        coordinates.
+    diagram_opacity
+        Opacity of the *Chromaticity Diagram*.
+    diagram_clipping_path
+        Path of points used to clip the *Chromaticity Diagram* colours.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    method
+        *Chromaticity Diagram* method.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`, :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> CIE_1960_UCS_chromaticity_diagram_colours_plot()  # doctest: +SKIP
+    >>> plot_chromaticity_diagram_colours(diagram_colours="RGB")
+    ... # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Chromaticity_Diagram_Colours.png
+        :align: center
+        :alt: plot_chromaticity_diagram_colours
     """
 
-    settings = {'figure_size': (64, 64)}
+    method = validate_method(
+        method, ["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"]
+    )
+
+    settings: Dict[str, Any] = {"uniform": True}
     settings.update(kwargs)
 
-    canvas(**settings)
+    _figure, axes = artist(**settings)
 
-    cmfs = get_cmfs(cmfs)
+    diagram_colours = cast(
+        ArrayLike,
+        optional(
+            diagram_colours, HEX_to_RGB(CONSTANTS_COLOUR_STYLE.colour.average)
+        ),
+    )
 
-    illuminant = DEFAULT_PLOTTING_ILLUMINANT
+    cmfs = cast(
+        MultiSpectralDistributions, first_item(filter_cmfs(cmfs).values())
+    )
 
-    triangulation = Delaunay(UCS_to_uv(XYZ_to_UCS(cmfs.values)),
-                             qhull_options='QJ')
-    xx, yy = np.meshgrid(np.linspace(0, 1, samples),
-                         np.linspace(0, 1, samples))
-    xy = tstack((xx, yy))
-    xy = xy[triangulation.find_simplex(xy) > 0]
+    illuminant = CONSTANTS_COLOUR_STYLE.colour.colourspace.whitepoint
 
-    XYZ = xy_to_XYZ(UCS_uv_to_xy(xy))
+    if method == "cie 1931":
+        spectral_locus = XYZ_to_xy(cmfs.values, illuminant)
+    elif method == "cie 1960 ucs":
+        spectral_locus = UCS_to_uv(XYZ_to_UCS(cmfs.values))
+    elif method == "cie 1976 ucs":
+        spectral_locus = Luv_to_uv(
+            XYZ_to_Luv(cmfs.values, illuminant), illuminant
+        )
 
-    RGB = normalise_maximum(XYZ_to_sRGB(XYZ, illuminant), axis=-1)
+    use_RGB_diagram_colours = str(diagram_colours).upper() == "RGB"
+    if use_RGB_diagram_colours:
+        ii, jj = np.meshgrid(
+            np.linspace(0, 1, samples), np.linspace(1, 0, samples)
+        )
+        ij = tstack([ii, jj])
 
-    x_dot, y_dot = tsplit(xy)
+        if method == "cie 1931":
+            XYZ = xy_to_XYZ(ij)
+        elif method == "cie 1960 ucs":
+            XYZ = xy_to_XYZ(UCS_uv_to_xy(ij))
+        elif method == "cie 1976 ucs":
+            XYZ = xy_to_XYZ(Luv_uv_to_xy(ij))
 
-    pylab.scatter(x_dot, y_dot, color=RGB, s=surface)
+        diagram_colours = normalise_maximum(
+            XYZ_to_plotting_colourspace(XYZ, illuminant), axis=-1
+        )
 
-    settings.update({
-        'x_ticker': False,
-        'y_ticker': False,
-        'bounding_box': (0, 1, 0, 1)})
+    polygon = Polygon(
+        spectral_locus
+        if diagram_clipping_path is None
+        else diagram_clipping_path,
+        facecolor="none"
+        if use_RGB_diagram_colours
+        else np.hstack([diagram_colours, diagram_opacity]),
+        edgecolor="none"
+        if use_RGB_diagram_colours
+        else np.hstack([diagram_colours, diagram_opacity]),
+        zorder=CONSTANTS_COLOUR_STYLE.zorder.background_polygon,
+    )
+    axes.add_patch(polygon)
+
+    if use_RGB_diagram_colours:
+        # Preventing bounding box related issues as per
+        # https://github.com/matplotlib/matplotlib/issues/10529
+        image = axes.imshow(
+            diagram_colours,
+            interpolation="bilinear",
+            extent=(0, 1, 0, 1),
+            clip_path=None,
+            alpha=diagram_opacity,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.background_polygon,
+        )
+        image.set_clip_path(polygon)
+
+    settings = {"axes": axes}
     settings.update(kwargs)
 
-    ax = matplotlib.pyplot.gca()
-    matplotlib.pyplot.setp(ax, frame_on=False)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return render(**kwargs)
 
 
-def CIE_1960_UCS_chromaticity_diagram_plot(
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        show_diagram_colours=True,
-        **kwargs):
+@override_style()
+def plot_chromaticity_diagram(
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    show_diagram_colours: bool = True,
+    show_spectral_locus: bool = True,
+    method: Union[
+        Literal["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"], str
+    ] = "CIE 1931",
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots the *CIE 1960 UCS Chromaticity Diagram*.
+    Plot the *Chromaticity Diagram* according to given method.
 
     Parameters
     ----------
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    show_diagram_colours : bool, optional
-        Display the chromaticity diagram background colours.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    show_diagram_colours
+        Whether to display the *Chromaticity Diagram* background colours.
+    show_spectral_locus
+        Whether to display the *Spectral Locus*.
+    method
+        *Chromaticity Diagram* method.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_spectral_locus`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram_colours`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> CIE_1960_UCS_chromaticity_diagram_plot()  # doctest: +SKIP
+    >>> plot_chromaticity_diagram()  # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Chromaticity_Diagram.png
+        :align: center
+        :alt: plot_chromaticity_diagram
     """
 
-    settings = {'figure_size': (DEFAULT_FIGURE_WIDTH, DEFAULT_FIGURE_WIDTH)}
+    method = validate_method(
+        method, ["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"]
+    )
+
+    settings: Dict[str, Any] = {"uniform": True}
     settings.update(kwargs)
 
-    canvas(**settings)
+    _figure, axes = artist(**settings)
 
-    cmfs = get_cmfs(cmfs)
+    cmfs = cast(
+        MultiSpectralDistributions, first_item(filter_cmfs(cmfs).values())
+    )
 
     if show_diagram_colours:
-        image = matplotlib.image.imread(
-            os.path.join(PLOTTING_RESOURCES_DIRECTORY,
-                         'CIE_1960_UCS_Chromaticity_Diagram_{0}.png'.format(
-                             cmfs.name.replace(' ', '_'))))
-        pylab.imshow(image, interpolation=None, extent=(0, 1, 0, 1))
+        settings = {"axes": axes, "method": method, "diagram_colours": "RGB"}
+        settings.update(kwargs)
+        settings["standalone"] = False
+        settings["cmfs"] = cmfs
 
-    labels = (420, 430, 440, 450, 460, 470, 480, 490, 500, 510, 520, 530,
-              540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 680)
+        plot_chromaticity_diagram_colours(**settings)
 
-    wavelengths = cmfs.wavelengths
-    equal_energy = np.array([1 / 3] * 2)
+    if show_spectral_locus:
+        settings = {"axes": axes, "method": method}
+        settings.update(kwargs)
+        settings["standalone"] = False
+        settings["cmfs"] = cmfs
 
-    uv = UCS_to_uv(XYZ_to_UCS(cmfs.values))
+        plot_spectral_locus(**settings)
 
-    wavelengths_chromaticity_coordinates = dict(tuple(zip(wavelengths, uv)))
+    if method == "cie 1931":
+        x_label, y_label = "CIE x", "CIE y"
+    elif method == "cie 1960 ucs":
+        x_label, y_label = "CIE u", "CIE v"
+    elif method == "cie 1976 ucs":
+        x_label, y_label = (
+            "CIE u'",
+            "CIE v'",
+        )
 
-    pylab.plot(uv[..., 0], uv[..., 1], color='black', linewidth=2)
-    pylab.plot((uv[-1][0], uv[0][0]),
-               (uv[-1][1], uv[0][1]),
-               color='black',
-               linewidth=2)
+    title = f"{method.upper()} Chromaticity Diagram - {cmfs.display_name}"
 
-    for label in labels:
-        u, v = wavelengths_chromaticity_coordinates.get(label)
-        pylab.plot(u, v, 'o', color='black', linewidth=2)
-
-        index = bisect.bisect(wavelengths, label)
-        left = wavelengths[index - 1] if index >= 0 else wavelengths[index]
-        right = (wavelengths[index]
-                 if index < len(wavelengths) else
-                 wavelengths[-1])
-
-        dx = (wavelengths_chromaticity_coordinates.get(right)[0] -
-              wavelengths_chromaticity_coordinates.get(left)[0])
-        dy = (wavelengths_chromaticity_coordinates.get(right)[1] -
-              wavelengths_chromaticity_coordinates.get(left)[1])
-
-        uv = np.array([u, v])
-        direction = np.array([-dy, dx])
-
-        normal = (np.array([-dy, dx])
-                  if np.dot(normalise_vector(uv - equal_energy),
-                            normalise_vector(direction)) > 0 else
-                  np.array([dy, -dx]))
-        normal = normalise_vector(normal)
-        normal /= 25
-
-        pylab.plot((u, u + normal[0] * 0.75),
-                   (v, v + normal[1] * 0.75),
-                   color='black',
-                   linewidth=1.5)
-        pylab.text(u + normal[0],
-                   v + normal[1],
-                   label,
-                   color='black',
-                   clip_on=True,
-                   ha='left' if normal[0] >= 0 else 'right',
-                   va='center',
-                   fontdict={'size': 'small'})
-
-    ticks = np.arange(-10, 10, 0.1)
-
-    pylab.xticks(ticks)
-    pylab.yticks(ticks)
-
-    settings.update({
-        'title': 'CIE 1960 UCS Chromaticity Diagram - {0}'.format(cmfs.title),
-        'x_label': 'CIE u',
-        'y_label': 'CIE v',
-        'grid': True,
-        'bounding_box': (0, 1, 0, 1)})
+    settings.update(
+        {
+            "axes": axes,
+            "standalone": True,
+            "bounding_box": (0, 1, 0, 1),
+            "title": title,
+            "x_label": x_label,
+            "y_label": y_label,
+        }
+    )
     settings.update(kwargs)
 
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return render(**settings)
 
 
-def CIE_1976_UCS_chromaticity_diagram_colours_plot(
-        surface=1,
-        samples=4096,
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        **kwargs):
+@override_style()
+def plot_chromaticity_diagram_CIE1931(
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    show_diagram_colours: bool = True,
+    show_spectral_locus: bool = True,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots the *CIE 1976 UCS Chromaticity Diagram* colours.
+    Plot the *CIE 1931 Chromaticity Diagram*.
 
     Parameters
     ----------
-    surface : numeric, optional
-        Generated markers surface.
-    samples : numeric, optional
-        Samples count on one axis.
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    show_diagram_colours
+        Whether to display the *Chromaticity Diagram* background colours.
+    show_spectral_locus
+        Whether to display the *Spectral Locus*.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> CIE_1976_UCS_chromaticity_diagram_colours_plot()  # doctest: +SKIP
+    >>> plot_chromaticity_diagram_CIE1931()  # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Chromaticity_Diagram_CIE1931.png
+        :align: center
+        :alt: plot_chromaticity_diagram_CIE1931
     """
 
-    settings = {'figure_size': (64, 64)}
-    settings.update(kwargs)
+    settings = dict(kwargs)
+    settings.update({"method": "CIE 1931"})
 
-    canvas(**settings)
-
-    cmfs = get_cmfs(cmfs)
-
-    illuminant = DEFAULT_PLOTTING_ILLUMINANT
-
-    triangulation = Delaunay(
-        Luv_to_uv(XYZ_to_Luv(cmfs.values, illuminant), illuminant),
-        qhull_options='QJ Qf')
-    xx, yy = np.meshgrid(np.linspace(0, 1, samples),
-                         np.linspace(0, 1, samples))
-    xy = tstack((xx, yy))
-    xy = xy[triangulation.find_simplex(xy) > 0]
-
-    XYZ = xy_to_XYZ(Luv_uv_to_xy(xy))
-
-    RGB = normalise_maximum(XYZ_to_sRGB(XYZ, illuminant), axis=-1)
-
-    x_dot, y_dot = tsplit(xy)
-
-    pylab.scatter(x_dot, y_dot, color=RGB, s=surface)
-
-    settings.update({
-        'x_ticker': False,
-        'y_ticker': False,
-        'bounding_box': (0, 1, 0, 1)})
-    settings.update(kwargs)
-
-    ax = matplotlib.pyplot.gca()
-    matplotlib.pyplot.setp(ax, frame_on=False)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return plot_chromaticity_diagram(
+        cmfs, show_diagram_colours, show_spectral_locus, **settings
+    )
 
 
-def CIE_1976_UCS_chromaticity_diagram_plot(
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        show_diagram_colours=True,
-        **kwargs):
+@override_style()
+def plot_chromaticity_diagram_CIE1960UCS(
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    show_diagram_colours: bool = True,
+    show_spectral_locus: bool = True,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots the *CIE 1976 UCS Chromaticity Diagram*.
+    Plot the *CIE 1960 UCS Chromaticity Diagram*.
 
     Parameters
     ----------
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    show_diagram_colours : bool, optional
-        Display the chromaticity diagram background colours.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    show_diagram_colours
+        Whether to display the *Chromaticity Diagram* background colours.
+    show_spectral_locus
+        Whether to display the *Spectral Locus*.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> CIE_1976_UCS_chromaticity_diagram_plot()  # doctest: +SKIP
+    >>> plot_chromaticity_diagram_CIE1960UCS()  # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Chromaticity_Diagram_CIE1960UCS.png
+        :align: center
+        :alt: plot_chromaticity_diagram_CIE1960UCS
     """
 
-    settings = {'figure_size': (DEFAULT_FIGURE_WIDTH, DEFAULT_FIGURE_WIDTH)}
-    settings.update(kwargs)
+    settings = dict(kwargs)
+    settings.update({"method": "CIE 1960 UCS"})
 
-    canvas(**settings)
-
-    cmfs = get_cmfs(cmfs)
-
-    illuminant = DEFAULT_PLOTTING_ILLUMINANT
-
-    if show_diagram_colours:
-        image = matplotlib.image.imread(
-            os.path.join(PLOTTING_RESOURCES_DIRECTORY,
-                         'CIE_1976_UCS_Chromaticity_Diagram_{0}.png'.format(
-                             cmfs.name.replace(' ', '_'))))
-        pylab.imshow(image, interpolation=None, extent=(0, 1, 0, 1))
-
-    labels = (420, 430, 440, 450, 460, 470, 480, 490, 500, 510, 520, 530,
-              540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 680)
-
-    wavelengths = cmfs.wavelengths
-    equal_energy = np.array([1 / 3] * 2)
-
-    uv = Luv_to_uv(XYZ_to_Luv(cmfs.values, illuminant), illuminant)
-
-    wavelengths_chromaticity_coordinates = dict(zip(wavelengths, uv))
-
-    pylab.plot(uv[..., 0], uv[..., 1], color='black', linewidth=2)
-    pylab.plot((uv[-1][0], uv[0][0]),
-               (uv[-1][1], uv[0][1]),
-               color='black',
-               linewidth=2)
-
-    for label in labels:
-        u, v = wavelengths_chromaticity_coordinates.get(label)
-        pylab.plot(u, v, 'o', color='black', linewidth=2)
-
-        index = bisect.bisect(wavelengths, label)
-        left = wavelengths[index - 1] if index >= 0 else wavelengths[index]
-        right = (wavelengths[index]
-                 if index < len(wavelengths) else
-                 wavelengths[-1])
-
-        dx = (wavelengths_chromaticity_coordinates.get(right)[0] -
-              wavelengths_chromaticity_coordinates.get(left)[0])
-        dy = (wavelengths_chromaticity_coordinates.get(right)[1] -
-              wavelengths_chromaticity_coordinates.get(left)[1])
-
-        uv = np.array([u, v])
-        direction = np.array([-dy, dx])
-
-        normal = (np.array([-dy, dx])
-                  if np.dot(normalise_vector(uv - equal_energy),
-                            normalise_vector(direction)) > 0 else
-                  np.array([dy, -dx]))
-        normal = normalise_vector(normal)
-        normal /= 25
-
-        pylab.plot((u, u + normal[0] * 0.75),
-                   (v, v + normal[1] * 0.75),
-                   color='black',
-                   linewidth=1.5)
-        pylab.text(u + normal[0],
-                   v + normal[1],
-                   label,
-                   color='black',
-                   clip_on=True,
-                   ha='left' if normal[0] >= 0 else 'right',
-                   va='center',
-                   fontdict={'size': 'small'})
-
-    ticks = np.arange(-10, 10, 0.1)
-
-    pylab.xticks(ticks)
-    pylab.yticks(ticks)
-
-    settings.update({
-        'title': 'CIE 1976 UCS Chromaticity Diagram - {0}'.format(cmfs.title),
-        'x_label': 'CIE u\'',
-        'y_label': 'CIE v\'',
-        'grid': True,
-        'bounding_box': (0, 1, 0, 1)})
-    settings.update(kwargs)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return plot_chromaticity_diagram(
+        cmfs, show_diagram_colours, show_spectral_locus, **settings
+    )
 
 
-def spds_CIE_1931_chromaticity_diagram_plot(
-        spds,
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        annotate=True,
-        **kwargs):
+@override_style()
+def plot_chromaticity_diagram_CIE1976UCS(
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    show_diagram_colours: bool = True,
+    show_spectral_locus: bool = True,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots given spectral power distribution chromaticity coordinates into the
+    Plot the *CIE 1976 UCS Chromaticity Diagram*.
+
+    Parameters
+    ----------
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    show_diagram_colours
+        Whether to display the *Chromaticity Diagram* background colours.
+    show_spectral_locus
+        Whether to display the *Spectral Locus*.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
+
+    Returns
+    -------
+    :class:`tuple`
+        Current figure and axes.
+
+    Examples
+    --------
+    >>> plot_chromaticity_diagram_CIE1976UCS()  # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Chromaticity_Diagram_CIE1976UCS.png
+        :align: center
+        :alt: plot_chromaticity_diagram_CIE1976UCS
+    """
+
+    settings = dict(kwargs)
+    settings.update({"method": "CIE 1976 UCS"})
+
+    return plot_chromaticity_diagram(
+        cmfs, show_diagram_colours, show_spectral_locus, **settings
+    )
+
+
+@override_style()
+def plot_sds_in_chromaticity_diagram(
+    sds: Union[
+        Sequence[Union[SpectralDistribution, MultiSpectralDistributions]],
+        SpectralDistribution,
+        MultiSpectralDistributions,
+    ],
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    chromaticity_diagram_callable: Callable = plot_chromaticity_diagram,
+    method: Union[
+        Literal["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"], str
+    ] = "CIE 1931",
+    annotate_kwargs: Optional[Union[dict, List[dict]]] = None,
+    plot_kwargs: Optional[Union[dict, List[dict]]] = None,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Plot given spectral distribution chromaticity coordinates into the
+    *Chromaticity Diagram* using given method.
+
+    Parameters
+    ----------
+    sds
+        Spectral distributions or multi-spectral distributions to
+        plot. `sds` can be a single
+        :class:`colour.MultiSpectralDistributions` class instance, a list
+        of :class:`colour.MultiSpectralDistributions` class instances or a
+        List of :class:`colour.SpectralDistribution` class instances.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    chromaticity_diagram_callable
+        Callable responsible for drawing the *Chromaticity Diagram*.
+    method
+        *Chromaticity Diagram* method.
+    annotate_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.annotate`
+        definition, used to annotate the resulting chromaticity coordinates
+        with their respective spectral distribution names. ``annotate_kwargs``
+        can be either a single dictionary applied to all the arrows with same
+        settings or a sequence of dictionaries with different settings for each
+        spectral distribution. The following special keyword arguments can also
+        be used:
+
+        -   ``annotate`` : Whether to annotate the spectral distributions.
+    plot_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.plot` definition,
+        used to control the style of the plotted spectral distributions.
+        `plot_kwargs`` can be either a single dictionary applied to all the
+        plotted spectral distributions with the same settings or a sequence of
+        dictionaries with different settings for each plotted spectral
+        distributions. The following special keyword arguments can also be
+        used:
+
+        -   ``illuminant`` : The illuminant used to compute the spectral
+            distributions colours. The default is the illuminant associated
+            with the whitepoint of the default plotting colourspace.
+            ``illuminant`` can be of any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``cmfs`` : The standard observer colour matching functions used for
+            computing the spectral distributions colours. ``cmfs`` can be of
+            any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``normalise_sd_colours`` : Whether to normalise the computed
+            spectral distributions colours. The default is *True*.
+        -   ``use_sd_colours`` : Whether to use the computed spectral
+            distributions colours under the plotting colourspace illuminant.
+            Alternatively, it is possible to use the
+            :func:`matplotlib.pyplot.plot` definition ``color`` argument with
+            pre-computed values. The default is *True*.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
+
+    Returns
+    -------
+    :class:`tuple`
+        Current figure and axes.
+
+    Examples
+    --------
+    >>> A = SDS_ILLUMINANTS["A"]
+    >>> D65 = SDS_ILLUMINANTS["D65"]
+    >>> annotate_kwargs = [
+    ...     {"xytext": (-25, 15), "arrowprops": {"arrowstyle": "-"}},
+    ...     {},
+    ... ]
+    >>> plot_kwargs = [
+    ...     {
+    ...         "illuminant": SDS_ILLUMINANTS["E"],
+    ...         "markersize": 15,
+    ...         "normalise_sd_colours": True,
+    ...         "use_sd_colours": True,
+    ...     },
+    ...     {"illuminant": SDS_ILLUMINANTS["E"]},
+    ... ]
+    >>> plot_sds_in_chromaticity_diagram(
+    ...     [A, D65], annotate_kwargs=annotate_kwargs, plot_kwargs=plot_kwargs
+    ... )
+    ... # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_SDS_In_Chromaticity_Diagram.png
+        :align: center
+        :alt: plot_sds_in_chromaticity_diagram
+    """
+
+    method = validate_method(
+        method, ["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"]
+    )
+
+    sds_converted = sds_and_msds_to_sds(sds)
+
+    settings: Dict[str, Any] = {"uniform": True}
+    settings.update(kwargs)
+
+    _figure, axes = artist(**settings)
+
+    settings.update(
+        {
+            "axes": axes,
+            "standalone": False,
+            "method": method,
+            "cmfs": cmfs,
+        }
+    )
+
+    chromaticity_diagram_callable(**settings)
+
+    if method == "cie 1931":
+
+        def XYZ_to_ij(XYZ: NDArrayFloat) -> NDArrayFloat:
+            """
+            Convert given *CIE XYZ* tristimulus values to *ij* chromaticity
+            coordinates.
+            """
+
+            return XYZ_to_xy(XYZ)
+
+        bounding_box = (-0.1, 0.9, -0.1, 0.9)
+    elif method == "cie 1960 ucs":
+
+        def XYZ_to_ij(XYZ: NDArrayFloat) -> NDArrayFloat:
+            """
+            Convert given *CIE XYZ* tristimulus values to *ij* chromaticity
+            coordinates.
+            """
+
+            return UCS_to_uv(XYZ_to_UCS(XYZ))
+
+        bounding_box = (-0.1, 0.7, -0.2, 0.6)
+
+    elif method == "cie 1976 ucs":
+
+        def XYZ_to_ij(XYZ: NDArrayFloat) -> NDArrayFloat:
+            """
+            Convert given *CIE XYZ* tristimulus values to *ij* chromaticity
+            coordinates.
+            """
+
+            return Luv_to_uv(XYZ_to_Luv(XYZ))
+
+        bounding_box = (-0.1, 0.7, -0.1, 0.7)
+
+    annotate_settings_collection = [
+        {
+            "annotate": True,
+            "xytext": (-50, 30),
+            "textcoords": "offset points",
+            "arrowprops": CONSTANTS_ARROW_STYLE,
+            "zorder": CONSTANTS_COLOUR_STYLE.zorder.midground_annotation,
+        }
+        for _ in range(len(sds_converted))
+    ]
+
+    if annotate_kwargs is not None:
+        update_settings_collection(
+            annotate_settings_collection, annotate_kwargs, len(sds_converted)
+        )
+
+    plot_settings_collection = [
+        {
+            "color": CONSTANTS_COLOUR_STYLE.colour.brightest,
+            "label": f"{sd.display_name}",
+            "marker": "o",
+            "markeredgecolor": CONSTANTS_COLOUR_STYLE.colour.dark,
+            "markeredgewidth": CONSTANTS_COLOUR_STYLE.geometry.short * 0.75,
+            "markersize": (
+                CONSTANTS_COLOUR_STYLE.geometry.short * 6
+                + CONSTANTS_COLOUR_STYLE.geometry.short * 0.75
+            ),
+            "zorder": CONSTANTS_COLOUR_STYLE.zorder.midground_line,
+            "cmfs": cmfs,
+            "illuminant": SDS_ILLUMINANTS[
+                CONSTANTS_COLOUR_STYLE.colour.colourspace.whitepoint_name
+            ],
+            "use_sd_colours": False,
+            "normalise_sd_colours": False,
+        }
+        for sd in sds_converted
+    ]
+
+    if plot_kwargs is not None:
+        update_settings_collection(
+            plot_settings_collection, plot_kwargs, len(sds_converted)
+        )
+
+    for i, sd in enumerate(sds_converted):
+        plot_settings = plot_settings_collection[i]
+
+        cmfs = cast(
+            MultiSpectralDistributions,
+            first_item(filter_cmfs(plot_settings.pop("cmfs")).values()),
+        )
+        illuminant = cast(
+            SpectralDistribution,
+            first_item(
+                filter_illuminants(plot_settings.pop("illuminant")).values()
+            ),
+        )
+        normalise_sd_colours = plot_settings.pop("normalise_sd_colours")
+        use_sd_colours = plot_settings.pop("use_sd_colours")
+
+        with domain_range_scale("1"):
+            XYZ = sd_to_XYZ(sd, cmfs, illuminant)
+
+        if use_sd_colours:
+            if normalise_sd_colours:
+                XYZ /= XYZ[..., 1]
+
+            plot_settings["color"] = np.clip(
+                XYZ_to_plotting_colourspace(XYZ), 0, 1
+            )
+
+        ij = XYZ_to_ij(XYZ)
+
+        axes.plot(ij[0], ij[1], **plot_settings)
+
+        if sd.name is not None and annotate_settings_collection[i]["annotate"]:
+            annotate_settings = annotate_settings_collection[i]
+            annotate_settings.pop("annotate")
+
+            axes.annotate(sd.name, xy=ij, **annotate_settings)
+
+    settings.update({"standalone": True, "bounding_box": bounding_box})
+    settings.update(kwargs)
+
+    return render(**settings)
+
+
+@override_style()
+def plot_sds_in_chromaticity_diagram_CIE1931(
+    sds: Union[
+        Sequence[Union[SpectralDistribution, MultiSpectralDistributions]],
+        MultiSpectralDistributions,
+    ],
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    chromaticity_diagram_callable_CIE1931: Callable = (
+        plot_chromaticity_diagram_CIE1931
+    ),
+    annotate_kwargs: Optional[Union[dict, List[dict]]] = None,
+    plot_kwargs: Optional[Union[dict, List[dict]]] = None,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Plot given spectral distribution chromaticity coordinates into the
     *CIE 1931 Chromaticity Diagram*.
 
     Parameters
     ----------
-    spds : array_like, optional
-        Spectral power distributions to plot.
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    annotate : bool
-        Should resulting chromaticity coordinates annotated with their
-        respective spectral power distribution names.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    sds
+        Spectral distributions or multi-spectral distributions to
+        plot. `sds` can be a single :class:`colour.MultiSpectralDistributions`
+        class instance, a list of :class:`colour.MultiSpectralDistributions`
+        class instances or a list of :class:`colour.SpectralDistribution` class
+        instances.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    chromaticity_diagram_callable_CIE1931
+        Callable responsible for drawing the *CIE 1931 Chromaticity Diagram*.
+    annotate_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.annotate`
+        definition, used to annotate the resulting chromaticity coordinates
+        with their respective spectral distribution names. ``annotate_kwargs``
+        can be either a single dictionary applied to all the arrows with same
+        settings or a sequence of dictionaries with different settings for each
+        spectral distribution. The following special keyword arguments can also
+        be used:
+
+        -   ``annotate`` : Whether to annotate the spectral distributions.
+    plot_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.plot` definition,
+        used to control the style of the plotted spectral distributions.
+        `plot_kwargs`` can be either a single dictionary applied to all the
+        plotted spectral distributions with the same settings or a sequence of
+        dictionaries with different settings for each plotted spectral
+        distributions. The following special keyword arguments can also be
+        used:
+
+        -   ``illuminant`` : The illuminant used to compute the spectral
+            distributions colours. The default is the illuminant associated
+            with the whitepoint of the default plotting colourspace.
+            ``illuminant`` can be of any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``cmfs`` : The standard observer colour matching functions used for
+            computing the spectral distributions colours. ``cmfs`` can be of
+            any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``normalise_sd_colours`` : Whether to normalise the computed
+            spectral distributions colours. The default is *True*.
+        -   ``use_sd_colours`` : Whether to use the computed spectral
+            distributions colours under the plotting colourspace illuminant.
+            Alternatively, it is possible to use the
+            :func:`matplotlib.pyplot.plot` definition ``color`` argument with
+            pre-computed values. The default is *True*.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> from colour import ILLUMINANTS_RELATIVE_SPDS
-    >>> A = ILLUMINANTS_RELATIVE_SPDS['A']
-    >>> D65 = ILLUMINANTS_RELATIVE_SPDS['D65']
-    >>> spds_CIE_1931_chromaticity_diagram_plot([A, D65])  # doctest: +SKIP
+    >>> A = SDS_ILLUMINANTS["A"]
+    >>> D65 = SDS_ILLUMINANTS["D65"]
+    >>> plot_sds_in_chromaticity_diagram_CIE1931([A, D65])
+    ... # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_\
+Plot_SDS_In_Chromaticity_Diagram_CIE1931.png
+        :align: center
+        :alt: plot_sds_in_chromaticity_diagram_CIE1931
     """
 
-    settings = {}
-    settings.update(kwargs)
-    settings.update({'standalone': False})
+    settings = dict(kwargs)
+    settings.update({"method": "CIE 1931"})
 
-    CIE_1931_chromaticity_diagram_plot(cmfs=cmfs, **settings)
-
-    for spd in spds:
-        XYZ = spectral_to_XYZ(spd) / 100
-        xy = XYZ_to_xy(XYZ)
-
-        pylab.plot(xy[0], xy[1], 'o', color='white')
-
-        if spd.name is not None and annotate:
-            pylab.annotate(spd.name,
-                           xy=xy,
-                           xytext=(50, 30),
-                           color='black',
-                           textcoords='offset points',
-                           arrowprops=dict(arrowstyle='->',
-                                           connectionstyle='arc3, rad=0.2'))
-
-    settings.update({
-        'x_tighten': True,
-        'y_tighten': True,
-        'limits': (-0.1, 0.9, -0.1, 0.9),
-        'standalone': True})
-    settings.update(kwargs)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return plot_sds_in_chromaticity_diagram(
+        sds,
+        cmfs,
+        chromaticity_diagram_callable_CIE1931,
+        annotate_kwargs=annotate_kwargs,
+        plot_kwargs=plot_kwargs,
+        **settings,
+    )
 
 
-def spds_CIE_1960_UCS_chromaticity_diagram_plot(
-        spds,
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        annotate=True,
-        **kwargs):
+@override_style()
+def plot_sds_in_chromaticity_diagram_CIE1960UCS(
+    sds: Union[
+        Sequence[Union[SpectralDistribution, MultiSpectralDistributions]],
+        MultiSpectralDistributions,
+    ],
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    chromaticity_diagram_callable_CIE1960UCS: Callable = (
+        plot_chromaticity_diagram_CIE1960UCS
+    ),
+    annotate_kwargs: Optional[Union[dict, List[dict]]] = None,
+    plot_kwargs: Optional[Union[dict, List[dict]]] = None,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots given spectral power distribution chromaticity coordinates into the
+    Plot given spectral distribution chromaticity coordinates into the
     *CIE 1960 UCS Chromaticity Diagram*.
 
     Parameters
     ----------
-    spds : array_like, optional
-        Spectral power distributions to plot.
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    annotate : bool
-        Should resulting chromaticity coordinates annotated with their
-        respective spectral power distribution names.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    sds
+        Spectral distributions or multi-spectral distributions to
+        plot. `sds` can be a single :class:`colour.MultiSpectralDistributions`
+        class instance, a list of :class:`colour.MultiSpectralDistributions`
+        class instances or a list of :class:`colour.SpectralDistribution` class
+        instances.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    chromaticity_diagram_callable_CIE1960UCS
+        Callable responsible for drawing the
+        *CIE 1960 UCS Chromaticity Diagram*.
+    annotate_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.annotate`
+        definition, used to annotate the resulting chromaticity coordinates
+        with their respective spectral distribution names. ``annotate_kwargs``
+        can be either a single dictionary applied to all the arrows with same
+        settings or a sequence of dictionaries with different settings for each
+        spectral distribution. The following special keyword arguments can also
+        be used:
+
+        -   ``annotate`` : Whether to annotate the spectral distributions.
+    plot_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.plot` definition,
+        used to control the style of the plotted spectral distributions.
+        `plot_kwargs`` can be either a single dictionary applied to all the
+        plotted spectral distributions with the same settings or a sequence of
+        dictionaries with different settings for each plotted spectral
+        distributions. The following special keyword arguments can also be
+        used:
+
+        -   ``illuminant`` : The illuminant used to compute the spectral
+            distributions colours. The default is the illuminant associated
+            with the whitepoint of the default plotting colourspace.
+            ``illuminant`` can be of any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``cmfs`` : The standard observer colour matching functions used for
+            computing the spectral distributions colours. ``cmfs`` can be of
+            any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``normalise_sd_colours`` : Whether to normalise the computed
+            spectral distributions colours. The default is *True*.
+        -   ``use_sd_colours`` : Whether to use the computed spectral
+            distributions colours under the plotting colourspace illuminant.
+            Alternatively, it is possible to use the
+            :func:`matplotlib.pyplot.plot` definition ``color`` argument with
+            pre-computed values. The default is *True*.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> from colour import ILLUMINANTS_RELATIVE_SPDS
-    >>> A = ILLUMINANTS_RELATIVE_SPDS['A']
-    >>> D65 = ILLUMINANTS_RELATIVE_SPDS['D65']
-    >>> spds_CIE_1960_UCS_chromaticity_diagram_plot([A, D65])  # doctest: +SKIP
+    >>> A = SDS_ILLUMINANTS["A"]
+    >>> D65 = SDS_ILLUMINANTS["D65"]
+    >>> plot_sds_in_chromaticity_diagram_CIE1960UCS([A, D65])
+    ... # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_\
+Plot_SDS_In_Chromaticity_Diagram_CIE1960UCS.png
+        :align: center
+        :alt: plot_sds_in_chromaticity_diagram_CIE1960UCS
     """
 
-    settings = {}
-    settings.update(kwargs)
-    settings.update({'standalone': False})
+    settings = dict(kwargs)
+    settings.update({"method": "CIE 1960 UCS"})
 
-    CIE_1960_UCS_chromaticity_diagram_plot(cmfs=cmfs, **settings)
-
-    for spd in spds:
-        XYZ = spectral_to_XYZ(spd) / 100
-        uv = UCS_to_uv(XYZ_to_UCS(XYZ))
-
-        pylab.plot(uv[0], uv[1], 'o', color='white')
-
-        if spd.name is not None and annotate:
-            pylab.annotate(spd.name,
-                           xy=uv,
-                           xytext=(50, 30),
-                           color='black',
-                           textcoords='offset points',
-                           arrowprops=dict(arrowstyle='->',
-                                           connectionstyle='arc3, rad=0.2'))
-
-    settings.update({
-        'x_tighten': True,
-        'y_tighten': True,
-        'limits': (-0.1, 0.7, -0.2, 0.6),
-        'standalone': True})
-    settings.update(kwargs)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return plot_sds_in_chromaticity_diagram(
+        sds,
+        cmfs,
+        chromaticity_diagram_callable_CIE1960UCS,
+        annotate_kwargs=annotate_kwargs,
+        plot_kwargs=plot_kwargs,
+        **settings,
+    )
 
 
-def spds_CIE_1976_UCS_chromaticity_diagram_plot(
-        spds,
-        cmfs='CIE 1931 2 Degree Standard Observer',
-        annotate=True,
-        **kwargs):
+@override_style()
+def plot_sds_in_chromaticity_diagram_CIE1976UCS(
+    sds: Union[
+        Sequence[Union[SpectralDistribution, MultiSpectralDistributions]],
+        MultiSpectralDistributions,
+    ],
+    cmfs: Union[
+        MultiSpectralDistributions,
+        str,
+        Sequence[Union[MultiSpectralDistributions, str]],
+    ] = "CIE 1931 2 Degree Standard Observer",
+    chromaticity_diagram_callable_CIE1976UCS: Callable = (
+        plot_chromaticity_diagram_CIE1976UCS
+    ),
+    annotate_kwargs: Optional[Union[dict, List[dict]]] = None,
+    plot_kwargs: Optional[Union[dict, List[dict]]] = None,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots given spectral power distribution chromaticity coordinates into the
+    Plot given spectral distribution chromaticity coordinates into the
     *CIE 1976 UCS Chromaticity Diagram*.
 
     Parameters
     ----------
-    spds : array_like, optional
-        Spectral power distributions to plot.
-    cmfs : unicode, optional
-        Standard observer colour matching functions used for diagram bounds.
-    annotate : bool
-        Should resulting chromaticity coordinates annotated with their
-        respective spectral power distribution names.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    sds
+        Spectral distributions or multi-spectral distributions to
+        plot. `sds` can be a single :class:`colour.MultiSpectralDistributions`
+        class instance, a list of :class:`colour.MultiSpectralDistributions`
+        class instances or a list of :class:`colour.SpectralDistribution` class
+        instances.
+    cmfs
+        Standard observer colour matching functions used for computing the
+        spectral locus boundaries. ``cmfs`` can be of any type or form
+        supported by the :func:`colour.plotting.common.filter_cmfs` definition.
+    chromaticity_diagram_callable_CIE1976UCS
+        Callable responsible for drawing the
+        *CIE 1976 UCS Chromaticity Diagram*.
+    annotate_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.annotate`
+        definition, used to annotate the resulting chromaticity coordinates
+        with their respective spectral distribution names. ``annotate_kwargs``
+        can be either a single dictionary applied to all the arrows with same
+        settings or a sequence of dictionaries with different settings for each
+        spectral distribution. The following special keyword arguments can also
+        be used:
+
+        -   ``annotate`` : Whether to annotate the spectral distributions.
+    plot_kwargs
+        Keyword arguments for the :func:`matplotlib.pyplot.plot` definition,
+        used to control the style of the plotted spectral distributions.
+        `plot_kwargs`` can be either a single dictionary applied to all the
+        plotted spectral distributions with the same settings or a sequence of
+        dictionaries with different settings for each plotted spectral
+        distributions. The following special keyword arguments can also be
+        used:
+
+        -   ``illuminant`` : The illuminant used to compute the spectral
+            distributions colours. The default is the illuminant associated
+            with the whitepoint of the default plotting colourspace.
+            ``illuminant`` can be of any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``cmfs`` : The standard observer colour matching functions used for
+            computing the spectral distributions colours. ``cmfs`` can be of
+            any type or form supported by the
+            :func:`colour.plotting.common.filter_cmfs` definition.
+        -   ``normalise_sd_colours`` : Whether to normalise the computed
+            spectral distributions colours. The default is *True*.
+        -   ``use_sd_colours`` : Whether to use the computed spectral
+            distributions colours under the plotting colourspace illuminant.
+            Alternatively, it is possible to use the
+            :func:`matplotlib.pyplot.plot` definition ``color`` argument with
+            pre-computed values. The default is *True*.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> from colour import ILLUMINANTS_RELATIVE_SPDS
-    >>> A = ILLUMINANTS_RELATIVE_SPDS['A']
-    >>> D65 = ILLUMINANTS_RELATIVE_SPDS['D65']
-    >>> spds_CIE_1976_UCS_chromaticity_diagram_plot([A, D65])  # doctest: +SKIP
+    >>> A = SDS_ILLUMINANTS["A"]
+    >>> D65 = SDS_ILLUMINANTS["D65"]
+    >>> plot_sds_in_chromaticity_diagram_CIE1976UCS([A, D65])
+    ... # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_\
+Plot_SDS_In_Chromaticity_Diagram_CIE1976UCS.png
+        :align: center
+        :alt: plot_sds_in_chromaticity_diagram_CIE1976UCS
     """
 
-    settings = {}
-    settings.update(kwargs)
-    settings.update({'standalone': False})
+    settings = dict(kwargs)
+    settings.update({"method": "CIE 1976 UCS"})
 
-    CIE_1976_UCS_chromaticity_diagram_plot(cmfs=cmfs, **settings)
-
-    for spd in spds:
-        XYZ = spectral_to_XYZ(spd) / 100
-        uv = Luv_to_uv(XYZ_to_Luv(XYZ))
-
-        pylab.plot(uv[0], uv[1], 'o', color='white')
-
-        if spd.name is not None and annotate:
-            pylab.annotate(spd.name,
-                           xy=uv,
-                           xytext=(50, 30),
-                           color='black',
-                           textcoords='offset points',
-                           arrowprops=dict(arrowstyle='->',
-                                           connectionstyle='arc3, rad=0.2'))
-
-    settings.update({
-        'x_tighten': True,
-        'y_tighten': True,
-        'limits': (-0.1, 0.7, -0.1, 0.7),
-        'standalone': True})
-    settings.update(kwargs)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return plot_sds_in_chromaticity_diagram(
+        sds,
+        cmfs,
+        chromaticity_diagram_callable_CIE1976UCS,
+        annotate_kwargs=annotate_kwargs,
+        plot_kwargs=plot_kwargs,
+        **settings,
+    )

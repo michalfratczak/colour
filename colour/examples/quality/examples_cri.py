@@ -1,39 +1,38 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases colour rendering index computations.
-"""
+"""Showcases *Colour Rendering Index* (CRI) computations."""
 
 from pprint import pprint
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
-message_box('Colour Rendering Index Computations')
+message_box("Colour Rendering Index Computations")
 
-message_box('Computing "F2" illuminant colour rendering index.')
-print(colour.colour_rendering_index(
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('F2')))
+message_box('Computing the "F2" illuminant "Colour Rendering Index (CRI)".')
+print(colour.colour_rendering_index(colour.SDS_ILLUMINANTS["FL2"]))
 
-print('\n')
+print("\n")
 
-message_box(('Computing "F2" illuminant colour rendering index with detailed '
-             'output data.'))
-pprint(colour.colour_rendering_index(
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('F2'),
-    additional_data=True))
+message_box(
+    'Computing the "F2" illuminant "Colour Rendering Index" (CRI) with '
+    "detailed output data."
+)
+pprint(
+    colour.colour_rendering_index(
+        colour.SDS_ILLUMINANTS["FL2"], additional_data=True
+    )
+)
 
-print('\n')
+print("\n")
 
-message_box('Computing "CIE Standard Illuminant A" colour rendering index.')
-print(colour.colour_rendering_index(
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('A')))
+message_box(
+    'Computing the "CIE Standard Illuminant A" "Colour Rendering Index (CRI)".'
+)
+print(colour.colour_rendering_index(colour.SDS_ILLUMINANTS["A"]))
 
-print('\n')
+print("\n")
 
-message_box('Computing sample light colour rendering index.')
-SAMPLE_SPD_DATA = {
+message_box('Computing the sample light "Colour Rendering Index (CRI)".')
+data_sample = {
     380: 0.00588346,
     385: 0.00315377,
     390: 0.00242868,
@@ -114,7 +113,11 @@ SAMPLE_SPD_DATA = {
     765: 0.00340568,
     770: 0.00261153,
     775: 0.00258850,
-    780: 0.00293663}
+    780: 0.00293663,
+}
 
-print(colour.colour_rendering_index(
-    colour.SpectralPowerDistribution('Sample', SAMPLE_SPD_DATA)))
+print(
+    colour.colour_rendering_index(
+        colour.SpectralDistribution(data_sample, name="Sample")
+    )
+)

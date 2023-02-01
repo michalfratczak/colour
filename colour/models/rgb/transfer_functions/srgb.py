@@ -1,94 +1,134 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-sRGB Colourspace
-================
+SRGB
+====
 
-Defines *sRGB* colourspace opto-electrical transfer function (OETF / OECF) and
-electro-optical transfer function (EOTF / EOCF):
+Defines the *sRGB* electro-optical transfer function (EOTF) and its
+inverse:
 
--   :func:`oetf_sRGB`
--   :func:`eotf_sRGB`
-
-See Also
---------
-`RGB Colourspaces IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/models/rgb.ipynb>`_
+-   :func:`colour.models.eotf_inverse_sRGB`
+-   :func:`colour.models.eotf_sRGB`
 
 References
 ----------
-.. [1]  International Electrotechnical Commission. (1999). IEC 61966-2-1:1999 -
-        Multimedia systems and equipment - Colour measurement and management -
-        Part 2-1: Colour management - Default RGB colour space - sRGB, 51.
-        Retrieved from https://webstore.iec.ch/publication/6169
-.. [2]  International Telecommunication Union. (2015). Recommendation
-        ITU-R BT.709-6 - Parameter values for the HDTV standards for
-        production and international programme exchange BT Series Broadcasting
-        service (Vol. 5). Retrieved from https://www.itu.int/dms_pubrec/\
-itu-r/rec/bt/R-REC-BT.709-6-201506-I!!PDF-E.pdf
+-   :cite:`InternationalElectrotechnicalCommission1999a` : International
+    Electrotechnical Commission. (1999). IEC 61966-2-1:1999 - Multimedia
+    systems and equipment - Colour measurement and management - Part 2-1:
+    Colour management - Default RGB colour space - sRGB (p. 51).
+    https://webstore.iec.ch/publication/6169
+-   :cite:`InternationalTelecommunicationUnion2015i` : International
+    Telecommunication Union. (2015). Recommendation ITU-R BT.709-6 - Parameter
+    values for the HDTV standards for production and international programme
+    exchange BT Series Broadcasting service (pp. 1-32).
+    https://www.itu.int/dms_pubrec/itu-r/rec/bt/\
+R-REC-BT.709-6-201506-I!!PDF-E.pdf
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
 import numpy as np
 
-from colour.utilities import as_numeric, warning
+from colour.algebra import spow
+from colour.hints import ArrayLike, NDArrayFloat
+from colour.utilities import (
+    as_float,
+    domain_range_scale,
+    from_range_1,
+    to_domain_1,
+)
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-__all__ = ['oetf_sRGB',
-           'eotf_sRGB']
+__all__ = [
+    "eotf_inverse_sRGB",
+    "eotf_sRGB",
+]
 
 
-def oetf_sRGB(L):
+def eotf_inverse_sRGB(L: ArrayLike) -> NDArrayFloat:
     """
-    Defines the *sRGB* colourspace opto-electronic transfer function
-    (OETF / OECF).
+    Define the *IEC 61966-2-1:1999* *sRGB* inverse electro-optical transfer
+    function (EOTF).
 
     Parameters
     ----------
-    L : numeric or array_like
+    L
         *Luminance* :math:`L` of the image.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Corresponding electrical signal :math:`V`.
+
+    Notes
+    -----
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``L``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``V``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`InternationalElectrotechnicalCommission1999a`,
+    :cite:`InternationalTelecommunicationUnion2015i`
 
     Examples
     --------
-    >>> oetf_sRGB(0.18)  # doctest: +ELLIPSIS
+    >>> eotf_inverse_sRGB(0.18)  # doctest: +ELLIPSIS
     0.4613561...
     """
 
-    L = np.asarray(L)
+    L = to_domain_1(L)
 
-    return as_numeric(np.where(L <= 0.0031308,
-                               L * 12.92,
-                               1.055 * (L ** (1 / 2.4)) - 0.055))
+    V = np.where(L <= 0.0031308, L * 12.92, 1.055 * spow(L, 1 / 2.4) - 0.055)
+
+    return as_float(from_range_1(V))
 
 
-def eotf_sRGB(V):
+def eotf_sRGB(V: ArrayLike) -> NDArrayFloat:
     """
-    Defines the *sRGB* colourspace electro-optical transfer function
-    (EOTF / EOCF).
+    Define the *IEC 61966-2-1:1999* *sRGB* electro-optical transfer function
+    (EOTF).
 
     Parameters
     ----------
-    V : numeric or array_like
-        Electrical signal :math:`V`..
+    V
+        Electrical signal :math:`V`.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Corresponding *luminance* :math:`L` of the image.
+
+    Notes
+    -----
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``V``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``L``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`InternationalElectrotechnicalCommission1999a`,
+    :cite:`InternationalTelecommunicationUnion2015i`
 
     Examples
     --------
@@ -96,16 +136,13 @@ def eotf_sRGB(V):
     0.1...
     """
 
-    warning(('*sRGB* *OETF* is a piece-wise function: in order to reduce '
-             'noise in dark region, a line segment limits the slope of the '
-             'power function (slope of a power function is infinite at zero). '
-             'This is not needed for *sRGB* *EOTF*, a pure gamma 2.2 function '
-             'should be use instead. This definition is used for symmetry in '
-             'unit tests and others computations but should not be used as an '
-             '*EOTF*!'))
+    V = to_domain_1(V)
 
-    V = np.asarray(V)
+    with domain_range_scale("ignore"):
+        L = np.where(
+            V <= eotf_inverse_sRGB(0.0031308),
+            V / 12.92,
+            spow((V + 0.055) / 1.055, 2.4),
+        )
 
-    return as_numeric(np.where(V <= oetf_sRGB(0.0031308),
-                               V / 12.92,
-                               ((V + 0.055) / 1.055) ** 2.4))
+    return as_float(from_range_1(L))

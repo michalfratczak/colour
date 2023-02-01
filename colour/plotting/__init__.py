@@ -1,162 +1,210 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+from colour.utilities import is_matplotlib_installed
 
-from __future__ import absolute_import
+is_matplotlib_installed(raise_exception=True)
 
-from .dataset import *  # noqa
-from . import dataset
-from .common import (
-    PLOTTING_RESOURCES_DIRECTORY,
-    DEFAULT_FIGURE_ASPECT_RATIO,
-    DEFAULT_FIGURE_WIDTH,
-    DEFAULT_FIGURE_HEIGHT,
-    DEFAULT_FIGURE_SIZE,
-    DEFAULT_FONT_SIZE,
-    DEFAULT_COLOUR_CYCLE,
-    DEFAULT_HATCH_PATTERNS,
-    DEFAULT_PARAMETERS,
-    DEFAULT_PLOTTING_ILLUMINANT,
-    DEFAULT_PLOTTING_ENCODING_CCTF,
-    ColourParameter,
+from .datasets import *  # noqa
+from . import datasets  # noqa
+from .common import (  # noqa
+    CONSTANTS_COLOUR_STYLE,
+    CONSTANTS_ARROW_STYLE,
+    colour_style,
+    override_style,
+    XYZ_to_plotting_colourspace,
+    ColourSwatch,
     colour_cycle,
-    canvas,
+    artist,
     camera,
-    decorate,
-    boundaries,
-    display,
+    render,
     label_rectangles,
-    equal_axes3d,
-    get_RGB_colourspace,
-    get_cmfs,
-    get_illuminant,
-    colour_parameters_plot,
-    single_colour_plot,
-    multi_colour_plot,
-    image_plot)
-from .colorimetry import (
-    single_spd_plot,
-    multi_spd_plot,
-    single_cmfs_plot,
-    multi_cmfs_plot,
-    single_illuminant_relative_spd_plot,
-    multi_illuminants_relative_spd_plot,
-    visible_spectrum_plot,
-    single_lightness_function_plot,
-    multi_lightness_function_plot,
-    blackbody_spectral_radiance_plot,
-    blackbody_colours_plot)
-from .characterisation import colour_checker_plot
-from .diagrams import (
-    CIE_1931_chromaticity_diagram_plot,
-    CIE_1960_UCS_chromaticity_diagram_plot,
-    CIE_1976_UCS_chromaticity_diagram_plot,
-    spds_CIE_1931_chromaticity_diagram_plot,
-    spds_CIE_1960_UCS_chromaticity_diagram_plot,
-    spds_CIE_1976_UCS_chromaticity_diagram_plot)
-from .corresponding import corresponding_chromaticities_prediction_plot
-from .geometry import (
-    quad,
-    grid,
-    cube)
-from .models import (
-    RGB_colourspaces_CIE_1931_chromaticity_diagram_plot,
-    RGB_colourspaces_CIE_1960_UCS_chromaticity_diagram_plot,
-    RGB_colourspaces_CIE_1976_UCS_chromaticity_diagram_plot,
-    RGB_chromaticity_coordinates_CIE_1931_chromaticity_diagram_plot,
-    RGB_chromaticity_coordinates_CIE_1960_UCS_chromaticity_diagram_plot,
-    RGB_chromaticity_coordinates_CIE_1976_UCS_chromaticity_diagram_plot,
-    single_cctf_plot,
-    multi_cctf_plot)
-from .notation import (
-    single_munsell_value_function_plot,
-    multi_munsell_value_function_plot)
-from .phenomenon import single_rayleigh_scattering_spd_plot, the_blue_sky_plot
-from .quality import (
-    single_spd_colour_rendering_index_bars_plot,
-    multi_spd_colour_rendering_index_bars_plot,
-    single_spd_colour_quality_scale_bars_plot,
-    multi_spd_colour_quality_scale_bars_plot)
-from .temperature import (
-    planckian_locus_CIE_1931_chromaticity_diagram_plot,
-    planckian_locus_CIE_1960_UCS_chromaticity_diagram_plot)
-from .volume import RGB_colourspaces_gamuts_plot, RGB_scatter_plot
+    uniform_axes3d,
+    filter_passthrough,
+    filter_RGB_colourspaces,
+    filter_cmfs,
+    filter_illuminants,
+    filter_colour_checkers,
+    update_settings_collection,
+    plot_single_colour_swatch,
+    plot_multi_colour_swatches,
+    plot_single_function,
+    plot_multi_functions,
+    plot_image,
+)
+from .blindness import plot_cvd_simulation_Machado2009  # noqa
+from .colorimetry import (  # noqa
+    plot_single_sd,
+    plot_multi_sds,
+    plot_single_cmfs,
+    plot_multi_cmfs,
+    plot_single_illuminant_sd,
+    plot_multi_illuminant_sds,
+    plot_visible_spectrum,
+    plot_single_lightness_function,
+    plot_multi_lightness_functions,
+    plot_single_luminance_function,
+    plot_multi_luminance_functions,
+    plot_blackbody_spectral_radiance,
+    plot_blackbody_colours,
+)
+from .characterisation import (  # noqa
+    plot_single_colour_checker,
+    plot_multi_colour_checkers,
+)
+from .diagrams import (  # noqa
+    plot_chromaticity_diagram_CIE1931,
+    plot_chromaticity_diagram_CIE1960UCS,
+    plot_chromaticity_diagram_CIE1976UCS,
+    plot_sds_in_chromaticity_diagram_CIE1931,
+    plot_sds_in_chromaticity_diagram_CIE1960UCS,
+    plot_sds_in_chromaticity_diagram_CIE1976UCS,
+)
+from .corresponding import plot_corresponding_chromaticities_prediction  # noqa
+from .graph import plot_automatic_colour_conversion_graph  # noqa
+from .models import (  # noqa
+    colourspace_model_axis_reorder,
+    plot_pointer_gamut,
+    plot_RGB_colourspaces_in_chromaticity_diagram_CIE1931,
+    plot_RGB_colourspaces_in_chromaticity_diagram_CIE1960UCS,
+    plot_RGB_colourspaces_in_chromaticity_diagram_CIE1976UCS,
+    plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931,
+    plot_RGB_chromaticities_in_chromaticity_diagram_CIE1960UCS,
+    plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS,
+    plot_ellipses_MacAdam1942_in_chromaticity_diagram_CIE1931,
+    plot_ellipses_MacAdam1942_in_chromaticity_diagram_CIE1960UCS,
+    plot_ellipses_MacAdam1942_in_chromaticity_diagram_CIE1976UCS,
+    plot_single_cctf,
+    plot_multi_cctfs,
+    plot_constant_hue_loci,
+)
+from .notation import (  # noqa
+    plot_single_munsell_value_function,
+    plot_multi_munsell_value_functions,
+)
+from .phenomena import (  # noqa
+    plot_single_sd_rayleigh_scattering,
+    plot_the_blue_sky,
+)
+from .quality import (  # noqa
+    plot_single_sd_colour_rendering_index_bars,
+    plot_multi_sds_colour_rendering_indexes_bars,
+    plot_single_sd_colour_quality_scale_bars,
+    plot_multi_sds_colour_quality_scales_bars,
+)
+from .section import (  # noqa
+    plot_visible_spectrum_section,
+    plot_RGB_colourspace_section,
+)
+from .temperature import (  # noqa
+    plot_planckian_locus_in_chromaticity_diagram_CIE1931,
+    plot_planckian_locus_in_chromaticity_diagram_CIE1960UCS,
+)
+from .tm3018 import plot_single_sd_colour_rendition_report  # noqa
+from .volume import plot_RGB_colourspaces_gamuts, plot_RGB_scatter  # noqa
 
 __all__ = []
-__all__ += dataset.__all__
+__all__ += datasets.__all__
 __all__ += [
-    'PLOTTING_RESOURCES_DIRECTORY',
-    'DEFAULT_FIGURE_ASPECT_RATIO',
-    'DEFAULT_FIGURE_WIDTH',
-    'DEFAULT_FIGURE_HEIGHT',
-    'DEFAULT_FIGURE_SIZE',
-    'DEFAULT_FONT_SIZE',
-    'DEFAULT_COLOUR_CYCLE',
-    'DEFAULT_HATCH_PATTERNS',
-    'DEFAULT_PARAMETERS',
-    'DEFAULT_PLOTTING_ILLUMINANT',
-    'DEFAULT_PLOTTING_ENCODING_CCTF',
-    'ColourParameter',
-    'colour_cycle',
-    'canvas',
-    'camera',
-    'decorate',
-    'boundaries',
-    'display',
-    'label_rectangles',
-    'equal_axes3d',
-    'get_RGB_colourspace',
-    'get_cmfs',
-    'get_illuminant',
-    'colour_parameters_plot',
-    'single_colour_plot',
-    'multi_colour_plot',
-    'image_plot']
+    "CONSTANTS_COLOUR_STYLE",
+    "CONSTANTS_ARROW_STYLE",
+    "colour_style",
+    "override_style",
+    "XYZ_to_plotting_colourspace",
+    "ColourSwatch",
+    "colour_cycle",
+    "artist",
+    "camera",
+    "render",
+    "label_rectangles",
+    "uniform_axes3d",
+    "filter_passthrough",
+    "filter_RGB_colourspaces",
+    "filter_cmfs",
+    "filter_illuminants",
+    "filter_colour_checkers",
+    "update_settings_collection",
+    "plot_single_colour_swatch",
+    "plot_multi_colour_swatches",
+    "plot_single_function",
+    "plot_multi_functions",
+    "plot_image",
+]
 __all__ += [
-    'single_spd_plot',
-    'multi_spd_plot',
-    'single_cmfs_plot',
-    'multi_cmfs_plot',
-    'single_illuminant_relative_spd_plot',
-    'multi_illuminants_relative_spd_plot',
-    'visible_spectrum_plot',
-    'single_lightness_function_plot',
-    'multi_lightness_function_plot',
-    'blackbody_spectral_radiance_plot',
-    'blackbody_colours_plot']
+    "plot_cvd_simulation_Machado2009",
+]
 __all__ += [
-    'colour_checker_plot']
+    "plot_single_sd",
+    "plot_multi_sds",
+    "plot_single_cmfs",
+    "plot_multi_cmfs",
+    "plot_single_illuminant_sd",
+    "plot_multi_illuminant_sds",
+    "plot_visible_spectrum",
+    "plot_single_lightness_function",
+    "plot_multi_lightness_functions",
+    "plot_single_luminance_function",
+    "plot_multi_luminance_functions",
+    "plot_blackbody_spectral_radiance",
+    "plot_blackbody_colours",
+]
 __all__ += [
-    'CIE_1931_chromaticity_diagram_plot',
-    'CIE_1960_UCS_chromaticity_diagram_plot',
-    'CIE_1976_UCS_chromaticity_diagram_plot',
-    'spds_CIE_1931_chromaticity_diagram_plot',
-    'spds_CIE_1960_UCS_chromaticity_diagram_plot',
-    'spds_CIE_1976_UCS_chromaticity_diagram_plot']
+    "plot_single_colour_checker",
+    "plot_multi_colour_checkers",
+]
 __all__ += [
-    'corresponding_chromaticities_prediction_plot']
+    "plot_chromaticity_diagram_CIE1931",
+    "plot_chromaticity_diagram_CIE1960UCS",
+    "plot_chromaticity_diagram_CIE1976UCS",
+    "plot_sds_in_chromaticity_diagram_CIE1931",
+    "plot_sds_in_chromaticity_diagram_CIE1960UCS",
+    "plot_sds_in_chromaticity_diagram_CIE1976UCS",
+]
 __all__ += [
-    'quad',
-    'grid',
-    'cube']
+    "plot_corresponding_chromaticities_prediction",
+]
 __all__ += [
-    'RGB_colourspaces_CIE_1931_chromaticity_diagram_plot',
-    'RGB_colourspaces_CIE_1960_UCS_chromaticity_diagram_plot',
-    'RGB_colourspaces_CIE_1976_UCS_chromaticity_diagram_plot',
-    'RGB_chromaticity_coordinates_CIE_1931_chromaticity_diagram_plot',
-    'RGB_chromaticity_coordinates_CIE_1960_UCS_chromaticity_diagram_plot',
-    'RGB_chromaticity_coordinates_CIE_1976_UCS_chromaticity_diagram_plot',
-    'single_cctf_plot',
-    'multi_cctf_plot']
+    "plot_automatic_colour_conversion_graph",
+]
 __all__ += [
-    'single_munsell_value_function_plot',
-    'multi_munsell_value_function_plot']
-__all__ += ['single_rayleigh_scattering_spd_plot', 'the_blue_sky_plot']
+    "colourspace_model_axis_reorder",
+    "plot_pointer_gamut",
+    "plot_RGB_colourspaces_in_chromaticity_diagram_CIE1931",
+    "plot_RGB_colourspaces_in_chromaticity_diagram_CIE1960UCS",
+    "plot_RGB_colourspaces_in_chromaticity_diagram_CIE1976UCS",
+    "plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931",
+    "plot_RGB_chromaticities_in_chromaticity_diagram_CIE1960UCS",
+    "plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS",
+    "plot_ellipses_MacAdam1942_in_chromaticity_diagram_CIE1931",
+    "plot_ellipses_MacAdam1942_in_chromaticity_diagram_CIE1960UCS",
+    "plot_ellipses_MacAdam1942_in_chromaticity_diagram_CIE1976UCS",
+    "plot_single_cctf",
+    "plot_multi_cctfs",
+    "plot_constant_hue_loci",
+]
 __all__ += [
-    'single_spd_colour_rendering_index_bars_plot',
-    'multi_spd_colour_rendering_index_bars_plot',
-    'single_spd_colour_quality_scale_bars_plot',
-    'multi_spd_colour_quality_scale_bars_plot']
+    "plot_single_munsell_value_function",
+    "plot_multi_munsell_value_functions",
+]
 __all__ += [
-    'planckian_locus_CIE_1931_chromaticity_diagram_plot',
-    'planckian_locus_CIE_1960_UCS_chromaticity_diagram_plot']
-__all__ += ['RGB_colourspaces_gamuts_plot', 'RGB_scatter_plot']
+    "plot_single_sd_rayleigh_scattering",
+    "plot_the_blue_sky",
+]
+__all__ += [
+    "plot_single_sd_colour_rendering_index_bars",
+    "plot_multi_sds_colour_rendering_indexes_bars",
+    "plot_single_sd_colour_quality_scale_bars",
+    "plot_multi_sds_colour_quality_scales_bars",
+]
+__all__ += [
+    "plot_visible_spectrum_section",
+    "plot_RGB_colourspace_section",
+]
+__all__ += [
+    "plot_planckian_locus_in_chromaticity_diagram_CIE1931",
+    "plot_planckian_locus_in_chromaticity_diagram_CIE1960UCS",
+]
+__all__ += [
+    "plot_single_sd_colour_rendition_report",
+]
+__all__ += [
+    "plot_RGB_colourspaces_gamuts",
+    "plot_RGB_scatter",
+]

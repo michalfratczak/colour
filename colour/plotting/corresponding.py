@@ -1,109 +1,180 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Corresponding Chromaticities Prediction Plotting
 ================================================
 
-Defines corresponding chromaticities prediction plotting objects:
+Defines the corresponding chromaticities prediction plotting objects:
 
--   :func:`corresponding_chromaticities_prediction_plot`
+-   :func:`colour.plotting.plot_corresponding_chromaticities_prediction`
 """
 
-from __future__ import division
-import pylab
+from __future__ import annotations
 
-from colour.corresponding import corresponding_chromaticities_prediction
+import matplotlib.pyplot as plt
+
+from colour.corresponding import (
+    CorrespondingColourDataset,
+    corresponding_chromaticities_prediction,
+)
+from colour.hints import Any, Dict, Literal, Optional, Tuple, Union, cast
 from colour.plotting import (
-    CIE_1976_UCS_chromaticity_diagram_plot,
-    DEFAULT_FIGURE_WIDTH,
-    boundaries,
-    canvas,
-    decorate,
-    display)
+    CONSTANTS_COLOUR_STYLE,
+    artist,
+    plot_chromaticity_diagram_CIE1976UCS,
+    override_style,
+    render,
+)
+from colour.utilities import is_numeric
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-__all__ = ['corresponding_chromaticities_prediction_plot']
+__all__ = [
+    "plot_corresponding_chromaticities_prediction",
+]
 
 
-def corresponding_chromaticities_prediction_plot(
-        experiment=1,
-        model='Von Kries',
-        transform='CAT02',
-        **kwargs):
+@override_style()
+def plot_corresponding_chromaticities_prediction(
+    experiment: Union[
+        Literal[1, 2, 3, 4, 6, 8, 9, 11, 12], CorrespondingColourDataset
+    ] = 1,
+    model: Union[
+        Literal[
+            "CIE 1994",
+            "CMCCAT2000",
+            "Fairchild 1990",
+            "Von Kries",
+            "Zhai 2018",
+        ],
+        str,
+    ] = "Von Kries",
+    corresponding_chromaticities_prediction_kwargs: Optional[dict] = None,
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots given chromatic adaptation model corresponding chromaticities
+    Plot given chromatic adaptation model corresponding chromaticities
     prediction.
 
     Parameters
     ----------
-    experiment : int, optional
-        Corresponding chromaticities prediction experiment number.
-    model : unicode, optional
+    experiment
+        *Breneman (1987)* experiment number or
+        :class:`colour.CorrespondingColourDataset` class instance.
+    model
         Corresponding chromaticities prediction model name.
-    transform : unicode, optional
-        Transformation to use with Von Kries chromatic adaptation model.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    corresponding_chromaticities_prediction_kwargs
+        Keyword arguments for the :func:`colour.\
+corresponding_chromaticities_prediction` definition.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.diagrams.plot_chromaticity_diagram`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> corresponding_chromaticities_prediction_plot()  # doctest: +SKIP
+    >>> plot_corresponding_chromaticities_prediction(1, "Von Kries")
+    ... # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_\
+Plot_Corresponding_Chromaticities_Prediction.png
+        :align: center
+        :alt: plot_corresponding_chromaticities_prediction
     """
 
-    settings = {'figure_size': (DEFAULT_FIGURE_WIDTH, DEFAULT_FIGURE_WIDTH)}
+    if corresponding_chromaticities_prediction_kwargs is None:
+        corresponding_chromaticities_prediction_kwargs = {}
+
+    settings: Dict[str, Any] = {"uniform": True}
     settings.update(kwargs)
 
-    canvas(**settings)
+    _figure, axes = artist(**settings)
 
-    settings.update({
-        'title': (('Corresponding Chromaticities Prediction\n{0} ({1}) - '
-                   'Experiment {2}\nCIE 1976 UCS Chromaticity Diagram').format(
-            model, transform, experiment)
-            if model.lower() in ('von kries', 'vonkries') else
-            ('Corresponding Chromaticities Prediction\n{0} - '
-                'Experiment {1}\nCIE 1976 UCS Chromaticity Diagram').format(
-                    model, experiment)),
-        'standalone': False})
+    name = (
+        f"Experiment {experiment}"
+        if is_numeric(experiment)
+        else cast(CorrespondingColourDataset, experiment).name
+    )
+    title = (
+        f"Corresponding Chromaticities Prediction - {model} - {name} - "
+        "CIE 1976 UCS Chromaticity Diagram"
+    )
+
+    settings = {"axes": axes, "title": title}
     settings.update(kwargs)
+    settings["standalone"] = False
 
-    CIE_1976_UCS_chromaticity_diagram_plot(**settings)
+    plot_chromaticity_diagram_CIE1976UCS(**settings)
 
     results = corresponding_chromaticities_prediction(
-        experiment, transform=transform)
+        experiment, model, **corresponding_chromaticities_prediction_kwargs
+    )
 
     for result in results:
-        name, uvp_t, uvp_m, uvp_p = result
-        pylab.arrow(uvp_t[0],
-                    uvp_t[1],
-                    uvp_p[0] - uvp_t[0] - 0.1 * (uvp_p[0] - uvp_t[0]),
-                    uvp_p[1] - uvp_t[1] - 0.1 * (uvp_p[1] - uvp_t[1]),
-                    head_width=0.005,
-                    head_length=0.005,
-                    linewidth=0.5,
-                    color='black')
-        pylab.plot(uvp_t[0], uvp_t[1], 'o', color='white')
-        pylab.plot(uvp_m[0], uvp_m[1], '^', color='white')
-        pylab.plot(uvp_p[0], uvp_p[1], '^', color='black')
-    settings.update({
-        'x_tighten': True,
-        'y_tighten': True,
-        'limits': (-0.1, 0.7, -0.1, 0.7),
-        'standalone': True})
+        _name, uv_t, uv_m, uv_p = result
+        axes.arrow(
+            uv_t[0],
+            uv_t[1],
+            uv_p[0] - uv_t[0] - 0.1 * (uv_p[0] - uv_t[0]),
+            uv_p[1] - uv_t[1] - 0.1 * (uv_p[1] - uv_t[1]),
+            color=CONSTANTS_COLOUR_STYLE.colour.dark,
+            head_width=0.005,
+            head_length=0.005,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.midground_annotation,
+        )
+        axes.plot(
+            uv_t[0],
+            uv_t[1],
+            "o",
+            color=CONSTANTS_COLOUR_STYLE.colour.brightest,
+            markeredgecolor=CONSTANTS_COLOUR_STYLE.colour.dark,
+            markersize=(
+                CONSTANTS_COLOUR_STYLE.geometry.short * 6
+                + CONSTANTS_COLOUR_STYLE.geometry.short * 0.75
+            ),
+            markeredgewidth=CONSTANTS_COLOUR_STYLE.geometry.short * 0.75,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.foreground_line,
+        )
+        axes.plot(
+            uv_m[0],
+            uv_m[1],
+            "^",
+            color=CONSTANTS_COLOUR_STYLE.colour.brightest,
+            markeredgecolor=CONSTANTS_COLOUR_STYLE.colour.dark,
+            markersize=(
+                CONSTANTS_COLOUR_STYLE.geometry.short * 6
+                + CONSTANTS_COLOUR_STYLE.geometry.short * 0.75
+            ),
+            markeredgewidth=CONSTANTS_COLOUR_STYLE.geometry.short * 0.75,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.foreground_line,
+        )
+        axes.plot(
+            uv_p[0],
+            uv_p[1],
+            "^",
+            color=CONSTANTS_COLOUR_STYLE.colour.dark,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.foreground_line,
+        )
+
+    settings.update(
+        {
+            "standalone": True,
+            "bounding_box": (-0.1, 0.7, -0.1, 0.7),
+        }
+    )
     settings.update(kwargs)
 
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return render(**settings)

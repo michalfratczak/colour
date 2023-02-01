@@ -1,19 +1,46 @@
-colour.constants Package
-========================
+Constants
+=========
 
-Sub-Modules
------------
+CIE
+---
 
-.. toctree::
+``colour.constants``
 
-   colour.constants.cie
-   colour.constants.codata
-   colour.constants.common
+.. currentmodule:: colour.constants
 
-Module Contents
----------------
+.. autosummary::
+    :toctree: generated/
 
-.. automodule:: colour.constants
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    CONSTANT_K_M
+    CONSTANT_KP_M
+
+CODATA
+------
+
+``colour.constants``
+
+.. currentmodule:: colour.constants
+
+.. autosummary::
+    :toctree: generated/
+
+    CONSTANT_AVOGADRO
+    CONSTANT_BOLTZMANN
+    CONSTANT_LIGHT_SPEED
+    CONSTANT_PLANCK
+
+Common
+------
+
+``colour.constants``
+
+.. currentmodule:: colour.constants
+
+.. autosummary::
+    :toctree: generated/
+
+    DEFAULT_INT_DTYPE
+    DEFAULT_FLOAT_DTYPE
+    EPSILON
+    FLOATING_POINT_NUMBER_PATTERN
+    INTEGER_THRESHOLD

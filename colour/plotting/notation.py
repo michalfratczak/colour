@@ -1,136 +1,134 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Colour Notation Systems Plotting
 ================================
 
 Defines the colour notation systems plotting objects:
 
--   :func:`single_munsell_value_function_plot`
--   :func:`multi_munsell_value_function_plot`
+-   :func:`colour.plotting.plot_single_munsell_value_function`
+-   :func:`colour.plotting.plot_multi_munsell_value_functions`
 """
 
-from __future__ import division
+from __future__ import annotations
 
+import matplotlib.pyplot as plt
 import numpy as np
-import pylab
 
+from colour.hints import Any, Callable, Dict, Sequence, Tuple, Union
 from colour.notation import MUNSELL_VALUE_METHODS
 from colour.plotting import (
-    DEFAULT_FIGURE_WIDTH,
-    boundaries,
-    canvas,
-    decorate,
-    display)
+    filter_passthrough,
+    plot_multi_functions,
+    override_style,
+)
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-__all__ = ['single_munsell_value_function_plot',
-           'multi_munsell_value_function_plot']
+__all__ = [
+    "plot_single_munsell_value_function",
+    "plot_multi_munsell_value_functions",
+]
 
 
-def single_munsell_value_function_plot(
-        function='ASTM D1535-08',
-        **kwargs):
+@override_style()
+def plot_single_munsell_value_function(
+    function: Union[Callable, str], **kwargs: Any
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots given *Lightness* function.
+    Plot given *Lightness* function.
 
     Parameters
     ----------
-    function : unicode, optional
-        *Munsell* value function to plot.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    function
+        *Munsell* value function to plot. ``function`` can be of any type or
+        form supported by the :func:`colour.plotting.common.filter_passthrough`
+        definition.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.plot_multi_functions`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> f = 'ASTM D1535-08'
-    >>> single_munsell_value_function_plot(f)  # doctest: +SKIP
+    >>> plot_single_munsell_value_function("ASTM D1535")  # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Single_Munsell_Value_Function.png
+        :align: center
+        :alt: plot_single_munsell_value_function
     """
 
-    settings = {'title': '{0} - Munsell Value Function'.format(function)}
+    settings: Dict[str, Any] = {
+        "title": f"{function} - Munsell Value Function"
+    }
     settings.update(kwargs)
 
-    return multi_munsell_value_function_plot((function, ), **settings)
+    return plot_multi_munsell_value_functions((function,), **settings)
 
 
-def multi_munsell_value_function_plot(
-        functions=None,
-        **kwargs):
+@override_style()
+def plot_multi_munsell_value_functions(
+    functions: Union[Callable, str, Sequence[Union[Callable, str]]],
+    **kwargs: Any,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plots given *Munsell* value functions.
+    Plot given *Munsell* value functions.
 
     Parameters
     ----------
-    functions : array_like, optional
-        *Munsell* value functions to plot.
-    \**kwargs : dict, optional
-        Keywords arguments.
+    functions
+        *Munsell* value functions to plot. ``functions`` elements can be of any
+        type or form supported by the
+        :func:`colour.plotting.common.filter_passthrough` definition.
+
+    Other Parameters
+    ----------------
+    kwargs
+        {:func:`colour.plotting.artist`,
+        :func:`colour.plotting.plot_multi_functions`,
+        :func:`colour.plotting.render`},
+        See the documentation of the previously listed definitions.
 
     Returns
     -------
-    Figure
-        Current figure or None.
-
-    Raises
-    ------
-    KeyError
-        If one of the given *Munsell* value function is not found in the
-        factory *Munsell* value functions.
+    :class:`tuple`
+        Current figure and axes.
 
     Examples
     --------
-    >>> fs = ('ASTM D1535-08', 'McCamy 1987')
-    >>> multi_munsell_value_function_plot(fs)  # doctest: +SKIP
+    >>> plot_multi_munsell_value_functions(["ASTM D1535", "McCamy 1987"])
+    ... # doctest: +ELLIPSIS
+    (<Figure size ... with 1 Axes>, <...AxesSubplot...>)
+
+    .. image:: ../_static/Plotting_Plot_Multi_Munsell_Value_Functions.png
+        :align: center
+        :alt: plot_multi_munsell_value_functions
     """
 
-    settings = {'figure_size': (DEFAULT_FIGURE_WIDTH, DEFAULT_FIGURE_WIDTH)}
+    functions_filtered = filter_passthrough(MUNSELL_VALUE_METHODS, functions)
+
+    settings: Dict[str, Any] = {
+        "bounding_box": (0, 100, 0, 10),
+        "legend": True,
+        "title": f"{', '.join(functions_filtered)} - Munsell Functions",
+        "x_label": "Luminance Y",
+        "y_label": "Munsell Value V",
+    }
     settings.update(kwargs)
 
-    canvas(**settings)
-
-    if functions is None:
-        functions = ('ASTM D1535-08',
-                     'McCamy 1987')
-
-    samples = np.linspace(0, 100, 1000)
-    for function in functions:
-        function, name = MUNSELL_VALUE_METHODS.get(function), function
-        if function is None:
-            raise KeyError(
-                ('"{0}" "Munsell" value function not found in '
-                 'factory "Munsell" value functions: "{1}".').format(
-                    name, sorted(MUNSELL_VALUE_METHODS.keys())))
-
-        pylab.plot(samples,
-                   [function(x) for x in samples],
-                   label=u'{0}'.format(name),
-                   linewidth=2)
-
-    settings.update({
-        'title': '{0} - Munsell Functions'.format(', '.join(functions)),
-        'x_label': 'Luminance Y',
-        'y_label': 'Munsell Value V',
-        'x_tighten': True,
-        'legend': True,
-        'legend_location': 'upper left',
-        'grid': True,
-        'bounding_box': (0, 100, 0, 10),
-        'aspect': 10})
-    settings.update(kwargs)
-
-    boundaries(**settings)
-    decorate(**settings)
-
-    return display(**settings)
+    return plot_multi_functions(
+        functions_filtered, samples=np.linspace(0, 100, 1000), **settings
+    )

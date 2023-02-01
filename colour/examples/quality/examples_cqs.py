@@ -1,39 +1,42 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases colour quality scale computations.
-"""
+"""Showcases *Colour Quality Scale* (CQS) computations."""
 
 from pprint import pprint
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
-message_box('Colour Quality Scale Computations')
+message_box('"Colour Quality Scale (CQS)" Computations')
 
-message_box('Computing "F2" illuminant colour rendering index.')
-print(colour.colour_quality_scale(
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('F2')))
+message_box('Computing the "F2" illuminant "Colour Quality Scale (CQS)".')
+print(colour.colour_quality_scale(colour.SDS_ILLUMINANTS["FL2"]))
 
-print('\n')
+print("\n")
 
-message_box(('Computing H38HT-100 mercury lamp colour quality scale with '
-             'detailed output data.'))
-pprint(colour.colour_quality_scale(
-    colour.LIGHT_SOURCES_RELATIVE_SPDS.get('H38HT-100 (Mercury)'),
-    additional_data=True))
+message_box(
+    'Computing the "H38HT-100" mercury lamp "Colour Quality Scale (CQS)" with '
+    "detailed output data."
+)
+pprint(
+    colour.colour_quality_scale(
+        colour.SDS_LIGHT_SOURCES["H38HT-100 (Mercury)"], additional_data=True
+    )
+)
 
-print('\n')
+print("\n")
 
-message_box('Computing SDW-T 100W/LV Super HPS lamp colour quality scale.')
-print(colour.colour_quality_scale(
-    colour.LIGHT_SOURCES_RELATIVE_SPDS.get('SDW-T 100W/LV (Super HPS)')))
+message_box(
+    'Computing the "SDW-T 100W/LV Super HPS" lamp "Colour Quality Scale (CQS)".'
+)
+print(
+    colour.colour_quality_scale(
+        colour.SDS_LIGHT_SOURCES["SDW-T 100W/LV (Super HPS)"]
+    )
+)
 
-print('\n')
+print("\n")
 
-message_box('Computing sample light colour quality scale.')
-SAMPLE_SPD_DATA = {
+message_box('Computing the sample light "Colour Quality Scale (CQS)".')
+data_sample = {
     380: 0.00588346,
     385: 0.00315377,
     390: 0.00242868,
@@ -114,7 +117,11 @@ SAMPLE_SPD_DATA = {
     765: 0.00340568,
     770: 0.00261153,
     775: 0.00258850,
-    780: 0.00293663}
+    780: 0.00293663,
+}
 
-print(colour.colour_quality_scale(
-    colour.SpectralPowerDistribution('Sample', SAMPLE_SPD_DATA)))
+print(
+    colour.colour_quality_scale(
+        colour.SpectralDistribution(data_sample, name="Sample")
+    )
+)

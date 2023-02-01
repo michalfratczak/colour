@@ -1,48 +1,45 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Showcases *Hunt* colour appearance model computations."""
 
-"""
-Showcases Hunt colour appearance model computations.
-"""
+import numpy as np
 
 import colour
-from colour.appearance.hunt import Hunt_ReferenceSpecification
-from colour.utilities.verbose import message_box
+from colour.appearance.hunt import CAM_ReferenceSpecification_Hunt
+from colour.utilities import message_box
 
-message_box('Hunt Colour Appearance Model Computations')
+message_box('"Hunt" Colour Appearance Model Computations')
 
-XYZ = (19.01, 20.00, 21.78)
-XYZ_w = (95.05, 100.00, 108.88)
-XYZ_b = (95.05, 100.00, 108.88)
+XYZ = np.array([19.01, 20.00, 21.78])
+XYZ_w = np.array([95.05, 100.00, 108.88])
+XYZ_b = np.array([95.05, 100.00, 108.88])
 L_A = 318.31
-surround = colour.HUNT_VIEWING_CONDITIONS['Normal Scenes']
+surround = colour.VIEWING_CONDITIONS_HUNT["Normal Scenes"]
 CCT_w = 6504.0
-message_box(('Converting to Hunt colour appearance model '
-             'specification using given parameters:\n'
-             '\n\tXYZ: {0}\n\tXYZ_w: {1}\n\tXYZ_b: {2}\n\tL_A: {3}'
-             '\n\tsurround: {4}\n\tCCT_w: {5}'.format(XYZ,
-                                                      XYZ_w,
-                                                      XYZ_b,
-                                                      L_A,
-                                                      surround,
-                                                      CCT_w)))
+message_box(
+    f'Converting to the "Hunt" colour appearance model specification using '
+    f"given parameters:\n\n"
+    f"\tXYZ: {XYZ}\n"
+    f"\tXYZ_w: {XYZ_w}\n"
+    f"\tXYZ_b: {XYZ_b}\n"
+    f"\tL_A: {L_A}\n"
+    f"\tsurround: {surround}\n"
+    f"\tCCT_w: {CCT_w}"
+)
 
-specification = colour.XYZ_to_Hunt(XYZ,
-                                   XYZ_w,
-                                   XYZ_b,
-                                   L_A,
-                                   surround,
-                                   CCT_w=CCT_w)
+specification = colour.XYZ_to_Hunt(
+    XYZ, XYZ_w, XYZ_b, L_A, surround, CCT_w=CCT_w
+)
 print(specification)
 
-print('\n')
+print("\n")
 
-message_box(('Broadcasting current output Hunt colour appearance '
-             'model specification to reference specification.\n'
-             'The intent of this reference specification is to provide names '
-             'as closest as possible to "Mark D. Fairchild" reference.\n'
-             'The current output specification is meant to be consistent with '
-             'the other colour appearance model specification by using same '
-             'argument names for consistency wherever possible.'))
+message_box(
+    'Broadcasting the current output "Hunt" colour appearance '
+    "model specification to the reference specification.\n"
+    "The intent of this reference specification is to provide names "
+    'as closest as possible to the "Mark D. Fairchild" reference.\n'
+    "The current output specification is meant to be consistent with "
+    "the other colour appearance model specification by using same "
+    "argument names for consistency wherever possible."
+)
 
-print(Hunt_ReferenceSpecification(*specification))
+print(CAM_ReferenceSpecification_Hunt(*specification.values))

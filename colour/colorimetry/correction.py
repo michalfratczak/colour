@@ -1,116 +1,181 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Spectral Bandpass Dependence Correction
 =======================================
 
-Defines objects to perform spectral bandpass dependence correction.
+Defines the objects to perform spectral bandpass dependence correction.
 
 The following correction methods are available:
 
--   :func:`bandpass_correction_Stearns1988`: Stearns and Stearns (1988)⁠⁠
-    spectral bandpass dependence correction method.
+-   :func:`colour.colorimetry.bandpass_correction_Stearns1988`:
+    *Stearns and Stearns (1988)* spectral bandpass dependence correction
+    method.
+-   :attr:`colour.BANDPASS_CORRECTION_METHODS`: Supported spectral bandpass
+    dependence correction methods.
+-   :func:`colour.bandpass_correction`: Spectral bandpass dependence
+    correction using given method.
 
-See Also
---------
-`Spectral Bandpass Dependence Correction IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/colorimetry/correction.ipynb>`_
+References
+----------
+-   :cite:`Stearns1988a` : Stearns, E. I., & Stearns, R. E. (1988). An example
+    of a method for correcting radiance data for Bandpass error. Color Research
+    & Application, 13(4), 257-259. doi:10.1002/col.5080130410
+-   :cite:`Westland2012f` : Westland, S., Ripamonti, C., & Cheung, V. (2012).
+    Correction for Spectral Bandpass. In Computational Colour Science Using
+    MATLAB (2nd ed., p. 38). ISBN:978-0-470-66569-5
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
-from colour.utilities import CaseInsensitiveMapping
+import numpy as np
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+from colour.colorimetry import SpectralDistribution
+from colour.hints import Literal, Union
+from colour.utilities import CanonicalMapping, validate_method
 
-__all__ = ['bandpass_correction_Stearns1988',
-           'BANDPASS_CORRECTION_METHODS',
-           'bandpass_correction']
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-ALPHA_STEARNS = 0.083
+__all__ = [
+    "bandpass_correction_Stearns1988",
+    "BANDPASS_CORRECTION_METHODS",
+    "bandpass_correction",
+]
+
+CONSTANT_ALPHA_STEARNS: float = 0.083
 
 
-def bandpass_correction_Stearns1988(spd):
+def bandpass_correction_Stearns1988(
+    sd: SpectralDistribution,
+) -> SpectralDistribution:
     """
-    Implements spectral bandpass dependence correction on given spectral power
-    distribution using Stearns and Stearns (1988)⁠⁠ method.
+    Implement spectral bandpass dependence correction on given spectral
+    distribution using *Stearns and Stearns (1988)* method.
 
     Parameters
     ----------
-    spd : SpectralPowerDistribution
-        Spectral power distribution.
+    sd
+        Spectral distribution.
 
     Returns
     -------
-    SpectralPowerDistribution
-        Spectral bandpass dependence corrected spectral power distribution.
+    :class:`colour.SpectralDistribution`
+        Spectral bandpass dependence corrected spectral distribution.
 
     References
     ----------
-    .. [1]  Westland, S., Ripamonti, C., & Cheung, V. (2012). Correction for
-            Spectral Bandpass. In Computational Colour Science Using MATLAB
-            (2nd ed., p. 38). ISBN:978-0-470-66569-5
-    .. [2]  Stearns, E. I., & Stearns, R. E. (1988). An example of a method
-            for correcting radiance data for Bandpass error. Color Research &
-            Application, 13(4), 257–259. doi:10.1002/col.5080130410
+    :cite:`Stearns1988a`, :cite:`Westland2012f`
 
     Examples
     --------
-    >>> from colour import SpectralPowerDistribution
-    >>> data = {510: 49.67, 520: 69.59, 530: 81.73, 540: 88.19}
-    >>> spd = SpectralPowerDistribution('Spd', data)
-    >>> corrected_spd = bandpass_correction_Stearns1988(spd)
-    >>> corrected_spd.values  # doctest: +ELLIPSIS
-    array([ 48.01664   ,  70.3729688...,  82.0919506...,  88.72618   ])
+    >>> from colour import SpectralDistribution
+    >>> from colour.utilities import numpy_print_options
+    >>> data = {
+    ...     500: 0.0651,
+    ...     520: 0.0705,
+    ...     540: 0.0772,
+    ...     560: 0.0870,
+    ...     580: 0.1128,
+    ...     600: 0.1360,
+    ... }
+    >>> with numpy_print_options(suppress=True):
+    ...     bandpass_correction_Stearns1988(SpectralDistribution(data))
+    ... # doctest: +ELLIPSIS
+    ...
+    SpectralDistribution([[ 500.        ,    0.0646518...],
+                          [ 520.        ,    0.0704293...],
+                          [ 540.        ,    0.0769485...],
+                          [ 560.        ,    0.0856928...],
+                          [ 580.        ,    0.1129644...],
+                          [ 600.        ,    0.1379256...]],
+                         SpragueInterpolator,
+                         {},
+                         Extrapolator,
+                         {'method': 'Constant', 'left': None, 'right': None})
     """
 
-    values = spd.values
-    values[0] = (1 + ALPHA_STEARNS) * values[0] - ALPHA_STEARNS * values[1]
-    values[-1] = (1 + ALPHA_STEARNS) * values[-1] - ALPHA_STEARNS * values[-2]
+    values = np.copy(sd.values)
+    values[0] = (1 + CONSTANT_ALPHA_STEARNS) * values[
+        0
+    ] - CONSTANT_ALPHA_STEARNS * values[1]
+    values[-1] = (1 + CONSTANT_ALPHA_STEARNS) * values[
+        -1
+    ] - CONSTANT_ALPHA_STEARNS * values[-2]
     for i in range(1, len(values) - 1):
-        values[i] = (-ALPHA_STEARNS * values[i - 1] +
-                     (1 + 2 * ALPHA_STEARNS) *
-                     values[i] - ALPHA_STEARNS * values[i + 1])
+        values[i] = (
+            -CONSTANT_ALPHA_STEARNS * values[i - 1]
+            + (1 + 2 * CONSTANT_ALPHA_STEARNS) * values[i]
+            - CONSTANT_ALPHA_STEARNS * values[i + 1]
+        )
 
-    for i, (wavelength, _value) in enumerate(spd):
-        spd[wavelength] = values[i]
-    return spd
+    sd.values = values
+
+    return sd
 
 
-BANDPASS_CORRECTION_METHODS = CaseInsensitiveMapping(
-    {'Stearns 1988': bandpass_correction_Stearns1988})
-"""
+BANDPASS_CORRECTION_METHODS: CanonicalMapping = CanonicalMapping(
+    {"Stearns 1988": bandpass_correction_Stearns1988}
+)
+BANDPASS_CORRECTION_METHODS.__doc__ = """
 Supported spectral bandpass dependence correction methods.
-
-BANDPASS_CORRECTION_METHODS : CaseInsensitiveMapping
-    **{'Stearns 1988', }**
 """
 
 
-def bandpass_correction(spd, method='Stearns 1988'):
+def bandpass_correction(
+    sd: SpectralDistribution,
+    method: Union[Literal["Stearns 1988"], str] = "Stearns 1988",
+) -> SpectralDistribution:
     """
-    Implements spectral bandpass dependence correction on given spectral power
+    Implement spectral bandpass dependence correction on given spectral
     distribution using given method.
 
     Parameters
     ----------
-    spd : SpectralPowerDistribution
-        Spectral power distribution.
-    method : unicode, optional
-        ('Stearns 1988',)
+    sd
+        Spectral distribution.
+    method
         Correction method.
 
     Returns
     -------
-    SpectralPowerDistribution
-        Spectral bandpass dependence corrected spectral power distribution.
+    :class:`colour.SpectralDistribution`
+        Spectral bandpass dependence corrected spectral distribution.
+
+    References
+    ----------
+    :cite:`Stearns1988a`, :cite:`Westland2012f`
+
+    Examples
+    --------
+    >>> from colour import SpectralDistribution
+    >>> from colour.utilities import numpy_print_options
+    >>> data = {
+    ...     500: 0.0651,
+    ...     520: 0.0705,
+    ...     540: 0.0772,
+    ...     560: 0.0870,
+    ...     580: 0.1128,
+    ...     600: 0.1360,
+    ... }
+    >>> with numpy_print_options(suppress=True):
+    ...     bandpass_correction(SpectralDistribution(data))
+    ... # doctest: +ELLIPSIS
+    ...
+    SpectralDistribution([[ 500.        ,    0.0646518...],
+                          [ 520.        ,    0.0704293...],
+                          [ 540.        ,    0.0769485...],
+                          [ 560.        ,    0.0856928...],
+                          [ 580.        ,    0.1129644...],
+                          [ 600.        ,    0.1379256...]],
+                         SpragueInterpolator,
+                         {},
+                         Extrapolator,
+                         {'method': 'Constant', 'left': None, 'right': None})
     """
 
-    return BANDPASS_CORRECTION_METHODS.get(method)(spd)
+    method = validate_method(method, BANDPASS_CORRECTION_METHODS)
+
+    return BANDPASS_CORRECTION_METHODS[method](sd)

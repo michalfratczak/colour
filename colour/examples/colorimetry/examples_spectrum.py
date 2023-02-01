@@ -1,20 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases colour spectrum computations.
-"""
-
-from __future__ import division, unicode_literals
+"""Showcases colour spectrum computations."""
 
 import numpy as np
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
-message_box('Spectrum Computations')
+message_box("Spectrum Computations")
 
-sample_spd_data = {
+data_sample = {
     380: 0.048,
     385: 0.051,
     390: 0.055,
@@ -95,94 +88,99 @@ sample_spd_data = {
     765: 0.465,
     770: 0.448,
     775: 0.432,
-    780: 0.421}
+    780: 0.421,
+}
 
-spd = colour.SpectralPowerDistribution('Sample', sample_spd_data)
+sd_sample = colour.SpectralDistribution(data_sample, name="Sample")
 
-message_box('Sample spectral power distribution shape.')
-print(spd.shape)
+message_box("Sample spectral distribution shape.")
+print(sd_sample.shape)
 
-print('\n')
+print("\n")
 
-message_box('Sample spectral power distribution uniformity.')
-print(spd.is_uniform())
+message_box("Sample spectral distribution uniformity.")
+print(sd_sample.is_uniform())
 
-print('\n')
+print("\n")
 
-message_box(('Sample spectral power distribution cloning:\n'
-             '\n\t("Original Id", "Clone Id")\n'
-             '\nCloning is a convenient way to get a copy of the spectral '
-             'power distribution, this an important feature because some '
-             'operations happen in place.'))
-clone_spd = spd.clone()
-print(id(spd), id(clone_spd))
+message_box(
+    "Sample spectral distribution cloning:\n\n"
+    '\t("Original Id", "Clone Id")\n'
+    "\nCloning is a convenient way to get a copy of the spectral "
+    "distribution, this an important feature because some operations happen "
+    "in place."
+)
+sd_clone = sd_sample.copy()
+print(id(sd_sample), id(sd_clone))
 
-print('\n')
+print("\n")
 
-message_box('Sample spectral power distribution arithmetical operations.')
-message_box('Regular arithmetical operation: adding a constant.')
-clone_spd_alternate = clone_spd + 10
-print(clone_spd[380], clone_spd_alternate[380])
+message_box("Sample spectral distribution arithmetical operations.")
+message_box("Regular arithmetical operation: adding a constant.")
+sd_clone_alternate = sd_clone + 10
+print(sd_clone[380], sd_clone_alternate[380])
 
-print('\n')
+print("\n")
 
-message_box('Regular arithmetical operation: adding an array.')
-print((clone_spd + np.linspace(0, 1, len(clone_spd))).values)
+message_box("Regular arithmetical operation: adding an array.")
+print((sd_clone + np.linspace(0, 1, len(sd_clone.wavelengths))).values)
 
-print('\n')
+print("\n")
 
-message_box('Regular arithmetical operation: adding a spectral power '
-            'distribution.')
-print((clone_spd + clone_spd).values)
+message_box(
+    "Regular arithmetical operation: adding a spectral " "distribution."
+)
+print((sd_clone + sd_clone).values)
 
-print('\n')
+print("\n")
 
-message_box('In-place arithmetical operation: adding a constant.')
-clone_spd += 10
-print(clone_spd[380])
+message_box("In-place arithmetical operation: adding a constant.")
+sd_clone += 10
+print(sd_clone[380])
 
-print('\n')
+print("\n")
 
-message_box('In-place arithmetical operation: adding an array.')
-clone_spd += np.linspace(0, 1, len(clone_spd))
-print(clone_spd.values)
+message_box("In-place arithmetical operation: adding an array.")
+sd_clone += np.linspace(0, 1, len(sd_clone.wavelengths))
+print(sd_clone.values)
 
-print('\n')
+print("\n")
 
-message_box('In-place arithmetical operation: adding a spectral power '
-            'distribution.')
-clone_spd += clone_spd
-print(clone_spd.values)
+message_box(
+    "In-place arithmetical operation: adding a spectral " "distribution."
+)
+sd_clone += sd_clone
+print(sd_clone.values)
 
-print('\n')
+print("\n")
 
-message_box('Sample spectral power distribution interpolation.')
-clone_spd.interpolate(colour.SpectralShape(360, 780, 1))
-print(clone_spd[666])
+message_box("Sample spectral distribution interpolation.")
+sd_clone.interpolate(colour.SpectralShape(360, 780, 1))
+print(sd_clone[666])
 
-print('\n')
+print("\n")
 
-message_box('Sample spectral power distribution extrapolation.')
-clone_spd.extrapolate(colour.SpectralShape(340, 830))
-print(clone_spd[340], clone_spd[360])
+message_box("Sample spectral distribution extrapolation.")
+sd_clone.extrapolate(colour.SpectralShape(340, 830, 1))
+print(sd_clone[340], sd_clone[360])
 
-print('\n')
+print("\n")
 
-message_box('Sample spectral power distribution align.')
-clone_spd.align(colour.SpectralShape(400, 700, 5))
-print(clone_spd[400], clone_spd[700])
+message_box("Sample spectral distribution align.")
+sd_clone.align(colour.SpectralShape(400, 700, 5))
+print(sd_clone[400], sd_clone[700])
 
-print('\n')
+print("\n")
 
-message_box('Constant value filled spectral power distribution.')
-print(colour.constant_spd(3.1415)[400])
+message_box("Constant value filled spectral distribution.")
+print(colour.sd_constant(3.1415)[400])
 
-print('\n')
+print("\n")
 
-message_box('Zeros filled spectral power distribution.')
-print(colour.zeros_spd()[400])
+message_box("Zeros filled spectral distribution.")
+print(colour.sd_zeros()[400])
 
-print('\n')
+print("\n")
 
-message_box('Ones filled spectral power distribution.')
-print(colour.ones_spd()[400])
+message_box("Ones filled spectral distribution.")
+print(colour.sd_ones()[400])

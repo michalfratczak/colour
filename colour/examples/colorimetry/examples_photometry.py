@@ -1,33 +1,29 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases *Photometry* computations.
-"""
-
-from __future__ import division, unicode_literals
+"""Showcases *Photometry* computations."""
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
 message_box('"Photometry" Computations')
 
-spd = colour.LIGHT_SOURCES_RELATIVE_SPDS.get('Neodimium Incandescent')
-message_box(('Computing "Luminous Flux" for given spectral power '
-             'distribution:\n'
-             '\n\t{0}'.format(spd.name)))
-print(colour.luminous_flux(spd))
+sd_light_source = colour.SDS_LIGHT_SOURCES["Neodimium Incandescent"]
+message_box(
+    f'Computing "Luminous Flux" for given spectral distribution:\n\n'
+    f"\t{sd_light_source.name}"
+)
+print(colour.luminous_flux(sd_light_source))
 
-print('\n')
+print("\n")
 
-message_box(('Computing "Luminous Efficiency" for given spectral power '
-             'distribution:\n'
-             '\n\t{0}'.format(spd.name)))
-print(colour.luminous_efficiency(spd))
+message_box(
+    f'Computing "Luminous Efficiency" for given spectral distribution:\n\n'
+    f"\t{sd_light_source.name}"
+)
+print(colour.luminous_efficiency(sd_light_source))
 
-print('\n')
+print("\n")
 
-message_box(('Computing "Luminous Efficacy" for given spectral power '
-             'distribution:\n'
-             '\n\t{0}'.format(spd.name)))
-print(colour.luminous_efficacy(spd))
+message_box(
+    f'Computing "Luminous Efficacy" for given spectral distribution:\n\n'
+    f"\t{sd_light_source.name}"
+)
+print(colour.luminous_efficacy(sd_light_source))

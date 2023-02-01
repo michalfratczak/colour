@@ -1,65 +1,87 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Panalog Encoding
 ================
 
 Defines the *Panalog* encoding:
 
--   :func:`log_encoding_Panalog`
--   :func:`log_decoding_Panalog`
-
-See Also
---------
-`RGB Colourspaces IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/models/rgb.ipynb>`_
+-   :func:`colour.models.log_encoding_Panalog`
+-   :func:`colour.models.log_decoding_Panalog`
 
 References
 ----------
-.. [1]  Sony Imageworks. (2012). make.py. Retrieved November 27, 2014, from
-        https://github.com/imageworks/OpenColorIO-Configs/\
-blob/master/nuke-default/make.py
+-   :cite:`SonyImageworks2012a` : Sony Imageworks. (2012). make.py. Retrieved
+    November 27, 2014, from
+    https://github.com/imageworks/OpenColorIO-Configs/blob/master/\
+nuke-default/make.py
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
 import numpy as np
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+from colour.hints import ArrayLike, NDArrayFloat
+from colour.utilities import (
+    as_float,
+    as_float_array,
+    from_range_1,
+    to_domain_1,
+)
 
-__all__ = ['log_encoding_Panalog',
-           'log_decoding_Panalog']
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
+
+__all__ = [
+    "log_encoding_Panalog",
+    "log_decoding_Panalog",
+]
 
 
-def log_encoding_Panalog(x,
-                         black_offset=10 ** ((64 - 681) / 444)):
+def log_encoding_Panalog(
+    x: ArrayLike,
+    black_offset: ArrayLike = 10 ** ((64 - 681) / 444),
+) -> NDArrayFloat:
     """
-    Defines the *Panalog* log encoding curve / opto-electronic transfer
+    Define the *Panalog* log encoding curve / opto-electronic transfer
     function.
 
     Parameters
     ----------
-    x : numeric or array_like
+    x
         Linear data :math:`x`.
-    black_offset : numeric or array_like
+    black_offset
         Black offset.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Non-linear data :math:`y`.
 
     Warnings
     --------
     These are estimations known to be close enough, the actual log encoding
     curves are not published.
+
+    Notes
+    -----
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``x``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``y``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`SonyImageworks2012a`
 
     Examples
     --------
@@ -67,28 +89,32 @@ def log_encoding_Panalog(x,
     0.3745767...
     """
 
-    x = np.asarray(x)
+    x = to_domain_1(x)
+    black_offset = as_float_array(black_offset)
 
-    return ((681 + 444 *
-             np.log10(x * (1 - black_offset) + black_offset)) / 1023)
+    y = (681 + 444 * np.log10(x * (1 - black_offset) + black_offset)) / 1023
+
+    return as_float(from_range_1(y))
 
 
-def log_decoding_Panalog(y,
-                         black_offset=10 ** ((64 - 681) / 444)):
+def log_decoding_Panalog(
+    y: ArrayLike,
+    black_offset: ArrayLike = 10 ** ((64 - 681) / 444),
+) -> NDArrayFloat:
     """
-    Defines the *Panalog* log decoding curve / electro-optical transfer
+    Define the *Panalog* log decoding curve / electro-optical transfer
     function.
 
     Parameters
     ----------
-    y : numeric or array_like
+    y
         Non-linear data :math:`y`.
-    black_offset : numeric or array_like
+    black_offset
         Black offset.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Linear data :math:`x`.
 
     Warnings
@@ -96,13 +122,33 @@ def log_decoding_Panalog(y,
     These are estimations known to be close enough, the actual log encoding
     curves are not published.
 
+    Notes
+    -----
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``y``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``x``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`SonyImageworks2012a`
+
     Examples
     --------
     >>> log_decoding_Panalog(0.374576791382298)  # doctest: +ELLIPSIS
     0.1...
     """
 
-    y = np.asarray(y)
+    y = to_domain_1(y)
+    black_offset = as_float_array(black_offset)
 
-    return ((10 ** ((1023 * y - 681) / 444) - black_offset) /
-            (1 - black_offset))
+    x = (10 ** ((1023 * y - 681) / 444) - black_offset) / (1 - black_offset)
+
+    return as_float(from_range_1(x))

@@ -1,24 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases colour spectral bandpass dependence correction computations.
-"""
-
-from __future__ import division, unicode_literals
+"""Showcases colour spectral bandpass dependence correction computations."""
 
 import numpy as np
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
-message_box('Spectral Bandpass Dependence Correction')
+message_box("Spectral Bandpass Dependence Correction")
 
-message_box(('Applying spectral bandpass dependence correction on a sample '
-             'spectral power distribution using Stearns and Stearns (1988) '
-             'method:\n'
-             '\n\t("Measured Values", "Corrected Values")'))
-sample_spd_data = {
+message_box(
+    "Applying spectral bandpass dependence correction on a sample spectral "
+    'distribution using "Stearns and Stearns (1988)" method:\n\n'
+    '\t("Measured Values", "Corrected Values")'
+)
+data_sample = {
     380: 0.048,
     385: 0.051,
     390: 0.055,
@@ -99,8 +93,13 @@ sample_spd_data = {
     765: 0.465,
     770: 0.448,
     775: 0.432,
-    780: 0.421}
+    780: 0.421,
+}
 
-spd = colour.SpectralPowerDistribution('Sample', sample_spd_data)
-uncorrected_values = spd.values
-print(np.dstack((uncorrected_values, colour.bandpass_correction(spd).values)))
+sd_sample = colour.SpectralDistribution(data_sample, name="Sample")
+uncorrected_values = sd_sample.values
+print(
+    np.dstack(
+        [uncorrected_values, colour.bandpass_correction(sd_sample).values]
+    )
+)

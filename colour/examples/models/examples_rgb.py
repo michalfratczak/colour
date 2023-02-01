@@ -1,54 +1,96 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases *RGB* *colourspaces* computations.
-"""
+"""Showcases *RGB* *colourspaces* computations."""
 
 import numpy as np
 from pprint import pprint
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
 message_box('"RGB" Colourspaces Computations')
 
 message_box('"RGB" colourspaces dataset.')
 pprint(sorted(colour.RGB_COLOURSPACES.keys()))
 
-print('\n')
+print("\n")
 
 message_box('"ACES2065-1" colourspaces data.')
-colourspace = colour.RGB_COLOURSPACES['ACES2065-1']
-print('Name:\n"{0}"'.format(colourspace.name))
-print('\nPrimaries:\n{0}'.format(colourspace.primaries))
-print(('\nNormalised primary matrix to "CIE XYZ" '
-       'tristimulus values:\n{0}').format(
-    colourspace.RGB_to_XYZ_matrix))
-print('\nNormalised primary matrix to "ACES2065-1":\n{0}'.format(
-    colourspace.XYZ_to_RGB_matrix))
-print('\nOpto-electronic transfer function from '
-      'linear to colourspace:\n{0}'.format(colourspace.encoding_cctf))
-print('\nElectro-optical transfer function from '
-      'colourspace to linear:\n{0}'.format(colourspace.decoding_cctf))
+colourspace = colour.RGB_COLOURSPACES["ACES2065-1"]
+print(f'Name:\n"{colourspace.name}"')
+print(f"\nPrimaries:\n{colourspace.primaries}")
+print(
+    f'\nNormalised primary matrix to "CIE XYZ" tristimulus values:\n'
+    f"{colourspace.matrix_RGB_to_XYZ}"
+)
+print(
+    f'\nNormalised primary matrix to "ACES2065-1":\n'
+    f"{colourspace.matrix_XYZ_to_RGB}"
+)
+print(
+    f"\nOpto-electronic transfer function from linear to colourspace:\n"
+    f"{colourspace.cctf_encoding}"
+)
+print(
+    f"\nElectro-optical transfer function from colourspace to linear:\n"
+    f"{colourspace.cctf_decoding}"
+)
 
-print('\n')
+print("\n")
 
-message_box(('Computing "ACES2065-1" colourspace to "Rec. 709" colourspace '
-             'matrix.'))
-cat = colour.chromatic_adaptation_matrix_VonKries(
-    colour.xy_to_XYZ(colour.RGB_COLOURSPACES['ACES2065-1'].whitepoint),
-    colour.xy_to_XYZ(colour.RGB_COLOURSPACES['Rec. 709'].whitepoint))
-print(np.dot(colour.RGB_COLOURSPACES['Rec. 709'].XYZ_to_RGB_matrix,
-             np.dot(cat,
-                    colour.RGB_COLOURSPACES['ACES2065-1'].RGB_to_XYZ_matrix)))
+message_box(
+    'Computing the "ACES2065-1" colourspace to "ITU-R BT.709" colourspace '
+    "matrix."
+)
+cat = colour.adaptation.matrix_chromatic_adaptation_VonKries(
+    colour.xy_to_XYZ(colourspace.whitepoint),
+    colour.xy_to_XYZ(colour.RGB_COLOURSPACES["ITU-R BT.709"].whitepoint),
+)
+print(
+    np.dot(
+        colour.RGB_COLOURSPACES["ITU-R BT.709"].matrix_XYZ_to_RGB,
+        np.dot(cat, colourspace.matrix_RGB_to_XYZ),
+    )
+)
 
-print('\n')
+print("\n")
 
-RGB = (0.35521588, 0.41000000, 0.24177934)
-message_box(('Converting from "Rec. 709" colourspace to "ACEScg" colourspace '
-             'given "RGB" values:\n'
-             '\n\t{0}'.format(RGB)))
-print(colour.RGB_to_RGB(RGB,
-                        colour.RGB_COLOURSPACES['Rec. 709'],
-                        colour.RGB_COLOURSPACES['ACEScg']))
+RGB = np.array([0.45620519, 0.03081071, 0.04091952])
+message_box(
+    f'Converting from the "ITU-R BT.709" colourspace to the "ACEScg" '
+    f'colourspace given "RGB" values:\n\n\t{RGB}'
+)
+print(
+    colour.RGB_to_RGB(
+        RGB,
+        colour.RGB_COLOURSPACES["ITU-R BT.709"],
+        colour.RGB_COLOURSPACES["ACEScg"],
+    )
+)
+
+print("\n")
+
+message_box(
+    '"Recommendation ITU-T H.273" '
+    "Code points for Video Signal Type Identification"
+)
+
+message_box(
+    f"Colour Primaries: {list(colour.COLOUR_PRIMARIES_ITUTH273.keys())}"
+)
+colour.models.describe_video_signal_colour_primaries(1)
+
+print("\n")
+
+message_box(
+    f"Transfer Characteristics: "
+    f"{list(colour.TRANSFER_CHARACTERISTICS_ITUTH273.keys())}"
+)
+colour.models.describe_video_signal_transfer_characteristics(1)
+
+print("\n")
+
+message_box(
+    f"Matrix Coefficients: "
+    f"{list(colour.MATRIX_COEFFICIENTS_ITUTH273.keys())}"
+)
+
+colour.models.describe_video_signal_matrix_coefficients(1)

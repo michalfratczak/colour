@@ -1,37 +1,67 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Extrapolation
 =============
 
-Defines classes for extrapolating variables:
+Defines the classes for extrapolating variables:
 
--   :class:`Extrapolator`: 1-D function extrapolation.
+-   :class:`colour.Extrapolator`: 1-D function extrapolation.
+
+References
+----------
+-   :cite:`Sastanina` : sastanin. (n.d.). How to make scipy.interpolate give an
+    extrapolated result beyond the input range? Retrieved August 8, 2014, from
+    http://stackoverflow.com/a/2745496/931625
+-   :cite:`Westland2012i` : Westland, S., Ripamonti, C., & Cheung, V. (2012).
+    Extrapolation Methods. In Computational Colour Science Using MATLAB (2nd
+    ed., p. 38). ISBN:978-0-470-66569-5
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
 import numpy as np
 
-from colour.utilities import as_numeric, is_numeric
+from colour.algebra import NullInterpolator, sdiv, sdiv_mode
+from colour.constants import DEFAULT_FLOAT_DTYPE
+from colour.hints import (
+    Any,
+    ArrayLike,
+    DTypeReal,
+    Literal,
+    NDArrayFloat,
+    Optional,
+    ProtocolInterpolator,
+    Real,
+    Type,
+    Union,
+    cast,
+)
+from colour.utilities import (
+    as_float,
+    attest,
+    is_numeric,
+    is_string,
+    optional,
+    validate_method,
+)
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-__all__ = ['Extrapolator']
+__all__ = [
+    "Extrapolator",
+]
 
 
-class Extrapolator(object):
+class Extrapolator:
     """
-    Extrapolates the 1-D function of given interpolator.
+    Extrapolate the 1-D function of given interpolator.
 
-    The :class:`Extrapolator` class acts as a wrapper around a given *Colour*
-    or *scipy* interpolator class instance with compatible signature.
+    The :class:`colour.Extrapolator` class acts as a wrapper around a given
+    *Colour* or *scipy* interpolator class instance with compatible signature.
     Two extrapolation methods are available:
 
     -   *Linear*: Linearly extrapolates given points using the slope defined by
@@ -46,29 +76,29 @@ class Extrapolator(object):
 
     Parameters
     ----------
-    interpolator : object
+    interpolator
         Interpolator object.
-    method : unicode, optional
-        **{'Linear', 'Constant'}**,
+    method
         Extrapolation method.
-    left : numeric, optional
+    left
         Value to return for x < xi[0].
-    right : numeric, optional
+    right
         Value to return for x > xi[-1].
+    dtype
+        Data type used for internal conversions.
 
     Methods
     -------
-    __class__
+    -   :meth:`~colour.Extrapolator.__init__`
+    -   :meth:`~colour.Extrapolator.__class__`
 
     Notes
     -----
-    The interpolator must define *x* and *y* attributes.
+    -   The interpolator must define ``x`` and ``y`` properties.
 
     References
     ----------
-    .. [1]  sastanin. (n.d.). How to make scipy.interpolate give an
-            extrapolated result beyond the input range? Retrieved August 08,
-            2014, from http://stackoverflow.com/a/2745496/931625
+    :cite:`Sastanina`, :cite:`Westland2012i`
 
     Examples
     --------
@@ -82,9 +112,9 @@ class Extrapolator(object):
     >>> extrapolator(1)
     -1.0
 
-    Extrapolating an *array_like* variable:
+    Extrapolating an `ArrayLike` variable:
 
-    >>> extrapolator(np.array([6, 7 , 8]))
+    >>> extrapolator(np.array([6, 7, 8]))
     array([ 4.,  5.,  6.])
 
     Using the *Constant* extrapolation method:
@@ -92,7 +122,7 @@ class Extrapolator(object):
     >>> x = np.array([3, 4, 5])
     >>> y = np.array([1, 2, 3])
     >>> interpolator = LinearInterpolator(x, y)
-    >>> extrapolator = Extrapolator(interpolator, method='Constant')
+    >>> extrapolator = Extrapolator(interpolator, method="Constant")
     >>> extrapolator(np.array([0.1, 0.2, 8, 9]))
     array([ 1.,  1.,  3.,  3.])
 
@@ -101,183 +131,196 @@ class Extrapolator(object):
     >>> x = np.array([3, 4, 5])
     >>> y = np.array([1, 2, 3])
     >>> interpolator = LinearInterpolator(x, y)
-    >>> extrapolator = Extrapolator(interpolator, method='Constant', left=0)
+    >>> extrapolator = Extrapolator(interpolator, method="Constant", left=0)
     >>> extrapolator(np.array([0.1, 0.2, 8, 9]))
     array([ 0.,  0.,  3.,  3.])
     """
 
-    def __init__(self,
-                 interpolator=None,
-                 method='Linear',
-                 left=None,
-                 right=None):
+    def __init__(
+        self,
+        interpolator: Optional[ProtocolInterpolator] = None,
+        method: Union[Literal["Linear", "Constant"], str] = "Linear",
+        left: Optional[Real] = None,
+        right: Optional[Real] = None,
+        dtype: Optional[Type[DTypeReal]] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        dtype = optional(dtype, DEFAULT_FLOAT_DTYPE)
 
-        self._interpolator = None
-        self.interpolator = interpolator
-        self._method = None
-        self.method = method
-        self._right = None
+        self._interpolator: ProtocolInterpolator = NullInterpolator(
+            np.array([-np.inf, np.inf]), np.array([-np.inf, np.inf])
+        )
+        self.interpolator = optional(interpolator, self._interpolator)
+        self._method: Union[Literal["Linear", "Constant"], str] = "Linear"
+        self.method = optional(method, self._method)
+        self._right: Optional[Real] = None
         self.right = right
-        self._left = None
+        self._left: Optional[Real] = None
         self.left = left
 
+        self._dtype: Type[DTypeReal] = dtype
+
     @property
-    def interpolator(self):
+    def interpolator(self) -> ProtocolInterpolator:
         """
-        Property for **self._interpolator** private attribute.
+        Getter and setter property for the *Colour* or *scipy* interpolator
+        class instance.
+
+        Parameters
+        ----------
+        value
+            Value to set the *Colour* or *scipy* interpolator class instance
+            with.
 
         Returns
         -------
-        object
-            self._interpolator
+        ProtocolInterpolator
+            *Colour* or *scipy* interpolator class instance.
         """
 
         return self._interpolator
 
     @interpolator.setter
-    def interpolator(self, value):
-        """
-        Setter for **self._interpolator** private attribute.
+    def interpolator(self, value: ProtocolInterpolator):
+        """Setter for the **self.interpolator** property."""
 
-        Parameters
-        ----------
-        value : object
-            Attribute value.
-        """
+        attest(
+            hasattr(value, "x"),
+            f'"{value}" interpolator has no "x" attribute!',
+        )
 
-        if value is not None:
-            assert hasattr(value, 'x'), (
-                '"{0}" interpolator has no "x" attribute!'.format(value))
-            assert hasattr(value, 'y'), (
-                '"{0}" interpolator has no "y" attribute!'.format(value))
+        attest(
+            hasattr(value, "y"),
+            f'"{value}" interpolator has no "y" attribute!',
+        )
 
         self._interpolator = value
 
     @property
-    def method(self):
+    def method(self) -> Union[Literal["Linear", "Constant"], str]:
         """
-        Property for **self._method** private attribute.
+        Getter and setter property for the extrapolation method.
+
+        Parameters
+        ----------
+        value
+            Value to set the extrapolation method. with.
 
         Returns
         -------
-        unicode
-            self._method
+        :class:`str`
+            Extrapolation method.
         """
 
         return self._method
 
     @method.setter
-    def method(self, value):
-        """
-        Setter for **self._method** private attribute.
+    def method(self, value: Union[Literal["Linear", "Constant"], str]):
+        """Setter for the **self.method** property."""
 
-        Parameters
-        ----------
-        value : unicode
-            Attribute value.
-        """
+        attest(
+            is_string(value),
+            f'"method" property: "{value}" type is not "str"!',
+        )
 
-        if value is not None:
-            assert isinstance(value, basestring), (  # noqa
-                ('"{0}" attribute: "{1}" is not a '
-                 '"basestring" instance!').format('method', value))
-            value = value.lower()
+        value = validate_method(value, ["Linear", "Constant"])
 
         self._method = value
 
     @property
-    def left(self):
+    def left(self) -> Optional[Real]:
         """
-        Property for **self._left** private attribute.
+        Getter and setter property for left value to return for x < xi[0].
+
+        Parameters
+        ----------
+        value
+            Left value to return for x < xi[0].
 
         Returns
         -------
-        numeric
-            self._left
+        :py:data:`None` or Real
+            Left value to return for x < xi[0].
         """
 
         return self._left
 
     @left.setter
-    def left(self, value):
+    def left(self, value: Optional[Real]):
+        """Setter for the **self.left** property."""
+
+        if value is not None:
+            attest(
+                is_numeric(value),
+                f'"left" property: "{value}" is not a "number"!',
+            )
+
+            self._left = value
+
+    @property
+    def right(self) -> Optional[Real]:
         """
-        Setter for **self._left** private attribute.
+        Getter and setter property for right value to return for x > xi[-1].
 
         Parameters
         ----------
-        value : numeric
-            Attribute value.
-        """
-
-        if value is not None:
-            assert is_numeric(value), (
-                '"{0}" attribute: "{1}" is not a "numeric"!').format(
-                'left', value)
-        self._left = value
-
-    @property
-    def right(self):
-        """
-        Property for **self._right** private attribute.
+        value
+            Right value to return for x > xi[-1].
 
         Returns
         -------
-        numeric
-            self._right
+        :py:data:`None` or Real
+            Right value to return for x > xi[-1].
         """
 
         return self._right
 
     @right.setter
-    def right(self, value):
-        """
-        Setter for **self._right** private attribute.
-
-        Parameters
-        ----------
-        value : numeric
-            Attribute value.
-        """
+    def right(self, value: Optional[Real]):
+        """Setter for the **self.right** property."""
 
         if value is not None:
-            assert is_numeric(value), (
-                '"{0}" attribute: "{1}" is not a "numeric"!').format(
-                'right', value)
-        self._right = value
+            attest(
+                is_numeric(value),
+                f'"right" property: "{value}" is not a "number"!',
+            )
 
-    def __call__(self, x):
+            self._right = value
+
+    def __call__(self, x: ArrayLike) -> NDArrayFloat:
         """
-        Evaluates the Extrapolator at given point(s).
+        Evaluate the Extrapolator at given point(s).
 
         Parameters
         ----------
-        x : numeric or array_like
+        x
             Point(s) to evaluate the Extrapolator at.
 
         Returns
         -------
-        float or ndarray
+        :class:`numpy.ndarray`
             Extrapolated points value(s).
         """
 
-        x = np.atleast_1d(x).astype(np.float_)
+        x = cast(NDArrayFloat, np.atleast_1d(x).astype(self._dtype))
 
-        xe = as_numeric(self._evaluate(x))
+        xe = self._evaluate(x)
 
-        return xe
+        return as_float(xe)
 
-    def _evaluate(self, x):
+    def _evaluate(self, x: NDArrayFloat) -> NDArrayFloat:
         """
-        Performs the extrapolating evaluation at given points.
+        Perform the extrapolating evaluation at given points.
 
         Parameters
         ----------
-        x : ndarray
+        x
             Points to evaluate the Extrapolator at.
 
         Returns
         -------
-        ndarray
+        :class:`numpy.ndarray`
             Extrapolated points values.
         """
 
@@ -286,12 +329,15 @@ class Extrapolator(object):
 
         y = np.empty_like(x)
 
-        if self._method == 'linear':
-            y[x < xi[0]] = (yi[0] + (x[x < xi[0]] - xi[0]) *
-                            (yi[1] - yi[0]) / (xi[1] - xi[0]))
-            y[x > xi[-1]] = (yi[-1] + (x[x > xi[-1]] - xi[-1]) *
-                             (yi[-1] - yi[-2]) / (xi[-1] - xi[-2]))
-        elif self._method == 'constant':
+        if self._method == "linear":
+            with sdiv_mode():
+                y[x < xi[0]] = yi[0] + (x[x < xi[0]] - xi[0]) * sdiv(
+                    yi[1] - yi[0], xi[1] - xi[0]
+                )
+                y[x > xi[-1]] = yi[-1] + (x[x > xi[-1]] - xi[-1]) * sdiv(
+                    yi[-1] - yi[-2], xi[-1] - xi[-2]
+                )
+        elif self._method == "constant":
             y[x < xi[0]] = yi[0]
             y[x > xi[-1]] = yi[-1]
 

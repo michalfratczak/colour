@@ -1,40 +1,51 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases colour quality plotting examples.
-"""
+"""Showcases colour quality plotting examples."""
 
 import colour
-from colour.plotting import *  # noqa
-from colour.utilities.verbose import message_box
+from colour.plotting import (
+    colour_style,
+    plot_multi_sds_colour_quality_scales_bars,
+    plot_multi_sds_colour_rendering_indexes_bars,
+    plot_single_sd_colour_quality_scale_bars,
+    plot_single_sd_colour_rendering_index_bars,
+)
+from colour.utilities import message_box
 
-message_box('Colour Quality Plots')
+message_box("Colour Quality Plots")
 
-message_box('Plotting "F2" illuminant "colour rendering index".')
-single_spd_colour_rendering_index_bars_plot(
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('F2'))
+colour_style()
 
-print('\n')
+message_box('Plotting "F2" illuminant "Colour Rendering Index (CRI)".')
+plot_single_sd_colour_rendering_index_bars(colour.SDS_ILLUMINANTS["FL2"])
 
-message_box(('Plotting various illuminants and light sources '
-             '"colour rendering index".'))
-multi_spd_colour_rendering_index_bars_plot((
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('F2'),
-    colour.LIGHT_SOURCES_RELATIVE_SPDS.get('F32T8/TL841 (Triphosphor)'),
-    colour.LIGHT_SOURCES_RELATIVE_SPDS.get('Kinoton 75P')))
+print("\n")
 
-print('\n')
+message_box(
+    "Plotting various illuminants and light sources "
+    '"Colour Rendering Index (CRI)".'
+)
+plot_multi_sds_colour_rendering_indexes_bars(
+    (
+        colour.SDS_ILLUMINANTS["FL2"],
+        colour.SDS_LIGHT_SOURCES["F32T8/TL841 (Triphosphor)"],
+        colour.SDS_LIGHT_SOURCES["Kinoton 75P"],
+    )
+)
 
-message_box('Plotting "F2" illuminant "colour quality scale".')
-single_spd_colour_quality_scale_bars_plot(
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('F2'))
+print("\n")
 
-print('\n')
+message_box('Plotting "F2" illuminant "Colour Quality Scale (CQS)".')
+plot_single_sd_colour_quality_scale_bars(colour.SDS_ILLUMINANTS["FL2"])
 
-message_box(('Plotting various illuminants and light sources '
-             '"colour quality scale".'))
-multi_spd_colour_quality_scale_bars_plot((
-    colour.ILLUMINANTS_RELATIVE_SPDS.get('F2'),
-    colour.LIGHT_SOURCES_RELATIVE_SPDS.get('F32T8/TL841 (Triphosphor)'),
-    colour.LIGHT_SOURCES_RELATIVE_SPDS.get('Kinoton 75P')))
+print("\n")
+
+message_box(
+    "Plotting various illuminants and light sources "
+    '"Colour Quality Scale (CQS)".'
+)
+plot_multi_sds_colour_quality_scales_bars(
+    (
+        colour.SDS_ILLUMINANTS["FL2"],
+        colour.SDS_LIGHT_SOURCES["F32T8/TL841 (Triphosphor)"],
+        colour.SDS_LIGHT_SOURCES["Kinoton 75P"],
+    )
+)

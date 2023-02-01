@@ -1,69 +1,86 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Pivoted Log Encoding
 ====================
 
 Defines the *Pivoted Log* encoding:
 
--   :func:`log_encoding_PivotedLog`
--   :func:`log_decoding_PivotedLog`
-
-See Also
---------
-`RGB Colourspaces IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/models/rgb.ipynb>`_
+-   :func:`colour.models.log_encoding_PivotedLog`
+-   :func:`colour.models.log_decoding_PivotedLog`
 
 References
 ----------
-.. [1]  Sony Imageworks. (2012). make.py. Retrieved November 27, 2014, from
-        https://github.com/imageworks/OpenColorIO-Configs/\
-blob/master/nuke-default/make.py
+-   :cite:`SonyImageworks2012a` : Sony Imageworks. (2012). make.py. Retrieved
+    November 27, 2014, from
+    https://github.com/imageworks/OpenColorIO-Configs/blob/master/\
+nuke-default/make.py
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
 import numpy as np
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+from colour.hints import ArrayLike, NDArrayFloat
+from colour.utilities import as_float, from_range_1, to_domain_1
 
-__all__ = ['log_encoding_PivotedLog',
-           'log_decoding_PivotedLog']
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
+
+__all__ = [
+    "log_encoding_PivotedLog",
+    "log_decoding_PivotedLog",
+]
 
 
-def log_encoding_PivotedLog(x,
-                            log_reference=445,
-                            linear_reference=0.18,
-                            negative_gamma=0.6,
-                            density_per_code_value=0.002):
+def log_encoding_PivotedLog(
+    x: ArrayLike,
+    log_reference: float = 445,
+    linear_reference: float = 0.18,
+    negative_gamma: float = 0.6,
+    density_per_code_value: float = 0.002,
+) -> NDArrayFloat:
     """
-    Defines the *Josh Pines* style *Pivoted Log* log encoding curve /
+    Define the *Josh Pines* style *Pivoted Log* log encoding curve /
     opto-electronic transfer function.
 
     Parameters
     ----------
-    x : numeric or array_like
+    x
         Linear data :math:`x`.
-    log_reference : numeric or array_like
+    log_reference
         Log reference.
-    linear_reference : numeric or array_like
+    linear_reference
         Linear reference.
-    negative_gamma : numeric or array_like
+    negative_gamma
         Negative gamma.
-    density_per_code_value : numeric or array_like
+    density_per_code_value
         Density per code value.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Non-linear data :math:`y`.
+
+    Notes
+    -----
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``x``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``y``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`SonyImageworks2012a`
 
     Examples
     --------
@@ -71,38 +88,63 @@ def log_encoding_PivotedLog(x,
     0.4349951...
     """
 
-    x = np.asarray(x)
+    x = to_domain_1(x)
 
-    return ((log_reference + np.log10(x / linear_reference) /
-             (density_per_code_value / negative_gamma)) / 1023)
+    y = (
+        log_reference
+        + np.log10(x / linear_reference)
+        / (density_per_code_value / negative_gamma)
+    ) / 1023
+
+    return as_float(from_range_1(y))
 
 
-def log_decoding_PivotedLog(y,
-                            log_reference=445,
-                            linear_reference=0.18,
-                            negative_gamma=0.6,
-                            density_per_code_value=0.002):
+def log_decoding_PivotedLog(
+    y: ArrayLike,
+    log_reference: float = 445,
+    linear_reference: float = 0.18,
+    negative_gamma: float = 0.6,
+    density_per_code_value: float = 0.002,
+) -> NDArrayFloat:
     """
-    Defines the *Josh Pines* style *Pivoted Log* log decoding curve /
+    Define the *Josh Pines* style *Pivoted Log* log decoding curve /
     electro-optical transfer function.
 
     Parameters
     ----------
-    y : numeric or array_like
+    y
         Non-linear data :math:`y`.
-    log_reference : numeric or array_like
+    log_reference
         Log reference.
-    linear_reference : numeric or array_like
+    linear_reference
         Linear reference.
-    negative_gamma : numeric or array_like
+    negative_gamma
         Negative gamma.
-    density_per_code_value : numeric or array_like
+    density_per_code_value
         Density per code value.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Linear data :math:`x`.
+
+    Notes
+    -----
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``y``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``x``      | [0, 1]                | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`SonyImageworks2012a`
 
     Examples
     --------
@@ -110,8 +152,15 @@ def log_decoding_PivotedLog(y,
     0.1...
     """
 
-    y = np.asarray(y)
+    y = to_domain_1(y)
 
-    return (10 ** ((y * 1023 - log_reference) *
-                   (density_per_code_value / negative_gamma)) *
-            linear_reference)
+    x = (
+        10
+        ** (
+            (y * 1023 - log_reference)
+            * (density_per_code_value / negative_gamma)
+        )
+        * linear_reference
+    )
+
+    return as_float(from_range_1(x))

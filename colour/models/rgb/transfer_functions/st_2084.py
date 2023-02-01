@@ -1,142 +1,215 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 SMPTE ST 2084:2014
 ==================
 
-Defines *SMPTE ST 2084:2014* opto-electrical transfer function (OETF / OECF)
-and electro-optical transfer function (EOTF / EOCF):
+Defines the *SMPTE ST 2084:2014* electro-optical transfer function (EOTF) and
+its inverse:
 
--   :func:`eotf_ST2084`
--   :func:`oetf_ST2084`
-
-See Also
---------
-`RGB Colourspaces IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/models/rgb.ipynb>`_
+-   :func:`colour.models.eotf_inverse_ST2084`
+-   :func:`colour.models.eotf_ST2084`
 
 References
 ----------
-.. [1]  Society of Motion Picture and Television Engineers. (2014). SMPTE
-        ST 2084:2014 - Dynamic Range Electro-Optical Transfer Function of
-        Mastering Reference Displays. doi:10.5594/SMPTE.ST2084.2014
-.. [2]  Miller, S., & Dolby Laboratories. (2014). A Perceptual EOTF for
-        Extended Dynamic Range Imagery, 1–17. Retrieved from
-        https://www.smpte.org/sites/default/files/\
+-   :cite:`Miller2014a` : Miller, S. (2014). A Perceptual EOTF for Extended
+    Dynamic Range Imagery (pp. 1-17).
+    https://www.smpte.org/sites/default/files/\
 2014-05-06-EOTF-Miller-1-2-handout.pdf
+-   :cite:`SocietyofMotionPictureandTelevisionEngineers2014a` : Society of
+    Motion Picture and Television Engineers. (2014). SMPTE ST 2084:2014 -
+    Dynamic Range Electro-Optical Transfer Function of Mastering Reference
+    Displays (pp. 1-14). doi:10.5594/SMPTE.ST2084.2014
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
 import numpy as np
 
-from colour.utilities import Structure
+from colour.algebra import spow
+from colour.hints import ArrayLike, NDArrayFloat
+from colour.utilities import Structure, as_float_array, as_float
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-__all__ = ['ST2084_CONSTANTS',
-           'oetf_ST2084',
-           'eotf_ST2084']
+__all__ = [
+    "CONSTANTS_ST2084",
+    "eotf_inverse_ST2084",
+    "eotf_ST2084",
+]
 
-ST2084_CONSTANTS = Structure(m_1=2610 / 4096 * (1 / 4),
-                             m_2=2523 / 4096 * 128,
-                             c_1=3424 / 4096,
-                             c_2=2413 / 4096 * 32,
-                             c_3=2392 / 4096 * 32)
+CONSTANTS_ST2084: Structure = Structure(
+    m_1=2610 / 4096 * (1 / 4),
+    m_2=2523 / 4096 * 128,
+    c_1=3424 / 4096,
+    c_2=2413 / 4096 * 32,
+    c_3=2392 / 4096 * 32,
+)
 """
-*SMPTE ST 2084:2014* opto-electrical transfer function (OETF / OECF) and
-electro-optical transfer function (EOTF / EOCF) constants.
-
-ST2084_CONSTANTS : Structure
+Constants for *SMPTE ST 2084:2014* inverse electro-optical transfer function
+(EOTF) and electro-optical transfer function (EOTF).
 """
 
 
-def oetf_ST2084(C, L_p=10000):
+def eotf_inverse_ST2084(
+    C: ArrayLike,
+    L_p: float = 10000,
+    constants: Structure = CONSTANTS_ST2084,
+) -> NDArrayFloat:
     """
-    Defines *SMPTE ST 2084:2014* optimised perceptual opto-electronic transfer
-    function (OETF / OECF).
+    Define *SMPTE ST 2084:2014* optimised perceptual inverse electro-optical
+    transfer function (EOTF).
 
     Parameters
     ----------
-    C : numeric or array_like
+    C
         Target optical output :math:`C` in :math:`cd/m^2` of the ideal
         reference display.
-    L_p : numeric, optional
-        Display peak luminance :math:`cd/m^2`.
+    L_p
+        System peak luminance :math:`cd/m^2`, this parameter should stay at its
+        default :math:`10000 cd/m^2` value for practical applications. It is
+        exposed so that the definition can be used as a fitting function.
+    constants
+        *SMPTE ST 2084:2014* constants.
 
     Returns
     -------
-    numeric or ndarray
-        Color value abbreviated as :math:`N`, normalized to the range [0, 1],
-        that is directly proportional to the encoded signal representation,
-        and which is not directly proportional to the optical output of a
-        display device.
+    :class:`numpy.ndarray`
+        Color value abbreviated as :math:`N`, that is directly proportional to
+        the encoded signal representation, and which is not directly
+        proportional to the optical output of a display device.
+
+    Warnings
+    --------
+    *SMPTE ST 2084:2014* is an absolute transfer function.
+
+    Notes
+    -----
+    -   *SMPTE ST 2084:2014* is an absolute transfer function, thus the
+        domain and range values for the *Reference* and *1* scales are only
+        indicative that the data is not affected by scale transformations.
+        The effective domain of *SMPTE ST 2084:2014* inverse electro-optical
+        transfer function (EOTF) is [0.0001, 10000].
+
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``C``      | ``UN``                | ``UN``        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``N``      | ``UN``                | ``UN``        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`Miller2014a`,
+    :cite:`SocietyofMotionPictureandTelevisionEngineers2014a`
 
     Examples
     --------
-    >>> oetf_ST2084(0.18)  # doctest: +ELLIPSIS
-    0.0794209...
+    >>> eotf_inverse_ST2084(100)  # doctest: +ELLIPSIS
+    0.5080784...
     """
 
-    C = np.asarray(C)
+    C = as_float_array(C)
 
-    Y_p = (C / L_p) ** ST2084_CONSTANTS.m_1
+    c_1 = constants.c_1
+    c_2 = constants.c_2
+    c_3 = constants.c_3
+    m_1 = constants.m_1
+    m_2 = constants.m_2
 
-    N = ((ST2084_CONSTANTS.c_1 + ST2084_CONSTANTS.c_2 * Y_p) /
-         (ST2084_CONSTANTS.c_3 * Y_p + 1)) ** ST2084_CONSTANTS.m_2
+    Y_p = spow(C / L_p, m_1)
 
-    return N
+    N = spow((c_1 + c_2 * Y_p) / (c_3 * Y_p + 1), m_2)
+
+    return as_float(N)
 
 
-def eotf_ST2084(N, L_p=10000):
+def eotf_ST2084(
+    N: ArrayLike,
+    L_p: float = 10000,
+    constants: Structure = CONSTANTS_ST2084,
+) -> NDArrayFloat:
     """
-    Defines *SMPTE ST 2084:2014* optimised perceptual electro-optical transfer
-    function (EOTF / EOCF).
+    Define *SMPTE ST 2084:2014* optimised perceptual electro-optical transfer
+    function (EOTF).
 
     This perceptual quantizer (PQ) has been modeled by Dolby Laboratories
-    using Barten (1999) contrast sensitivity function.
+    using *Barten (1999)* contrast sensitivity function.
 
     Parameters
     ----------
-    N : numeric or array_like
-        Color value abbreviated as :math:`N`, normalized to the range [0, 1],
-        that is directly proportional to the encoded signal representation,
-        and which is not directly proportional to the optical output of a
-        display device.
-    L_p : numeric, optional
-        Display peak luminance :math:`cd/m^2`.
+    N
+        Color value abbreviated as :math:`N`, that is directly proportional to
+        the encoded signal representation, and which is not directly
+        proportional to the optical output of a display device.
+    L_p
+        System peak luminance :math:`cd/m^2`, this parameter should stay at its
+        default :math:`10000 cd/m^2` value for practical applications. It is
+        exposed so that the definition can be used as a fitting function.
+    constants
+        *SMPTE ST 2084:2014* constants.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
           Target optical output :math:`C` in :math:`cd/m^2` of the ideal
           reference display.
 
+    Warnings
+    --------
+    *SMPTE ST 2084:2014* is an absolute transfer function.
+
+    Notes
+    -----
+    -   *SMPTE ST 2084:2014* is an absolute transfer function, thus the
+        domain and range values for the *Reference* and *1* scales are only
+        indicative that the data is not affected by scale transformations.
+
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``N``      | ``UN``                | ``UN``        |
+    +------------+-----------------------+---------------+
+
+    +------------+-----------------------+---------------+
+    | **Range**  | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``C``      | ``UN``                | ``UN``        |
+    +------------+-----------------------+---------------+
+
+    References
+    ----------
+    :cite:`Miller2014a`,
+    :cite:`SocietyofMotionPictureandTelevisionEngineers2014a`
+
     Examples
     --------
-    >>> eotf_ST2084(0.079420969944927)  # doctest: +ELLIPSIS
-    0.1...
+    >>> eotf_ST2084(0.508078421517399)  # doctest: +ELLIPSIS
+    100.0000000...
     """
 
-    N = np.asarray(N)
+    N = as_float_array(N)
 
-    m_1_d = 1 / ST2084_CONSTANTS.m_1
-    m_2_d = 1 / ST2084_CONSTANTS.m_2
+    c_1 = constants.c_1
+    c_2 = constants.c_2
+    c_3 = constants.c_3
+    m_1 = constants.m_1
+    m_2 = constants.m_2
 
-    V_p = N ** m_2_d
+    m_1_d = 1 / m_1
+    m_2_d = 1 / m_2
 
-    n = V_p - ST2084_CONSTANTS.c_1
-    # Preventing *nan*.
-    n = np.where(n < 0, 0, n)
-
-    L = (n / (ST2084_CONSTANTS.c_2 - ST2084_CONSTANTS.c_3 * V_p)) ** m_1_d
+    V_p = spow(N, m_2_d)
+    n = np.maximum(0, V_p - c_1)
+    L = spow((n / (c_2 - c_3 * V_p)), m_1_d)
     C = L_p * L
 
-    return C
+    return as_float(C)

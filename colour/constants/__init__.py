@@ -1,19 +1,32 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import
-
-from .cie import CIE_E, CIE_K, K_M, KP_M
+from .cie import CONSTANT_K_M, CONSTANT_KP_M
 from .codata import (
-    AVOGADRO_CONSTANT,
-    BOLTZMANN_CONSTANT,
-    LIGHT_SPEED,
-    PLANCK_CONSTANT)
-from .common import FLOATING_POINT_NUMBER_PATTERN, INTEGER_THRESHOLD, EPSILON
+    CONSTANT_AVOGADRO,
+    CONSTANT_BOLTZMANN,
+    CONSTANT_LIGHT_SPEED,
+    CONSTANT_PLANCK,
+)
+from .common import (
+    FLOATING_POINT_NUMBER_PATTERN,
+    INTEGER_THRESHOLD,
+    EPSILON,
+    DEFAULT_INT_DTYPE,
+    DEFAULT_FLOAT_DTYPE,
+)
 
-__all__ = ['CIE_E', 'CIE_K', 'K_M', 'KP_M']
-__all__ += ['AVOGADRO_CONSTANT',
-            'BOLTZMANN_CONSTANT',
-            'LIGHT_SPEED',
-            'PLANCK_CONSTANT']
-__all__ += ['FLOATING_POINT_NUMBER_PATTERN', 'INTEGER_THRESHOLD', 'EPSILON']
+__all__ = [
+    "CONSTANT_K_M",
+    "CONSTANT_KP_M",
+]
+__all__ += [
+    "CONSTANT_AVOGADRO",
+    "CONSTANT_BOLTZMANN",
+    "CONSTANT_LIGHT_SPEED",
+    "CONSTANT_PLANCK",
+]
+__all__ += [
+    "FLOATING_POINT_NUMBER_PATTERN",
+    "INTEGER_THRESHOLD",
+    "EPSILON",
+    "DEFAULT_INT_DTYPE",
+    "DEFAULT_FLOAT_DTYPE",
+]

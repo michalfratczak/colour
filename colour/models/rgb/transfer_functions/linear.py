@@ -1,53 +1,49 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Linear Colour Component Transfer Function
 =========================================
 
-Defines linear encoding / decoding colour component transfer function related
-objects:
+Defines the linear encoding / decoding colour component transfer function
+related objects:
 
-- :func:`linear_function`
-
-See Also
---------
-`RGB Colourspaces IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/models/rgb.ipynb>`_
+- :func:`colour.linear_function`
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+from colour.hints import ArrayLike, NDArrayFloat
+from colour.utilities import as_float
 
-__all__ = ['linear_function']
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
+
+__all__ = [
+    "linear_function",
+]
 
 
-def linear_function(a):
+def linear_function(a: ArrayLike) -> NDArrayFloat:
     """
-    Defines a typical linear encoding / decoding function, essentially a
+    Define a typical linear encoding / decoding function, essentially a
     pass-through function.
 
     Parameters
     ----------
-    a : numeric or array_like
+    a
         Array to encode / decode.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Encoded / decoded array.
 
     Examples
     --------
-    >>> linear_function(0.18)
-    0.18
+    >>> linear_function(0.18)  # doctest: +ELLIPSIS
+    0.1799999...
     """
 
-    return a
+    return as_float(a)

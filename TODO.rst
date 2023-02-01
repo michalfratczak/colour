@@ -4,80 +4,206 @@ Colour - TODO
 TODO
 ----
 
-- colour (17 items in 11 files)
+-   colour/__init__.py
 
-    - appearance (8 items in 5 files)
+    -   Line 888 : # TODO: Remove legacy printing support when deemed appropriate.
 
-        - ciecam02.py
 
-            - (261, 7) # TODO: Compute hue composition.
-            - (713, 7) # TODO: Check for negative values and their handling.
+-   colour/colorimetry/spectrum.py
 
-        - hunt.py
+    -   Line 1174 : # TODO: Provide support for fractional interval like 0.1, etc...
 
-            - (418, 7) # TODO: Implement hue quadrature & composition computation.
-            - (449, 7) # TODO: Implement whiteness-blackness :math:`Q_{wb}` computation.
 
-        - llab.py
+-   colour/colorimetry/tristimulus_values.py
 
-            - (309, 7) # TODO: Implement hue composition computation.
+    -   Line 1052 : # TODO: Investigate code vectorisation.
 
-        - nayatani95.py
 
-            - (271, 7) # TODO: Implement hue quadrature & composition computation.
-            - (289, 7) # TODO: Investigate components usage.
+-   colour/appearance/ciecam02.py
 
-        - rlab.py
+    -   Line 382 : # TODO: Compute hue composition.
 
-            - (246, 7) # TODO: Implement hue composition computation.
 
-    - colorimetry (1 item in 1 file)
+-   colour/appearance/ciecam16.py
 
-        - spectrum.py
+    -   Line 329 : # TODO: Compute hue composition.
 
-            - (1942, 11) # TODO: Provide support for fractional interval like 0.1, etc...
 
-        - tristimulus.py
+-   colour/appearance/cam16.py
 
-            - (678, 11) # TODO: Investigate code vectorisation.
+    -   Line 317 : # TODO: Compute hue composition.
 
-    - models (2 item in 2 file)
 
-        - tests (1 item in 1 file)
+-   colour/appearance/hellwig2022.py
 
-            - tests_derivation.py
+    -   Line 360 : # TODO: Compute hue composition.
 
-                - (301, 15) # TODO: Simplify that monster.
 
-        - derivation.py
+-   colour/appearance/hunt.py
 
-            - (219, 7) # TODO: Investigate if we return an ndarray here with primaries and whitepoint stacked together.
+    -   Line 495 : # TODO: Implement hue quadrature & composition computation.
+    -   Line 528 : # TODO: Implement whiteness-blackness :math:`Q_{wb}` computation.
 
-    - notation (5 items in 2 files)
 
-        - tests (3 items in 1 file)
+-   colour/appearance/rlab.py
 
-            - tests_munsell.py
+    -   Line 292 : # TODO: Implement hue composition computation.
 
-                - (94, 3) # TODO: Investigate if tests can be simplified by using a common valid set of specifications.
-                - (4528, 11) # TODO: This test is covered by the previous class, do we need a dedicated one?
-                - (4574, 11) # TODO: This test is covered by the previous class, do we need a dedicated one?
 
-        - munsell.py
+-   colour/appearance/nayatani95.py
 
-            - (840, 11) # TODO: Consider refactoring implementation.
-            - (1179, 11) # TODO: Should raise KeyError, need to check the tests.
+    -   Line 317 : # TODO: Implement hue quadrature & composition computation.
+    -   Line 330 : # TODO: Investigate components usage. M_RG, M_YB = tsplit(colourfulness_components(C_RG, C_YB, brightness_ideal_white))
 
-    - volume (1 item in 1 file)
-        
-        -  rgb.py
-            
-            - (320, 7) # TODO: Investigate for generator yielding directly a ndarray.
+
+-   colour/appearance/llab.py
+
+    -   Line 369 : # TODO: Implement hue composition computation.
+
+
+-   colour/recovery/otsu2018.py
+
+    -   Line 663 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+
+
+-   colour/recovery/tests/test_jiang2013.py
+
+    -   Line 61 : # TODO: Last eigen value seems to be very sensitive and produce differences on ARM.
+
+
+-   colour/io/ocio.py
+
+    -   Line 30 : # TODO: Reinstate coverage and doctests when "Pypi" wheel compatible with "ARM" on "macOS" is released.
+
+
+-   colour/io/ctl.py
+
+    -   Line 66 : # TODO: Reinstate coverage when "ctlrender" is trivially available cross-platform.
+
+
+-   colour/io/tests/test_ocio.py
+
+    -   Line 37 : # TODO: Remove when "Pypi" wheel compatible with "ARM" on "macOS" is released.
+
+
+-   colour/io/tests/test_ctl.py
+
+    -   Line 39 : # TODO: Reinstate coverage when "ctlrender" is tivially available cross-platform.
+
+
+-   colour/io/tests/test_image.py
+
+    -   Line 307 : # TODO: Investigate "OIIO" behaviour here: 1.0 != 15360.0 image = read_image_OpenImageIO( os.path.join(ROOT_RESOURCES, 'Colour_Logo.png'), 'float16') self.assertIs(image.dtype, np.dtype('float16')) self.assertEqual(np.min(image), 0.0) self.assertEqual(np.max(image), 1.0)
+
+
+-   colour/io/luts/sequence.py
+
+    -   Line 115 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+
+
+-   colour/io/luts/operator.py
+
+    -   Line 80 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+    -   Line 256 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+
+
+-   colour/io/luts/lut.py
+
+    -   Line 171 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+
+
+-   colour/graph/conversion.py
+
+    -   Line 1364 : # TODO: Remove the following warning whenever the automatic colour conversion graph implementation is considered stable.
+
+
+-   colour/models/rgb/derivation.py
+
+    -   Line 249 : # TODO: Investigate if we return an ndarray here with primaries and whitepoint stacked together.
+
+
+-   colour/models/rgb/tests/test_derivation.py
+
+    -   Line 325 : # TODO: Simplify that monster.
+
+
+-   colour/utilities/verbose.py
+
+    -   Line 631 : # TODO: Implement support for "pyproject.toml" file whenever "TOML" is supported in the standard library.
+
+
+-   colour/utilities/array.py
+
+    -   Line 559 : # TODO: Remove when https://github.com/numpy/numpy/issues/5718 is addressed.
+    -   Line 605 : # TODO: Reassess implementation when and if https://github.com/numpy/numpy/issues/11956 is addressed.
+    -   Line 833 : # TODO: Investigate behaviour on Windows.
+    -   Line 890 : # TODO: Annotate with "Union[Literal['ignore', 'reference', '1', '100'], str]" when Python 3.7 is dropped.
+
+
+-   colour/plotting/models.py
+
+    -   Line 2003 : # TODO: Filter appropriate colour models.
+
+
+-   colour/plotting/graph.py
+
+    -   Line 89 : # TODO: Investigate API to trigger the conversion graph build.
+
+
+-   colour/plotting/common.py
+
+    -   Line 797 : # TODO: Reassess according to https://github.com/matplotlib/matplotlib/issues/1077
+    -   Line 920 : # TODO: Consider using "MutableMapping" here.
+    -   Line 1526 : # TODO: Remove when "Matplotlib" minimum version can be set to 3.5.0.
+
+
+-   colour/characterisation/aces_it.py
+
+    -   Line 402 : # TODO: Remove when removing the "colour.sd_blackbody" definition warning.
+
+
+-   colour/characterisation/correction.py
+
+    -   Line 409 : # TODO: Generalise polynomial expansion.
+
+
+-   colour/notation/munsell.py
+
+    -   Line 1248 : # TODO: Consider refactoring implementation.
+
+
+-   colour/continuous/signal.py
+
+    -   Line 421 : # TODO: Check for interpolator compatibility.
+    -   Line 481 : # TODO: Check for extrapolator compatibility.
+
+
+-   colour/hints/__init__.py
+
+    -   Line 46 : # TODO: Drop "typing_extensions" when "Google Colab" uses Python >= 3.8. Remove exclusion in ".pre-commit-config.yaml" file for "pyupgrade".
+    -   Line 163 : # TODO: Use "typing.Literal" when minimal Python version is raised to 3.8.
+    -   Line 166 : # TODO: Revisit to use Protocol.
+    -   Line 169 : # TODO: Drop mocking when minimal "Numpy" version is 1.21.x.
+    -   Line 263 : # TODO: Use "numpy.typing.NDArray" when minimal Numpy version is raised to 1.21.
+    -   Line 270 : # TODO: Drop when minimal Python is raised to 3.9.
+
+
+-   colour/algebra/interpolation.py
+
+    -   Line 429 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+    -   Line 825 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+    -   Line 1050 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+    -   Line 1425 : # TODO: Remove pragma when https://github.com/python/mypy/issues/3004 is resolved.
+
+
+-   colour/algebra/tests/test_interpolation.py
+
+    -   Line 1171 : # TODO: Revisit if the interpolator can be applied on non-uniform "x" independent variable.
 
 About
 -----
 
-| **Colour** by Colour Developers - 2013-2016
-| Copyright © 2013-2016 – Colour Developers – `colour-science@googlegroups.com <colour-science@googlegroups.com>`_
-| This software is released under terms of New BSD License: http://opensource.org/licenses/BSD-3-Clause
-| `http://github.com/colour-science/colour <http://github.com/colour-science/colour>`_
+| **Colour** by Colour Developers
+| Copyright 2013 Colour Developers – `colour-developers@colour-science.org <colour-developers@colour-science.org>`__
+| This software is released under terms of New BSD License: https://opensource.org/licenses/BSD-3-Clause
+| `https://github.com/colour-science/colour <https://github.com/colour-science/colour>`__

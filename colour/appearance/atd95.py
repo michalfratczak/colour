@@ -1,173 +1,258 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 ATD (1995) Colour Vision Model
 ==============================
 
-Defines ATD (1995) colour vision model objects:
+Defines the *ATD (1995)* colour vision model objects:
 
--   :class:`ATD95_Specification`
--   :func:`XYZ_to_ATD95`
-
-See Also
---------
-`ATD (1995) Colour Vision Model IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/appearance/atd95.ipynb>`_
+-   :class:`colour.CAM_Specification_ATD95`
+-   :func:`colour.XYZ_to_ATD95`
 
 Notes
 -----
--   According to CIE TC1-34 definition of a colour appearance model, the
-    *ATD95* model cannot be considered as a colour appearance model. It was
-    developed with different aims and is described as a model of colour vision.
+-   According to *CIE TC1-34* definition of a colour appearance model, the
+    *ATD (1995)* model cannot be considered as a colour appearance model.
+    It was developed with different aims and is described as a model of colour
+    vision.
 
 References
 ----------
-.. [1]  Fairchild, M. D. (2013). ATD Model. In Color Appearance Models
-        (3rd ed., pp. 5852–5991). Wiley. ASIN:B00DAYO8E2
-.. [2]  Guth, S. L. (1995). Further applications of the ATD model for color
-        vision. In E. Walowit (Ed.), IS&T/SPIE’s Symposium on Electronic …
-        (Vol. 2414, pp. 12–26). doi:10.1117/12.206546
+-   :cite:`Fairchild2013v` : Fairchild, M. D. (2013). ATD Model. In Color
+    Appearance Models (3rd ed., pp. 5852-5991). Wiley. ISBN:B00DAYO8E2
+-   :cite:`Guth1995a` : Guth, S. L. (1995). Further applications of the ATD
+    model for color vision. In E. Walowit (Ed.), Proc. SPIE 2414,
+    Device-Independent Color Imaging II (Vol. 2414, pp. 12-26).
+    doi:10.1117/12.206546
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
 import numpy as np
-from collections import namedtuple
+from dataclasses import dataclass, field
 
-from colour.utilities.array import tsplit, tstack
+from colour.algebra import spow, vector_dot
+from colour.hints import ArrayLike, NDArrayFloat, Optional, Union
+from colour.utilities import (
+    MixinDataclassArithmetic,
+    as_float,
+    as_float_array,
+    from_range_degrees,
+    to_domain_100,
+    tsplit,
+    tstack,
+)
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
 
-__all__ = ['ATD95_ReferenceSpecification',
-           'ATD95_Specification',
-           'XYZ_to_ATD95',
-           'luminance_to_retinal_illuminance',
-           'XYZ_to_LMS_ATD95',
-           'opponent_colour_dimensions',
-           'final_response']
+__all__ = [
+    "CAM_ReferenceSpecification_ATD95",
+    "CAM_Specification_ATD95",
+    "XYZ_to_ATD95",
+    "luminance_to_retinal_illuminance",
+    "XYZ_to_LMS_ATD95",
+    "opponent_colour_dimensions",
+    "final_response",
+]
 
 
-class ATD95_ReferenceSpecification(
-    namedtuple('ATD95_ReferenceSpecification',
-               ('H', 'C', 'Br', 'A_1', 'T_1', 'D_1', 'A_2', 'T_2', 'D_2'))):
+@dataclass
+class CAM_ReferenceSpecification_ATD95(MixinDataclassArithmetic):
     """
-    Defines the ATD (1995) colour vision model reference specification.
+    Define the *ATD (1995)* colour vision model reference specification.
 
-    This specification has field names consistent with Fairchild (2013)
+    This specification has field names consistent with *Fairchild (2013)*
     reference.
 
     Parameters
     ----------
-    H : numeric or array_like
+    H
         *Hue* angle :math:`H` in degrees.
-    C : numeric or array_like
-        Correlate of *saturation* :math:`C`. Guth (1995) incorrectly uses the
+    C
+        Correlate of *saturation* :math:`C`. *Guth (1995)* incorrectly uses the
         terms saturation and chroma interchangeably. However, :math:`C` is here
         a measure of saturation rather than chroma since it is measured
         relative to the achromatic response for the stimulus rather than that
         of a similarly illuminated white.
-    Br : numeric or array_like
+    Br
         Correlate of *brightness* :math:`Br`.
-    A_1 : numeric or array_like
+    A_1
         First stage :math:`A_1` response.
-    T_1 : numeric or array_like
+    T_1
         First stage :math:`T_1` response.
-    D_1 : numeric or array_like
+    D_1
         First stage :math:`D_1` response.
-    A_2 : numeric or array_like
+    A_2
         Second stage :math:`A_2` response.
-    T_2 : numeric or array_like
+    T_2
         Second stage :math:`A_2` response.
-    D_2 : numeric or array_like
+    D_2
         Second stage :math:`D_2` response.
+
+    References
+    ----------
+    :cite:`Fairchild2013v`, :cite:`Guth1995a`
     """
 
+    H: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    C: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    Br: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    A_1: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    T_1: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    D_1: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    A_2: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    T_2: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    D_2: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
 
-class ATD95_Specification(
-    namedtuple('ATD95_Specification',
-               ('h', 'C', 'Q', 'A_1', 'T_1', 'D_1', 'A_2', 'T_2', 'D_2'))):
+
+@dataclass
+class CAM_Specification_ATD95(MixinDataclassArithmetic):
     """
-    Defines the ATD (1995) colour vision model specification.
+    Define the *ATD (1995)* colour vision model specification.
 
     This specification has field names consistent with the remaining colour
-    appearance models in :mod:`colour.appearance` but diverge from Fairchild
-    (2013) reference.
+    appearance models in :mod:`colour.appearance` but diverge from
+    *Fairchild (2013)* reference.
 
     Parameters
     ----------
-    h : numeric or array_like
+    h
         *Hue* angle :math:`H` in degrees.
-    C : numeric or array_like
-        Correlate of *saturation* :math:`C`. Guth (1995) incorrectly uses the
+    C
+        Correlate of *saturation* :math:`C`. *Guth (1995)* incorrectly uses the
         terms saturation and chroma interchangeably. However, :math:`C` is here
         a measure of saturation rather than chroma since it is measured
         relative to the achromatic response for the stimulus rather than that
         of a similarly illuminated white.
-    Q : numeric or array_like
+    Q
         Correlate of *brightness* :math:`Br`.
-    A_1 : numeric or array_like
+    A_1
         First stage :math:`A_1` response.
-    T_1 : numeric or array_like
+    T_1
         First stage :math:`T_1` response.
-    D_1 : numeric or array_like
+    D_1
         First stage :math:`D_1` response.
-    A_2 : numeric or array_like
+    A_2
         Second stage :math:`A_2` response.
-    T_2 : numeric or array_like
+    T_2
         Second stage :math:`A_2` response.
-    D_2 : numeric or array_like
+    D_2
         Second stage :math:`D_2` response.
 
     Notes
     -----
     -   This specification is the one used in the current model implementation.
+
+    References
+    ----------
+    :cite:`Fairchild2013v`, :cite:`Guth1995a`
     """
 
+    h: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    C: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    Q: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    A_1: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    T_1: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    D_1: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    A_2: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    T_2: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
+    D_2: Optional[Union[float, NDArrayFloat]] = field(
+        default_factory=lambda: None
+    )
 
-def XYZ_to_ATD95(XYZ, XYZ_0, Y_0, k_1, k_2, sigma=300):
+
+def XYZ_to_ATD95(
+    XYZ: ArrayLike,
+    XYZ_0: ArrayLike,
+    Y_0: ArrayLike,
+    k_1: ArrayLike,
+    k_2: ArrayLike,
+    sigma: ArrayLike = 300,
+) -> CAM_Specification_ATD95:
     """
-    Computes the ATD (1995) colour vision model correlates.
+    Compute the *ATD (1995)* colour vision model correlates.
 
     Parameters
     ----------
-    XYZ : array_like
-        *CIE XYZ* tristimulus values of test sample / stimulus in domain
-        [0, 100].
-    XYZ_0 : array_like
-        *CIE XYZ* tristimulus values of reference white in domain [0, 100].
-    Y_0 : numeric or array_like
+    XYZ
+        *CIE XYZ* tristimulus values of test sample / stimulus.
+    XYZ_0
+        *CIE XYZ* tristimulus values of reference white.
+    Y_0
         Absolute adapting field luminance in :math:`cd/m^2`.
-    k_1 : numeric or array_like
+    k_1
         Application specific weight :math:`k_1`.
-    k_2 : numeric or array_like
+    k_2
         Application specific weight :math:`k_2`.
-    sigma : numeric or array_like, optional
-        Constant :math:`\sigma` varied to predict different types of data.
+    sigma
+        Constant :math:`\\sigma` varied to predict different types of data.
 
     Returns
     -------
-    ATD95_Specification
-        ATD (1995) colour vision model specification.
-
-    Warning
-    -------
-    The input domain of that definition is non standard!
+    :class:`colour.CAM_Specification_ATD95`
+        *ATD (1995)* colour vision model specification.
 
     Notes
     -----
-    -   Input *CIE XYZ* tristimulus values are in domain [0, 100].
-    -   Input *CIE XYZ_0* tristimulus values are in domain [0, 100].
-    -   For unrelated colors, there is only self-adaptation, and :math:`k_1` is
+    +------------+-----------------------+---------------+
+    | **Domain** | **Scale - Reference** | **Scale - 1** |
+    +============+=======================+===============+
+    | ``XYZ``    | [0, 100]              | [0, 1]        |
+    +------------+-----------------------+---------------+
+    | ``XYZ_0``  | [0, 100]              | [0, 1]        |
+    +------------+-----------------------+---------------+
+
+    +-------------------------------+-----------------------+---------------+
+    | **Range**                     | **Scale - Reference** | **Scale - 1** |
+    +===============================+=======================+===============+
+    | ``CAM_Specification_ATD95.h`` | [0, 360]              | [0, 1]        |
+    +-------------------------------+-----------------------+---------------+
+
+    -   For unrelated colors, there is only self-adaptation and :math:`k_1` is
         set to 1.0 while :math:`k_2` is set to 0.0. For related colors such as
         typical colorimetric applications, :math:`k_1` is set to 0.0 and
         :math:`k_2` is set to a value between 15 and 50 *(Guth, 1995)*.
+
+    References
+    ----------
+    :cite:`Fairchild2013v`, :cite:`Guth1995a`
 
     Examples
     --------
@@ -177,64 +262,71 @@ def XYZ_to_ATD95(XYZ, XYZ_0, Y_0, k_1, k_2, sigma=300):
     >>> k_1 = 0.0
     >>> k_2 = 50.0
     >>> XYZ_to_ATD95(XYZ, XYZ_0, Y_0, k_1, k_2)  # doctest: +ELLIPSIS
-    ATD95_Specification(h=1.9089869..., C=1.2064060..., Q=0.1814003..., \
+    CAM_Specification_ATD95(h=1.9089869..., C=1.2064060..., Q=0.1814003..., \
 A_1=0.1787931... T_1=0.0286942..., D_1=0.0107584..., A_2=0.0192182..., \
 T_2=0.0205377..., D_2=0.0107584...)
     """
 
-    Y_0 = np.asarray(Y_0)
-    k_1 = np.asarray(k_1)
-    k_2 = np.asarray(k_2)
-    sigma = np.asarray(sigma)
+    XYZ = to_domain_100(XYZ)
+    XYZ_0 = to_domain_100(XYZ_0)
+    Y_0 = as_float_array(Y_0)
+    k_1 = as_float_array(k_1)
+    k_2 = as_float_array(k_2)
+    sigma = as_float_array(sigma)
 
     XYZ = luminance_to_retinal_illuminance(XYZ, Y_0)
     XYZ_0 = luminance_to_retinal_illuminance(XYZ_0, Y_0)
 
     # Computing adaptation model.
     LMS = XYZ_to_LMS_ATD95(XYZ)
-    XYZ_a = k_1[..., np.newaxis] * XYZ + k_2[..., np.newaxis] * XYZ_0
+    XYZ_a = k_1[..., None] * XYZ + k_2[..., None] * XYZ_0
     LMS_a = XYZ_to_LMS_ATD95(XYZ_a)
 
-    LMS_g = LMS * (sigma[..., np.newaxis] / (sigma[..., np.newaxis] + LMS_a))
+    LMS_g = LMS * (sigma[..., None] / (sigma[..., None] + LMS_a))
 
     # Computing opponent colour dimensions.
-    A_1, T_1, D_1, A_2, T_2, D_2 = tsplit(
-        opponent_colour_dimensions(LMS_g))
+    A_1, T_1, D_1, A_2, T_2, D_2 = tsplit(opponent_colour_dimensions(LMS_g))
 
-    # -------------------------------------------------------------------------
     # Computing the correlate of *brightness* :math:`Br`.
-    # -------------------------------------------------------------------------
-    Br = (A_1 ** 2 + T_1 ** 2 + D_1 ** 2) ** 0.5
+    Br = spow(A_1**2 + T_1**2 + D_1**2, 0.5)
 
-    # -------------------------------------------------------------------------
     # Computing the correlate of *saturation* :math:`C`.
-    # -------------------------------------------------------------------------
-    C = (T_2 ** 2 + D_2 ** 2) ** 0.5 / A_2
+    C = spow(T_2**2 + D_2**2, 0.5) / A_2
 
-    # -------------------------------------------------------------------------
-    # Computing the *hue* :math:`H`.
-    # -------------------------------------------------------------------------
+    # Computing the *hue* :math:`H`. Note that the reference does not take the
+    # modulus of the :math:`H`, thus :math:`H` can exceed 360 degrees.
     H = T_2 / D_2
 
-    return ATD95_Specification(H, C, Br, A_1, T_1, D_1, A_2, T_2, D_2)
+    return CAM_Specification_ATD95(
+        as_float(from_range_degrees(H)),
+        C,
+        Br,
+        A_1,
+        T_1,
+        D_1,
+        A_2,
+        T_2,
+        D_2,
+    )
 
 
-def luminance_to_retinal_illuminance(XYZ, Y_c):
+def luminance_to_retinal_illuminance(
+    XYZ: ArrayLike, Y_c: ArrayLike
+) -> NDArrayFloat:
     """
-    Converts from luminance in :math:`cd/m^2` to retinal illuminance in
+    Convert from luminance in :math:`cd/m^2` to retinal illuminance in
     trolands.
 
     Parameters
     ----------
-    XYZ : array_like
+    XYZ
         *CIE XYZ* tristimulus values.
-
-    Y_c : numeric or array_like
+    Y_c
         Absolute adapting field luminance in :math:`cd/m^2`.
 
     Returns
     -------
-    ndarray
+    :class:`numpy.ndarray`
         Converted *CIE XYZ* tristimulus values in trolands.
 
     Examples
@@ -245,24 +337,24 @@ def luminance_to_retinal_illuminance(XYZ, Y_c):
     array([ 479.4445924...,  499.3174313...,  534.5631673...])
     """
 
-    XYZ = np.asarray(XYZ)
-    Y_c = np.asarray(Y_c)
+    XYZ = as_float_array(XYZ)
+    Y_c = as_float_array(Y_c)
 
-    return 18 * (Y_c[..., np.newaxis] * XYZ / 100.) ** 0.8
+    return 18 * spow(Y_c[..., None] * XYZ / 100, 0.8)
 
 
-def XYZ_to_LMS_ATD95(XYZ):
+def XYZ_to_LMS_ATD95(XYZ: ArrayLike) -> NDArrayFloat:
     """
-    Converts from *CIE XYZ* tristimulus values to *LMS* cone responses.
+    Convert from *CIE XYZ* tristimulus values to *LMS* cone responses.
 
     Parameters
     ----------
-    XYZ : array_like
+    XYZ
         *CIE XYZ* tristimulus values.
 
     Returns
     -------
-    ndarray
+    :class:`numpy.ndarray`
         *LMS* cone responses.
 
     Examples
@@ -272,29 +364,34 @@ def XYZ_to_LMS_ATD95(XYZ):
     array([ 6.2283272...,  7.4780666...,  3.8859772...])
     """
 
-    X, Y, Z = tsplit(XYZ)
+    LMS = vector_dot(
+        [
+            [0.2435, 0.8524, -0.0516],
+            [-0.3954, 1.1642, 0.0837],
+            [0.0000, 0.0400, 0.6225],
+        ],
+        XYZ,
+    )
+    LMS *= np.array([0.66, 1.0, 0.43])
 
-    L = ((0.66 * (0.2435 * X + 0.8524 * Y - 0.0516 * Z)) ** 0.7) + 0.024
-    M = ((-0.3954 * X + 1.1642 * Y + 0.0837 * Z) ** 0.7) + 0.036
-    S = ((0.43 * (0.04 * Y + 0.6225 * Z)) ** 0.7) + 0.31
+    LMS_p = spow(LMS, 0.7)
+    LMS_p += np.array([0.024, 0.036, 0.31])
 
-    LMS = tstack((L, M, S))
-
-    return LMS
+    return LMS_p
 
 
-def opponent_colour_dimensions(LMS_g):
+def opponent_colour_dimensions(LMS_g: ArrayLike) -> NDArrayFloat:
     """
-    Returns opponent colour dimensions from given post adaptation cone signals.
+    Return opponent colour dimensions from given post adaptation cone signals.
 
     Parameters
     ----------
-    LMS_g : array_like
+    LMS_g
         Post adaptation cone signals.
 
     Returns
     -------
-    ndarray
+    :class:`numpy.ndarray`
         Opponent colour dimensions.
 
     Examples
@@ -320,21 +417,21 @@ def opponent_colour_dimensions(LMS_g):
     T_2 = final_response(T_2i)
     D_2 = final_response(D_2i)
 
-    return tstack((A_1, T_1, D_1, A_2, T_2, D_2))
+    return tstack([A_1, T_1, D_1, A_2, T_2, D_2])
 
 
-def final_response(value):
+def final_response(value: ArrayLike) -> NDArrayFloat:
     """
-    Returns the final response of given opponent colour dimension.
+    Return the final response of given opponent colour dimension.
 
     Parameters
     ----------
-    value : numeric or array_like
+    value
          Opponent colour dimension.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Final response of opponent colour dimension.
 
     Examples
@@ -343,6 +440,6 @@ def final_response(value):
     0.1787931...
     """
 
-    value = np.asarray(value)
+    value = as_float_array(value)
 
-    return value / (200 + np.abs(value))
+    return as_float(value / (200 + np.abs(value)))

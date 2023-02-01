@@ -1,24 +1,22 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Showcases interpolation computations."""
 
-"""
-Showcases interpolation computations.
-"""
-
-from __future__ import division, unicode_literals
-
-import pylab
+import matplotlib.pyplot as plt
+import numpy as np
+import os
 
 import colour
-from colour.plotting import *  # noqa
-from colour.utilities.verbose import message_box
+from colour.hints import cast
+from colour.plotting import render
+from colour.utilities import message_box
 
-message_box('Interpolation Computations')
+message_box("Interpolation Computations")
 
-message_box(('Comparing Sprague (1880) and "Cubic Spline" recommended '
-             'interpolation methods to "Pchip" method.'))
+message_box(
+    'Comparing the "Sprague (1880)" and "Cubic Spline" recommended '
+    'interpolation methods to the "Pchip" method.'
+)
 
-uniform_spd_data = {
+data_uniform = {
     340: 0.0000,
     360: 0.0000,
     380: 0.0000,
@@ -43,9 +41,10 @@ uniform_spd_data = {
     760: 0.0000,
     780: 0.0000,
     800: 0.0000,
-    820: 0.0000}
+    820: 0.0000,
+}
 
-non_uniform_spd_data = {
+data_non_uniform = {
     340.1: 0.0000,
     360: 0.0000,
     380: 0.0000,
@@ -70,62 +69,119 @@ non_uniform_spd_data = {
     760: 0.0000,
     780: 0.0000,
     800: 0.0000,
-    820.9: 0.0000}
+    820.9: 0.0000,
+}
 
-base_spd = colour.SpectralPowerDistribution(
-    'Reference',
-    uniform_spd_data)
-uniform_interpolated_spd = colour.SpectralPowerDistribution(
-    'Uniform - Sprague Interpolation',
-    uniform_spd_data)
-uniform_pchip_interpolated_spd = colour.SpectralPowerDistribution(
-    'Uniform - Pchip Interpolation',
-    uniform_spd_data)
-non_uniform_interpolated_spd = colour.SpectralPowerDistribution(
-    'Non Uniform - Cubic Spline Interpolation',
-    non_uniform_spd_data)
+sd_base = colour.SpectralDistribution(data_uniform, name="Reference")
+uniform_interpolated_sd = colour.SpectralDistribution(
+    data_uniform, name="Uniform - Sprague Interpolation"
+)
+uniform_pchip_interpolated_sd = colour.SpectralDistribution(
+    data_uniform, name="Uniform - Pchip Interpolation"
+)
+non_uniform_interpolated_sd = colour.SpectralDistribution(
+    data_non_uniform, name="Non Uniform - Cubic Spline Interpolation"
+)
 
-uniform_interpolated_spd.interpolate(colour.SpectralShape(interval=1))
-uniform_pchip_interpolated_spd.interpolate(colour.SpectralShape(interval=1),
-                                           method='Pchip')
-non_uniform_interpolated_spd.interpolate(colour.SpectralShape(interval=1))
+uniform_interpolated_sd.interpolate(
+    colour.SpectralShape(
+        uniform_interpolated_sd.shape.start,
+        uniform_interpolated_sd.shape.end,
+        1,
+    )
+)
+uniform_pchip_interpolated_sd.interpolate(
+    colour.SpectralShape(
+        uniform_pchip_interpolated_sd.shape.start,
+        uniform_pchip_interpolated_sd.shape.end,
+        1,
+    ),
+    interpolator=colour.PchipInterpolator,
+)
+non_uniform_interpolated_sd.interpolate(
+    colour.SpectralShape(
+        non_uniform_interpolated_sd.shape.start,
+        non_uniform_interpolated_sd.shape.end,
+        1,
+    )
+)
 
-shape = base_spd.shape
+shape = sd_base.shape
 x_limit_min, x_limit_max, y_limit_min, y_limit_max = [], [], [], []
 
-pylab.plot(base_spd.wavelengths,
-           base_spd.values,
-           'ro-',
-           label=base_spd.name,
-           linewidth=2)
-pylab.plot(uniform_interpolated_spd.wavelengths,
-           uniform_interpolated_spd.values,
-           label=uniform_interpolated_spd.name,
-           linewidth=2)
-pylab.plot(uniform_pchip_interpolated_spd.wavelengths,
-           uniform_pchip_interpolated_spd.values,
-           label=uniform_pchip_interpolated_spd.name,
-           linewidth=2)
-pylab.plot(non_uniform_interpolated_spd.wavelengths,
-           non_uniform_interpolated_spd.values,
-           label=non_uniform_interpolated_spd.name,
-           linewidth=2)
+plt.plot(
+    sd_base.wavelengths, sd_base.values, "ro-", label=sd_base.name, linewidth=1
+)
+plt.plot(
+    uniform_interpolated_sd.wavelengths,
+    uniform_interpolated_sd.values,
+    label=uniform_interpolated_sd.name,
+    linewidth=1,
+)
+plt.plot(
+    uniform_pchip_interpolated_sd.wavelengths,
+    uniform_pchip_interpolated_sd.values,
+    label=uniform_pchip_interpolated_sd.name,
+    linewidth=1,
+)
+plt.plot(
+    non_uniform_interpolated_sd.wavelengths,
+    non_uniform_interpolated_sd.values,
+    label=non_uniform_interpolated_sd.name,
+    linewidth=1,
+)
 
 x_limit_min.append(shape.start)
 x_limit_max.append(shape.end)
-y_limit_min.append(min(base_spd.values))
-y_limit_max.append(max(base_spd.values))
+y_limit_min.append(min(sd_base.values))
+y_limit_max.append(max(sd_base.values))
 
-settings = {'x_label': 'Wavelength $\\lambda$ (nm)',
-            'y_label': 'Spectral Power Distribution',
-            'x_tighten': True,
-            'legend': True,
-            'legend_location': 'upper left',
-            'x_ticker': True,
-            'y_ticker': True,
-            'limits': (min(x_limit_min), max(x_limit_max),
-                       min(y_limit_min), max(y_limit_max))}
+settings = {
+    "x_label": "Wavelength $\\lambda$ (nm)",
+    "y_label": "Spectral Distribution",
+    "legend": True,
+    "legend_location": "upper left",
+    "x_ticker": True,
+    "y_ticker": True,
+    "bounding_box": (
+        min(x_limit_min),
+        max(x_limit_max),
+        min(y_limit_min),
+        max(y_limit_max),
+    ),
+}
 
-boundaries(**settings)
-decorate(**settings)
-display(**settings)
+render(**settings)
+
+print("\n")
+
+V_xyz = np.random.random((6, 3))
+message_box(
+    f'Performing "trilinear" interpolation of given "xyz" values:\n\n'
+    f"{V_xyz}\n\n"
+    f"using given interpolation table."
+)
+path = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "..",
+    "io",
+    "luts",
+    "tests",
+    "resources",
+    "iridas_cube",
+    "Colour_Correct.cube",
+)
+table = cast(colour.LUT3D, colour.read_LUT(path)).table
+print(colour.table_interpolation(V_xyz, table, method="Trilinear"))
+print(colour.algebra.table_interpolation_trilinear(V_xyz, table))
+
+print("\n")
+
+message_box(
+    f'Performing "tetrahedral" interpolation of given "xyz" values:\n\n'
+    f"{V_xyz}\n\n"
+    f"using given interpolation table."
+)
+print(colour.table_interpolation(V_xyz, table, method="Tetrahedral"))
+print(colour.algebra.table_interpolation_tetrahedral(V_xyz, table))

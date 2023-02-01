@@ -1,29 +1,25 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Showcases blackbody / planckian radiator computations.
-"""
-
-from __future__ import division, unicode_literals
+"""Showcases blackbody / planckian radiator computations."""
 
 import colour
-from colour.utilities.verbose import message_box
+from colour.utilities import message_box
 
-message_box('Blackbody / Planckian Radiator Computations')
+message_box("Blackbody / Planckian Radiator Computations")
 
-message_box(('Computing the spectral radiance of a blackbody at wavelength '
-             '500 nm and temperature 5500 kelvin degrees.'))
-print(colour.planck_law(500 * 1e-9, 5500))
-
-print('\n')
-
-message_box(('Computing the spectral power distribution of a blackbody at '
-             'temperature 5500 kelvin degrees and converting to "CIE XYZ" '
-             'tristimulus values.'))
-cmfs = colour.STANDARD_OBSERVERS_CMFS.get(
-    'CIE 1931 2 Degree Standard Observer')
-blackbody_spd = colour.blackbody_spd(5500, cmfs.shape)
-print(blackbody_spd)
-XYZ = colour.spectral_to_XYZ(blackbody_spd, cmfs)
+message_box(
+    "Computing the spectral distribution of a blackbody at temperature 5000K"
+    'degrees and converting to "CIE XYZ" tristimulus values.'
+)
+cmfs = colour.MSDS_CMFS["CIE 1931 2 Degree Standard Observer"]
+sd_blackbody = colour.sd_blackbody(5000, cmfs.shape)
+print(sd_blackbody)
+XYZ = colour.sd_to_XYZ(sd_blackbody, cmfs)
 print(XYZ)
+
+print("\n")
+
+message_box(
+    "Computing the spectral radiance of a blackbody at wavelength 500nm and "
+    "temperature 5000K degrees."
+)
+print(colour.colorimetry.blackbody_spectral_radiance(500 * 1e-9, 5000))
+print(colour.colorimetry.planck_law(500 * 1e-9, 5000))

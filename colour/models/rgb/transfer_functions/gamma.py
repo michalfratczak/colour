@@ -1,58 +1,97 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Gamma Colour Component Transfer Function
 ========================================
 
-Defines gamma encoding / decoding colour component transfer function related
-objects:
+Defines the gamma encoding / decoding colour component transfer function
+related objects:
 
-- :func:`gamma_function`
-
-See Also
---------
-`RGB Colourspaces IPython Notebook
-<http://nbviewer.jupyter.org/github/colour-science/colour-notebooks/\
-blob/master/notebooks/models/rgb.ipynb>`_
+- :func:`colour.gamma_function`
 """
 
-from __future__ import division, unicode_literals
+from __future__ import annotations
 
 import numpy as np
 
-__author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2013-2016 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
-__maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
-__status__ = 'Production'
+from colour.algebra import spow
+from colour.hints import ArrayLike, NDArrayFloat, Literal, Union
+from colour.utilities import as_float_array, as_float, validate_method
 
-__all__ = ['gamma_function']
+__author__ = "Colour Developers"
+__copyright__ = "Copyright 2013 Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__maintainer__ = "Colour Developers"
+__email__ = "colour-developers@colour-science.org"
+__status__ = "Production"
+
+__all__ = [
+    "gamma_function",
+]
 
 
-def gamma_function(a, exponent=1.0):
+def gamma_function(
+    a: ArrayLike,
+    exponent: ArrayLike = 1,
+    negative_number_handling: Union[
+        Literal["Clamp", "Indeterminate", "Mirror", "Preserve"], str
+    ] = "Indeterminate",
+) -> NDArrayFloat:
     """
-    Defines a typical gamma encoding / decoding function.
+    Define a typical gamma encoding / decoding function.
 
     Parameters
     ----------
-    a : numeric or array_like
+    a
         Array to encode / decode.
-    exponent : numeric, optional
+    exponent
         Encoding / decoding exponent.
+    negative_number_handling
+        Defines the behaviour for ``a`` negative numbers and / or the
+        definition return value:
+
+        -   *Indeterminate*: The behaviour will be indeterminate and
+            definition return value might contain *nans*.
+        -   *Mirror*: The definition return value will be mirrored around
+            abscissa and ordinate axis, i.e. Blackmagic Design: Davinci Resolve
+            behaviour.
+        -   *Preserve*: The definition will preserve any negative number in
+            ``a``, i.e. The Foundry Nuke behaviour.
+        -   *Clamp*: The definition will clamp any negative number in ``a`` to
+            0.
 
     Returns
     -------
-    numeric or ndarray
+    :class:`numpy.ndarray`
         Encoded / decoded array.
 
     Examples
     --------
     >>> gamma_function(0.18, 2.2)  # doctest: +ELLIPSIS
     0.0229932...
+    >>> gamma_function(-0.18, 2.0)  # doctest: +ELLIPSIS
+    0.0323999...
+    >>> gamma_function(-0.18, 2.2)
+    nan
+    >>> gamma_function(-0.18, 2.2, "Mirror")  # doctest: +ELLIPSIS
+    -0.0229932...
+    >>> gamma_function(-0.18, 2.2, "Preserve")  # doctest: +ELLIPSIS
+    -0.1...
+    >>> gamma_function(-0.18, 2.2, "Clamp")  # doctest: +ELLIPSIS
+    0.0
     """
 
-    a = np.asarray(a)
+    a = as_float_array(a)
+    exponent = as_float_array(exponent)
+    negative_number_handling = validate_method(
+        negative_number_handling,
+        ["Indeterminate", "Mirror", "Preserve", "Clamp"],
+        '"{0}" negative number handling is invalid, it must be one of {1}!',
+    )
 
-    return a ** exponent
+    if negative_number_handling == "indeterminate":
+        return as_float(a**exponent)
+    elif negative_number_handling == "mirror":
+        return spow(a, exponent)
+    elif negative_number_handling == "preserve":
+        return as_float(np.where(a <= 0, a, a**exponent))
+    else:  # negative_number_handling == 'clamp':
+        return as_float(np.where(a <= 0, 0, a**exponent))
