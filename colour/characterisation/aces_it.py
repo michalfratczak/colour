@@ -83,10 +83,10 @@ from colour.hints import (
 from colour.io import read_sds_from_csv_file
 from colour.models import XYZ_to_Jzazbz, XYZ_to_Lab, XYZ_to_xy, xy_to_XYZ
 from colour.models.rgb import (
+    RGB_Colourspace,
     RGB_COLOURSPACE_ACES2065_1,
     RGB_to_XYZ,
     XYZ_to_RGB,
-    normalised_primary_matrix,
 )
 from colour.temperature import CCT_to_xy_CIE_D
 from colour.utilities import (
@@ -229,10 +229,10 @@ def sd_to_aces_relative_exposure_values(
 
     shape = MSDS_ACES_RICD.shape
     if sd.shape != MSDS_ACES_RICD.shape:
-        sd = reshape_sd(sd, shape)
+        sd = reshape_sd(sd, shape, copy=False)
 
     if illuminant.shape != MSDS_ACES_RICD.shape:
-        illuminant = reshape_sd(illuminant, shape)
+        illuminant = reshape_sd(illuminant, shape, copy=False)
 
     s_v = sd.values
     i_v = illuminant.values
@@ -259,23 +259,18 @@ def sd_to_aces_relative_exposure_values(
     E_rgb *= S_FLARE_FACTOR
 
     if chromatic_adaptation_transform is not None:
-        xy = XYZ_to_xy(sd_to_XYZ(illuminant) / 100)
-        NPM = normalised_primary_matrix(
-            RGB_COLOURSPACE_ACES2065_1.primaries, xy
-        )
         XYZ = RGB_to_XYZ(
             E_rgb,
-            xy,
+            RGB_Colourspace(
+                "~ACES2065-1",
+                RGB_COLOURSPACE_ACES2065_1.primaries,
+                XYZ_to_xy(sd_to_XYZ(illuminant) / 100),
+                illuminant.name,
+            ),
             RGB_COLOURSPACE_ACES2065_1.whitepoint,
-            NPM,
             chromatic_adaptation_transform,
         )
-        E_rgb = XYZ_to_RGB(
-            XYZ,
-            RGB_COLOURSPACE_ACES2065_1.whitepoint,
-            RGB_COLOURSPACE_ACES2065_1.whitepoint,
-            RGB_COLOURSPACE_ACES2065_1.matrix_XYZ_to_RGB,
-        )
+        E_rgb = XYZ_to_RGB(XYZ, RGB_COLOURSPACE_ACES2065_1)
 
     return from_range_1(E_rgb)
 
@@ -453,7 +448,7 @@ def white_balance_multipliers(
         runtime_warning(
             f'Aligning "{illuminant.name}" illuminant shape to "{shape}".'
         )
-        illuminant = reshape_sd(illuminant, shape)
+        illuminant = reshape_sd(illuminant, shape, copy=False)
 
     RGB_w = 1 / np.sum(
         sensitivities.values * illuminant.values[..., None], axis=0
@@ -624,14 +619,14 @@ def training_data_sds_to_RGB(
         runtime_warning(
             f'Aligning "{illuminant.name}" illuminant shape to "{shape}".'
         )
-        illuminant = reshape_sd(illuminant, shape)
+        illuminant = reshape_sd(illuminant, shape, copy=False)
 
     if training_data.shape != shape:
         runtime_warning(
             f'Aligning "{training_data.name}" training data shape to "{shape}".'
         )
         # pylint: disable=E1102
-        training_data = reshape_msds(training_data, shape)
+        training_data = reshape_msds(training_data, shape, copy=False)
 
     RGB_w = white_balance_multipliers(sensitivities, illuminant)
 
@@ -716,14 +711,14 @@ def training_data_sds_to_XYZ(
         runtime_warning(
             f'Aligning "{illuminant.name}" illuminant shape to "{shape}".'
         )
-        illuminant = reshape_sd(illuminant, shape)
+        illuminant = reshape_sd(illuminant, shape, copy=False)
 
     if training_data.shape != shape:
         runtime_warning(
             f'Aligning "{training_data.name}" training data shape to "{shape}".'
         )
         # pylint: disable=E1102
-        training_data = reshape_msds(training_data, shape)
+        training_data = reshape_msds(training_data, shape, copy=False)
 
     XYZ = np.dot(
         np.transpose(illuminant.values[..., None] * training_data.values),
@@ -864,9 +859,10 @@ def matrix_idt(
     | str
     | None = "CAT02",
     additional_data: bool = False,
-) -> Tuple[NDArrayFloat, NDArrayFloat, NDArrayFloat, NDArrayFloat] | Tuple[
-    NDArrayFloat, NDArrayFloat
-]:
+) -> (
+    Tuple[NDArrayFloat, NDArrayFloat, NDArrayFloat, NDArrayFloat]
+    | Tuple[NDArrayFloat, NDArrayFloat]
+):
     """
     Compute an *Input Device Transform* (IDT) matrix for given camera *RGB*
     spectral sensitivities, illuminant, training data, standard observer colour
@@ -961,14 +957,14 @@ def matrix_idt(
             f'Aligning "{sensitivities.name}" sensitivities shape to "{shape}".'
         )
         # pylint: disable=E1102
-        sensitivities = reshape_msds(sensitivities, shape)
+        sensitivities = reshape_msds(sensitivities, shape, copy=False)
 
     if training_data.shape != shape:
         runtime_warning(
             f'Aligning "{training_data.name}" training data shape to "{shape}".'
         )
         # pylint: disable=E1102
-        training_data = reshape_msds(training_data, shape)
+        training_data = reshape_msds(training_data, shape, copy=False)
 
     illuminant = normalise_illuminant(illuminant, sensitivities)
 
