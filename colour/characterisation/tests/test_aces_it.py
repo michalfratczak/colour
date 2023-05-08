@@ -24,7 +24,7 @@ from colour.characterisation import (
     whitepoint_preserving_matrix,
     optimisation_factory_rawtoaces_v1,
     optimisation_factory_Jzazbz,
-    optimisation_factory_Oklab_18,
+    optimisation_factory_Oklab_15,
     matrix_idt,
     camera_RGB_to_ACES2065_1,
 )
@@ -964,16 +964,16 @@ optimisation_factory_Jzazbz` definition.
 class TestOptimizationFactoryOklab18(unittest.TestCase):
     """
     Define :func:`colour.characterisation.aces_it.\
-optimisation_factory_Oklab_18` definition unit tests methods.
+optimisation_factory_Oklab_15` definition unit tests methods.
     """
 
     def test_optimisation_factory_Oklab_18(self):
         """
         Test :func:`colour.characterisation.aces_it.\
-optimisation_factory_Oklab_18` definition.
+optimisation_factory_Oklab_15` definition.
         """
 
-        self.assertEqual(len(optimisation_factory_Oklab_18()), 4)
+        self.assertEqual(len(optimisation_factory_Oklab_15()), 4)
 
 
 class TestMatrixIdt(unittest.TestCase):
@@ -1036,9 +1036,9 @@ class TestMatrixIdt(unittest.TestCase):
             M,
             np.array(
                 [
-                    [0.84841343, -0.01569484, 0.15799196],
-                    [0.05332939, 1.11428808, -0.17523625],
-                    [0.02262148, -0.22527442, 1.19646745],
+                    [0.85154529, -0.00930079, 0.15775549],
+                    [0.05413281, 1.12208831, -0.17622112],
+                    [0.02327675, -0.22372411, 1.20044737],
                 ]
             ),
             rtol=0.0001,
@@ -1053,35 +1053,35 @@ class TestMatrixIdt(unittest.TestCase):
         M, RGB_w = matrix_idt(
             MSDS_CANON_EOS_5DMARK_II,
             SDS_ILLUMINANTS["D55"],
-            optimisation_factory=optimisation_factory_Oklab_18,
+            optimisation_factory=optimisation_factory_Oklab_15,
         )
         np.testing.assert_allclose(
             M,
             np.array(
                 [
                     [
-                        0.65857990,
-                        -0.55646898,
-                        0.13178280,
-                        0.68969743,
-                        0.33171300,
-                        -0.25994351,
+                        0.64535942,
+                        -0.61130888,
+                        0.10668827,
+                        0.73619966,
+                        0.39808135,
+                        -0.27501982,
                     ],
                     [
-                        -0.13719710,
-                        0.81519400,
-                        -0.04501889,
-                        0.57807948,
-                        -0.09995071,
-                        -0.11895455,
+                        -0.15942100,
+                        0.72812052,
+                        -0.09069782,
+                        0.65082426,
+                        0.01006055,
+                        -0.13888651,
                     ],
                     [
-                        -0.14543552,
-                        -0.30025758,
-                        1.44781243,
-                        0.42639300,
-                        -0.42594640,
-                        -0.01275006,
+                        -0.17183392,
+                        -0.40291315,
+                        1.39402532,
+                        0.51025076,
+                        -0.29541153,
+                        -0.03411748,
                     ],
                 ]
             ),
@@ -1104,9 +1104,9 @@ class TestMatrixIdt(unittest.TestCase):
             M,
             np.array(
                 [
-                    [0.86504351, -0.02633990, 0.16129640],
-                    [0.05659298, 1.12296533, -0.17955832],
-                    [0.02370632, -0.20257926, 1.17887294],
+                    [0.883387, 0.002254, 0.114359],
+                    [0.082968, 1.134324, -0.217291],
+                    [0.015048, -0.150215, 1.135168],
                 ]
             ),
             rtol=0.0001,
