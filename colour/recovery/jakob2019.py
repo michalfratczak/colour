@@ -497,7 +497,7 @@ def XYZ_to_sd_Jakob2019(
     additional_data: bool = False,
 ) -> Tuple[SpectralDistribution, float] | SpectralDistribution:
     """
-    Recover the spectral distribution of given RGB colourspace array
+    Recover the spectral distribution of given *CIE XYZ* tristimulus values
     using *Jakob and Hanika (2019)* method.
 
     Parameters
@@ -734,7 +734,9 @@ class LUT3D_Jakob2019:
     """
 
     def __init__(self) -> None:
-        self._interpolator: RegularGridInterpolator | None = None
+        self._interpolator: RegularGridInterpolator = RegularGridInterpolator(
+            np.array([]), np.array([])
+        )
         self._size: int = 0
         self._lightness_scale: NDArrayFloat = np.array([])
         self._coefficients: NDArrayFloat = np.array([])
@@ -848,8 +850,8 @@ class LUT3D_Jakob2019:
         ... )
         >>> illuminant = SDS_ILLUMINANTS["D65"].copy().align(cmfs.shape)
         >>> LUT = LUT3D_Jakob2019()
-        >>> print(LUT.interpolator)
-        None
+        >>> print(LUT.interpolator)  # doctest: +ELLIPSIS
+        <scipy...RegularGridInterpolator object at 0x...>
         >>> LUT.generate(RGB_COLOURSPACE_sRGB, cmfs, illuminant, 3)
         ======================================================================\
 =========
