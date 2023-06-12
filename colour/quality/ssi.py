@@ -8,9 +8,10 @@ Defines the *Academy Spectral Similarity Index* (SSI) computation objects:
 
 References
 ----------
--   :cite:`TheAcademyofMotionPictureArtsandSciences2019` : The Academy of
-    Motion Picture Arts and Sciences. (2019). Academy Spectral Similarity Index
-    (SSI): Overview (pp. 1-7).
+-   :cite:`TheAcademyofMotionPictureArtsandSciences2020a` : The Academy of
+    Motion Picture Arts and Sciences. (2020). Academy Spectral Similarity Index
+    (SSI): Overview (pp. 1-7). Retrieved June 5, 2023, from
+    https://www.oscars.org/sites/oscars/files/ssi_overview_2020-09-16.pdf
 """
 
 from __future__ import annotations
@@ -69,7 +70,7 @@ def spectral_similarity_index(
 
     References
     ----------
-    :cite:`TheAcademyofMotionPictureArtsandSciences2019`
+    :cite:`TheAcademyofMotionPictureArtsandSciences2020a`
 
     Examples
     --------
@@ -113,10 +114,10 @@ def spectral_similarity_index(
     with sdiv_mode():
         test_i = sdiv(test_i, np.sum(test_i))
         reference_i = sdiv(reference_i, np.sum(reference_i))
-        dr_i = sdiv(test_i - reference_i, reference_i + np.mean(reference_i))
+        dr_i = sdiv(test_i - reference_i, reference_i + 1 / 30)
 
     wdr_i = dr_i * [
-        12 / 45,
+        4 / 15,
         22 / 45,
         32 / 45,
         40 / 45,
@@ -147,7 +148,7 @@ def spectral_similarity_index(
         11 / 15,
         3 / 15,
     ]
-    c_wdr_i = convolve1d(np.hstack([0, wdr_i, 0]), [0.22, 0.56, 0.22])
+    c_wdr_i = convolve1d(wdr_i, [0.22, 0.56, 0.22], mode="constant", cval=0)
     m_v = np.sum(c_wdr_i**2)
 
     SSI = 100 - 32 * np.sqrt(m_v)
