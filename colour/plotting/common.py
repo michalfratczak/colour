@@ -64,6 +64,7 @@ from colour.utilities import (
     CanonicalMapping,
     Structure,
     as_float_array,
+    as_int_scalar,
     attest,
     first_item,
     is_sibling,
@@ -874,9 +875,7 @@ plot_planckian_locus_in_chromaticity_diagram_CIE1931` definition is as follows:
         used for matching.
     """
 
-    if is_string(filterers):
-        filterers = [filterers]
-    elif not isinstance(filterers, (list, tuple)):
+    if is_string(filterers) or not isinstance(filterers, (list, tuple)):
         filterers = [filterers]
 
     string_filterers: List[str] = [
@@ -1330,7 +1329,7 @@ def plot_multi_colour_swatches(
 
         offset_X += width + spacing
 
-    x_max = min(len(colour_swatches), int(columns))
+    x_max = min(len(colour_swatches), as_int_scalar(columns))
     x_max = x_max * width + x_max * spacing - spacing
     y_max = offset_Y
 
@@ -1526,7 +1525,7 @@ def plot_multi_functions(
     else:
         plotting_function = axes.plot
 
-    samples = cast(ArrayLike, optional(samples, np.linspace(0, 1, 1000)))
+    samples = optional(samples, np.linspace(0, 1, 1000))
 
     for i, (_name, function) in enumerate(functions.items()):
         plotting_function(

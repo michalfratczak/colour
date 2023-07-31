@@ -601,9 +601,11 @@ def as_int(a: ArrayLike, dtype: Type[DTypeInt] | None = None) -> NDArrayInt:
 
     Examples
     --------
-    >>> as_int(np.array([1]))
+    >>> as_int(np.array(1))
     1
-    >>> as_int(np.arange(10))  # doctest: +ELLIPSIS
+    >>> as_int(np.array([1]))  # doctest: +SKIP
+    array([1])
+    >>> as_int(np.arange(10))  # doctest: +SKIP
     array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]...)
     """
 
@@ -613,12 +615,6 @@ def as_int(a: ArrayLike, dtype: Type[DTypeInt] | None = None) -> NDArrayInt:
         dtype in DTypeInt.__args__,  # pyright: ignore
         _ASSERTION_MESSAGE_DTYPE_INT,
     )
-
-    try:
-        if len(a) == 1:  # pyright: ignore
-            a = np.squeeze(a)
-    except TypeError:
-        pass
 
     return dtype(a)  # pyright: ignore
 
@@ -647,8 +643,10 @@ def as_float(
 
     Examples
     --------
-    >>> as_float(np.array([1]))
+    >>> as_float(np.array(1))
     1.0
+    >>> as_float(np.array([1]))
+    array([ 1.])
     >>> as_float(np.arange(10))
     array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
     """
@@ -660,11 +658,14 @@ def as_float(
         _ASSERTION_MESSAGE_DTYPE_FLOAT,
     )
 
-    try:
-        if len(a) == 1:  # pyright: ignore
-            a = np.squeeze(a)
-    except TypeError:
-        pass
+    # NOTE: "np.float64" reduces dimensionality:
+    # >>> np.int64(np.array([[1]]))
+    # array([[1]])
+    # >>> np.float64(np.array([[1]]))
+    # 1.0
+    # See for more information https://github.com/numpy/numpy/issues/24283
+    if isinstance(a, np.ndarray) and a.size == 1 and a.ndim != 0:
+        return as_float_array(a, dtype)
 
     return dtype(a)  # pyright: ignore
 
@@ -981,7 +982,7 @@ def set_domain_range_scale(
         usage only!
     """
 
-    global _DOMAIN_RANGE_SCALE
+    global _DOMAIN_RANGE_SCALE  # noqa: PLW0603
 
     _DOMAIN_RANGE_SCALE = validate_method(
         str(scale),
@@ -1847,7 +1848,7 @@ def set_ndarray_copy_enable(enable: bool):
     False
     """
 
-    global _NDARRAY_COPY_ENABLED
+    global _NDARRAY_COPY_ENABLED  # noqa: PLW0603
 
     _NDARRAY_COPY_ENABLED = enable
 
@@ -2442,11 +2443,11 @@ def centroid(a: ArrayLike) -> NDArray:
 
     a_ci = []
     for axis in coordinates:
-        axis = np.transpose(axis)
+        axis = np.transpose(axis)  # noqa: PLW2901
         # Aligning axis for N-D arrays where N is normalised to
         # range [3, :math:`\\\infty`]
         for i in range(axis.ndim - 2, 0, -1):
-            axis = np.rollaxis(axis, i - 1, axis.ndim)
+            axis = np.rollaxis(axis, i - 1, axis.ndim)  # noqa: PLW2901
 
         a_ci.append(np.sum(axis * a) // a_s)
 

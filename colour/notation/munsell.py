@@ -1557,7 +1557,7 @@ def is_grey_munsell_colour(specification: ArrayLike) -> bool:
 
     specification = as_float_array(specification)
 
-    specification = specification[~np.isnan(specification)]
+    specification = np.squeeze(specification[~np.isnan(specification)])
 
     return is_numeric(as_float(specification))
 
@@ -1756,7 +1756,7 @@ def xyY_from_renotation(specification: ArrayLike) -> NDArrayFloat:
             (_munsell_specifications() == specification).all(axis=-1)
         )
 
-        return MUNSELL_COLOURS_ALL[int(index[0])][1]
+        return MUNSELL_COLOURS_ALL[as_int_scalar(index[0])][1]
     except Exception as error:
         raise ValueError(
             f'"{specification}" specification does not exists in '
@@ -2091,7 +2091,7 @@ def interpolation_method_from_renotation_ovoid(
                 # valid "Munsell Specification" in practice: 1M iterations with
                 # random numbers never reached this code path while producing a
                 # valid "Munsell Specification".
-                if 72.5 < ASTM_hue < 77.5:  # pragma: no cover
+                if 72.5 < ASTM_hue < 77.5:  # pragma: no cover # noqa: SIM108
                     interpolation_method = 2
                 else:
                     interpolation_method = 1

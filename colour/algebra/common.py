@@ -143,7 +143,7 @@ def set_sdiv_mode(
     raise
     """
 
-    global _SDIV_MODE
+    global _SDIV_MODE  # noqa: PLW0603
 
     _SDIV_MODE = cast(
         Literal[
@@ -397,7 +397,7 @@ def set_spow_enable(enable: bool):
     False
     """
 
-    global _SPOW_ENABLED
+    global _SPOW_ENABLED  # noqa: PLW0603
 
     _SPOW_ENABLED = enable
 
@@ -482,14 +482,12 @@ def spow(a: ArrayLike, p: ArrayLike) -> NDArrayFloat:
     if not _SPOW_ENABLED:
         return np.power(a, p)
 
-    a = np.atleast_1d(a)
+    a = as_float_array(a)
     p = as_float_array(p)
 
     a_p = np.sign(a) * np.abs(a) ** p
 
-    a_p[np.isnan(a_p)] = 0
-
-    return as_float(a_p)
+    return as_float(0 if a_p.ndim == 0 and np.isnan(a_p) else a_p)
 
 
 def normalise_vector(a: ArrayLike) -> NDArrayFloat:
