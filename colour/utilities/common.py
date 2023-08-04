@@ -22,7 +22,7 @@ import inspect
 import functools
 import numpy as np
 import re
-import subprocess  # nosec
+import subprocess
 import unicodedata
 import types
 import warnings
@@ -46,7 +46,7 @@ from colour.utilities import CanonicalMapping, Lookup
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
-__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__license__ = "BSD-3-Clause - https://opensource.org/licenses/BSD-3-Clause"
 __maintainer__ = "Colour Developers"
 __email__ = "colour-developers@colour-science.org"
 __status__ = "Production"
@@ -588,9 +588,7 @@ def is_ctlrender_installed(raise_exception: bool = False) -> bool:
     try:  # pragma: no cover
         stdout = subprocess.run(
             ["ctlrender", "-help"], capture_output=True  # noqa: S603, S607
-        ).stdout.decode(
-            "utf-8"
-        )  # nosec
+        ).stdout.decode("utf-8")
 
         if "transforms an image using one or more CTL scripts" not in stdout:
             raise FileNotFoundError  # noqa: TRY301

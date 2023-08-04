@@ -10,7 +10,6 @@ import contextlib
 import fnmatch
 import os
 import re
-import toml
 import uuid
 
 import colour
@@ -26,7 +25,7 @@ from invoke.context import Context
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
-__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__license__ = "BSD-3-Clause - https://opensource.org/licenses/BSD-3-Clause"
 __maintainer__ = "Colour Developers"
 __email__ = "colour-developers@colour-science.org"
 __status__ = "Production"
@@ -333,9 +332,18 @@ def requirements(ctx: Context):
 
     message_box('Exporting "requirements.txt" file...')
     ctx.run(
-        "poetry run pip list --format=freeze | "
-        'egrep -v "colour==|colour-science==" '
-        "> requirements.txt"
+        "poetry export -f requirements.txt "
+        "--without-hashes "
+        "--with dev,optional,graphviz,meshing,docs "
+        "--output requirements.txt"
+    )
+
+    message_box('Exporting "docs/requirements.txt" file...')
+    ctx.run(
+        "poetry export -f requirements.txt "
+        "--without-hashes "
+        "--with optional,graphviz,meshing,docs "
+        "--output docs/requirements.txt"
     )
 
 
@@ -352,22 +360,6 @@ def build(ctx: Context):
     """
 
     message_box("Building...")
-    if (
-        "modified:   pyproject.toml"
-        in ctx.run("git status").stdout  # pyright: ignore
-    ):
-        raise RuntimeError(
-            'Please commit your changes to the "pyproject.toml" file!'
-        )
-
-    pyproject_content = toml.load("pyproject.toml")
-    pyproject_content["tool"]["poetry"]["name"] = PYPI_PACKAGE_NAME
-    pyproject_content["tool"]["poetry"]["packages"] = [
-        {"include": PYTHON_PACKAGE_NAME, "from": "."}
-    ]
-    with open("pyproject.toml", "w") as pyproject_file:
-        toml.dump(pyproject_content, pyproject_file)
-
     if (
         "modified:   README.rst"
         in ctx.run("git status").stdout  # pyright: ignore
@@ -393,65 +385,7 @@ def build(ctx: Context):
         )
 
     ctx.run("poetry build")
-    ctx.run("git checkout -- pyproject.toml")
     ctx.run("git checkout -- README.rst")
-
-    with ctx.cd("dist"):
-        ctx.run(f"tar -xvf {PYPI_ARCHIVE_NAME}-{APPLICATION_VERSION}.tar.gz")
-        ctx.run(f"cp {PYPI_ARCHIVE_NAME}-{APPLICATION_VERSION}/setup.py ../")
-
-        ctx.run(f"rm -rf {PYPI_ARCHIVE_NAME}-{APPLICATION_VERSION}")
-
-    with open("setup.py") as setup_file:
-        source = setup_file.read()
-
-    setup_kwargs = []
-
-    def sub_callable(match):
-        setup_kwargs.append(match)
-
-        return ""
-
-    template = """
-setup({0}
-)
-"""
-
-    source = re.sub(
-        "from setuptools import setup",
-        (
-            '"""\n'
-            "Colour - Setup\n"
-            "==============\n"
-            '"""\n\n'
-            "import codecs\n"
-            "from setuptools import setup"
-        ),
-        source,
-    )
-    source = re.sub(
-        "setup_kwargs = {(.*)}.*setup\\(\\*\\*setup_kwargs\\)",
-        sub_callable,
-        source,
-        flags=re.DOTALL,
-    )[:-2]
-    setup_kwargs = setup_kwargs[0].group(1).splitlines()
-    for i, line in enumerate(setup_kwargs):
-        setup_kwargs[i] = re.sub("^\\s*('(\\w+)':\\s?)", "    \\2=", line)
-        if setup_kwargs[i].strip().startswith("long_description"):
-            setup_kwargs[i] = (
-                "    long_description="
-                "codecs.open('README.rst', encoding='utf8')"
-                ".read(),"
-            )
-
-    source += template.format("\n".join(setup_kwargs))
-
-    with open("setup.py", "w") as setup_file:
-        setup_file.write(source)
-
-    ctx.run("poetry run pre-commit run --files setup.py || true")
-
     ctx.run("twine check dist/*")
 
 
@@ -473,9 +407,7 @@ def virtualise(ctx: Context, tests: bool = True):
         ctx.run(f"tar -xvf {PYPI_ARCHIVE_NAME}-{APPLICATION_VERSION}.tar.gz")
         ctx.run(f"mv {PYPI_ARCHIVE_NAME}-{APPLICATION_VERSION} {unique_name}")
         with ctx.cd(unique_name):
-            ctx.run(
-                'poetry install --extras "graphviz meshing optional plotting"'
-            )
+            ctx.run("poetry install")
             ctx.run("source $(poetry env info -p)/bin/activate")
             ctx.run(
                 'python -c "import imageio;'

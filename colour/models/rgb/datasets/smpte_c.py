@@ -29,7 +29,7 @@ from colour.models.rgb import (
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
-__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__license__ = "BSD-3-Clause - https://opensource.org/licenses/BSD-3-Clause"
 __maintainer__ = "Colour Developers"
 __email__ = "colour-developers@colour-science.org"
 __status__ = "Production"
@@ -78,7 +78,7 @@ RGB_COLOURSPACE_SMPTE_C: RGB_Colourspace = RGB_Colourspace(
     partial(gamma_function, exponent=1 / 2.2),
     partial(gamma_function, exponent=2.2),
 )
-"""
+RGB_COLOURSPACE_SMPTE_C.__doc__ = """
 *SMPTE C* colourspace.
 
 References

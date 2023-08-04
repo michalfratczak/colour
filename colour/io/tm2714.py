@@ -18,8 +18,8 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
-from xml.etree import ElementTree  # nosec
-from xml.dom import minidom  # nosec
+from xml.etree import ElementTree
+from xml.dom import minidom
 
 from colour.colorimetry import SpectralDistribution
 from colour.hints import Any, Callable, Literal
@@ -38,7 +38,7 @@ from colour.utilities import (
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
-__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__license__ = "BSD-3-Clause - https://opensource.org/licenses/BSD-3-Clause"
 __maintainer__ = "Colour Developers"
 __email__ = "colour-developers@colour-science.org"
 __status__ = "Production"
@@ -1799,7 +1799,7 @@ class SpectralDistribution_IESTM2714(SpectralDistribution):
 
             xml = minidom.parseString(  # noqa: S318
                 ElementTree.tostring(root)
-            ).toprettyxml()  # nosec
+            ).toprettyxml()
 
             with open(self._path, "w") as file:
                 file.write(xml)

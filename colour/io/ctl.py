@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import os
 import numpy as np
-import subprocess  # nosec
+import subprocess
 import textwrap
 import tempfile
 
@@ -35,7 +35,7 @@ from colour.utilities import (
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
-__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
+__license__ = "BSD-3-Clause - https://opensource.org/licenses/BSD-3-Clause"
 __maintainer__ = "Colour Developers"
 __email__ = "colour-developers@colour-science.org"
 __status__ = "Production"
@@ -272,13 +272,16 @@ def process_image_ctl(
 
     write_image(a, temp_input_filename)
 
-    ctl_render(
+    output = ctl_render(
         temp_input_filename,
         temp_output_filename,
         ctl_transforms,
         *args,
         **kwargs,
     )
+
+    if output.returncode != 0:  # pragma: no cover
+        raise RuntimeError(output.stderr.decode("utf-8"))
 
     b = read_image(temp_output_filename).astype(dtype)[..., 0:3]
 
