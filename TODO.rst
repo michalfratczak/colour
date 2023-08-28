@@ -91,11 +91,6 @@ TODO
     -   Line 307 : # TODO: Investigate "OIIO" behaviour here: 1.0 != 15360.0 image = read_image_OpenImageIO( os.path.join(ROOT_RESOURCES, 'Colour_Logo.png'), 'float16') self.assertIs(image.dtype, np.dtype('float16')) self.assertEqual(np.min(image), 0.0) self.assertEqual(np.max(image), 1.0)
 
 
--   colour/graph/conversion.py
-
-    -   Line 1416 : # TODO: Remove the following warning whenever the automatic colour conversion graph implementation is considered stable.
-
-
 -   colour/models/rgb/derivation.py
 
     -   Line 239 : # TODO: Investigate if we return an ndarray here with primaries and whitepoint stacked together.
@@ -119,9 +114,9 @@ TODO
 
 -   colour/utilities/array.py
 
-    -   Line 574 : # TODO: Remove when https://github.com/numpy/numpy/issues/5718 is addressed.
-    -   Line 862 : # TODO: Investigate behaviour on Windows.
-    -   Line 919 : # TODO: Annotate with "Union[Literal['ignore', 'reference', '1', '100'], str]" when Python 3.7 is dropped.
+    -   Line 575 : # TODO: Remove when https://github.com/numpy/numpy/issues/5718 is addressed.
+    -   Line 863 : # TODO: Investigate behaviour on Windows.
+    -   Line 920 : # TODO: Annotate with "Union[Literal['ignore', 'reference', '1', '100'], str]" when Python 3.7 is dropped.
 
 
 -   colour/plotting/models.py
@@ -136,8 +131,8 @@ TODO
 
 -   colour/plotting/common.py
 
-    -   Line 788 : # TODO: Reassess according to https://github.com/matplotlib/matplotlib/issues/1077
-    -   Line 907 : # TODO: Consider using "MutableMapping" here.
+    -   Line 799 : # TODO: Reassess according to https://github.com/matplotlib/matplotlib/issues/1077
+    -   Line 918 : # TODO: Consider using "MutableMapping" here.
 
 
 -   colour/characterisation/aces_it.py

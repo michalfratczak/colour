@@ -21,8 +21,8 @@
 .. |version| image:: https://img.shields.io/pypi/v/colour-science.svg?style=flat-square
     :target: https://pypi.org/project/colour-science
     :alt: Package Version
-.. |zenodo| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.7367239-blue.svg?style=flat-square
-    :target: https://dx.doi.org/10.5281/zenodo.7367239
+.. |zenodo| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.8284953-blue.svg?style=flat-square
+    :target: https://dx.doi.org/10.5281/zenodo.8284953
     :alt: DOI
 
 .. end-badges
@@ -1742,8 +1742,10 @@ format.
 API Reference
 -------------
 
-The main technical reference for **Colour** is the
-`API Reference <https://colour.readthedocs.io/en/latest/reference.html>`__.
+The main technical reference for **Colour** is the *API Reference*:
+
+- `Release <https://colour.readthedocs.io/en/master/reference.html>`__.
+- `Develop <https://colour.readthedocs.io/en/latest/reference.html>`__.
 
 See Also
 --------
