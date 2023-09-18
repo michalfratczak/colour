@@ -37,6 +37,7 @@ __all__ = [
     "PYPI_PACKAGE_NAME",
     "PYPI_ARCHIVE_NAME",
     "BIBLIOGRAPHY_NAME",
+    "literalise",
     "clean",
     "formatting",
     "quality",
@@ -64,6 +65,24 @@ PYPI_PACKAGE_NAME: str = "colour-science"
 PYPI_ARCHIVE_NAME: str = PYPI_PACKAGE_NAME.replace("-", "_")
 
 BIBLIOGRAPHY_NAME: str = "BIBLIOGRAPHY.bib"
+
+
+@task
+def literalise(ctx: Context):
+    """
+    Write various literals in the `colour.hints` module.
+
+    Parameters
+    ----------
+    ctx
+        Context.
+    """
+
+    message_box("Literalising...")
+    with ctx.cd("utilities"):
+        ctx.run("./literalise.py")
+
+    ctx.run("pre-commit run --files colour/hints/__init__.py", warn=True)
 
 
 @task
@@ -334,7 +353,7 @@ def requirements(ctx: Context):
     ctx.run(
         "poetry export -f requirements.txt "
         "--without-hashes "
-        "--with dev,optional,graphviz,meshing,docs "
+        "--with dev,docs,graphviz,meshing,optional "
         "--output requirements.txt"
     )
 
@@ -342,12 +361,12 @@ def requirements(ctx: Context):
     ctx.run(
         "poetry export -f requirements.txt "
         "--without-hashes "
-        "--with optional,graphviz,meshing,docs "
+        "--with docs,graphviz,meshing,optional "
         "--output docs/requirements.txt"
     )
 
 
-@task(clean, preflight, docs, todo, requirements)
+@task(literalise, clean, preflight, docs, todo, requirements)
 def build(ctx: Context):
     """
     Build the project and runs dependency tasks, i.e. *docs*, *todo*, and
@@ -437,7 +456,7 @@ def tag(ctx: Context):
     message_box("Tagging...")
     result = ctx.run("git rev-parse --abbrev-ref HEAD", hide="both")
 
-    if result.stdout.strip() == "develop":  # pyright: ignore
+    if result.stdout.strip() != "develop":  # pyright: ignore
         raise RuntimeError("Are you still on a feature or master branch?")
 
     with open(os.path.join(PYTHON_PACKAGE_NAME, "__init__.py")) as file_handle:
