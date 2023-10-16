@@ -50,6 +50,9 @@ from .characterisation import (  # noqa: E402
     plot_multi_colour_checkers,
 )
 from .diagrams import (  # noqa: E402
+    METHODS_CHROMATICITY_DIAGRAM,
+    LABELS_CHROMATICITY_DIAGRAM_DEFAULT,
+    lines_spectral_locus,
     plot_chromaticity_diagram_CIE1931,
     plot_chromaticity_diagram_CIE1960UCS,
     plot_chromaticity_diagram_CIE1976UCS,
@@ -63,6 +66,7 @@ from .corresponding import (  # noqa: E402
 from .graph import plot_automatic_colour_conversion_graph  # noqa: E402
 from .models import (  # noqa: E402
     colourspace_model_axis_reorder,
+    lines_pointer_gamut,
     plot_pointer_gamut,
     plot_RGB_colourspaces_in_chromaticity_diagram_CIE1931,
     plot_RGB_colourspaces_in_chromaticity_diagram_CIE1960UCS,
@@ -156,6 +160,9 @@ __all__ += [
     "plot_multi_colour_checkers",
 ]
 __all__ += [
+    "METHODS_CHROMATICITY_DIAGRAM",
+    "LABELS_CHROMATICITY_DIAGRAM_DEFAULT",
+    "lines_spectral_locus",
     "plot_chromaticity_diagram_CIE1931",
     "plot_chromaticity_diagram_CIE1960UCS",
     "plot_chromaticity_diagram_CIE1976UCS",
@@ -171,6 +178,7 @@ __all__ += [
 ]
 __all__ += [
     "colourspace_model_axis_reorder",
+    "lines_pointer_gamut",
     "plot_pointer_gamut",
     "plot_RGB_colourspaces_in_chromaticity_diagram_CIE1931",
     "plot_RGB_colourspaces_in_chromaticity_diagram_CIE1960UCS",

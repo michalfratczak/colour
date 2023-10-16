@@ -4,6 +4,7 @@ Colour Models Plotting
 
 Defines the colour models plotting objects:
 
+-   :func:`colour.plotting.lines_pointer_gamut`
 -   :func:`colour.plotting.\
 plot_RGB_colourspaces_in_chromaticity_diagram_CIE1931`
 -   :func:`colour.plotting.\
@@ -45,12 +46,15 @@ from __future__ import annotations
 import numpy as np
 import scipy.optimize
 from matplotlib.axes import Axes
+from matplotlib.collections import LineCollection
 from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 from matplotlib.path import Path
 
+from colour.adaptation import chromatic_adaptation_VonKries
+from colour.algebra import normalise_maximum
 from colour.colorimetry import MultiSpectralDistributions
-from colour.constants import EPSILON
+from colour.constants import DEFAULT_FLOAT_DTYPE, EPSILON
 from colour.geometry import (
     point_at_angle_on_ellipse,
     ellipse_coefficients_canonical_form,
@@ -78,7 +82,6 @@ from colour.models import (
     CCTF_DECODINGS,
     LCHab_to_Lab,
     Lab_to_XYZ,
-    Luv_to_uv,
     DATA_MACADAM_1942_ELLIPSES,
     CCS_POINTER_GAMUT_BOUNDARY,
     DATA_POINTER_GAMUT_VOLUME,
@@ -86,16 +89,13 @@ from colour.models import (
     RGB_Colourspace,
     RGB_to_RGB,
     RGB_to_XYZ,
-    UCS_to_uv,
-    XYZ_to_Luv,
     XYZ_to_RGB,
-    XYZ_to_UCS,
     XYZ_to_xy,
-    xy_to_Luv_uv,
-    xy_to_UCS_uv,
+    xy_to_XYZ,
 )
 from colour.plotting import (
     CONSTANTS_COLOUR_STYLE,
+    METHODS_CHROMATICITY_DIAGRAM,
     plot_chromaticity_diagram_CIE1931,
     artist,
     plot_chromaticity_diagram_CIE1960UCS,
@@ -109,6 +109,7 @@ from colour.plotting import (
     override_style,
     render,
     update_settings_collection,
+    XYZ_to_plotting_colourspace,
 )
 from colour.plotting.diagrams import plot_chromaticity_diagram
 from colour.utilities import (
@@ -121,6 +122,7 @@ from colour.utilities import (
     optional,
     tsplit,
     validate_method,
+    zeros,
 )
 
 __author__ = "Colour Developers"
@@ -133,6 +135,7 @@ __status__ = "Production"
 __all__ = [
     "COLOURSPACE_MODELS_AXIS_ORDER",
     "colourspace_model_axis_reorder",
+    "lines_pointer_gamut",
     "plot_pointer_gamut",
     "plot_RGB_colourspaces_in_chromaticity_diagram",
     "plot_RGB_colourspaces_in_chromaticity_diagram_CIE1931",
@@ -249,6 +252,97 @@ def colourspace_model_axis_reorder(
     return a[..., indexes]
 
 
+def lines_pointer_gamut(
+    method: Literal["CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS"]
+    | str = "CIE 1931"
+):
+    """
+    Return the *Pointer's Gamut* line vertices, i.e. positions, normals and
+    colours, according to given method.
+
+    Parameters
+    ----------
+    method
+        *Chromaticity Diagram* method.
+
+    Returns
+    -------
+    :class:`tuple`
+        Tuple of *Pointer's Gamut* boundary and volume vertices.
+
+    Examples
+    --------
+    >>> lines = lines_pointer_gamut()
+    >>> len(lines)
+    2
+    >>> lines[0].dtype
+    dtype([('position', '<f8', (2,)), ('normal', '<f8', (2,)), \
+('colour', '<f8', (3,))])
+    >>> lines[1].dtype
+    dtype([('position', '<f8', (2,)), ('normal', '<f8', (2,)), \
+('colour', '<f8', (3,))])
+    """
+
+    method = validate_method(
+        method, ("CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS")
+    )
+
+    illuminant = CONSTANTS_COLOUR_STYLE.colour.colourspace.whitepoint
+
+    XYZ_to_ij = METHODS_CHROMATICITY_DIAGRAM[method]["XYZ_to_ij"]
+    ij_to_XYZ = METHODS_CHROMATICITY_DIAGRAM[method]["ij_to_XYZ"]
+
+    XYZ = xy_to_XYZ(CCS_POINTER_GAMUT_BOUNDARY)
+    XYZ = chromatic_adaptation_VonKries(
+        XYZ, xy_to_XYZ(CCS_ILLUMINANT_POINTER_GAMUT), xy_to_XYZ(illuminant)
+    )
+    ij_b = XYZ_to_ij(XYZ)
+    ij_b = np.vstack([ij_b, ij_b[0]])
+    colours_b = normalise_maximum(
+        XYZ_to_plotting_colourspace(ij_to_XYZ(ij_b, illuminant), illuminant),
+        axis=-1,
+    )
+
+    lines_b = zeros(
+        ij_b.shape[0],
+        [
+            ("position", DEFAULT_FLOAT_DTYPE, 2),
+            ("normal", DEFAULT_FLOAT_DTYPE, 2),
+            ("colour", DEFAULT_FLOAT_DTYPE, 3),
+        ],  # pyright: ignore
+    )
+
+    lines_b["position"] = ij_b
+    lines_b["colour"] = colours_b
+
+    XYZ = Lab_to_XYZ(
+        LCHab_to_Lab(DATA_POINTER_GAMUT_VOLUME), CCS_ILLUMINANT_POINTER_GAMUT
+    )
+    XYZ = chromatic_adaptation_VonKries(
+        XYZ, xy_to_XYZ(CCS_ILLUMINANT_POINTER_GAMUT), xy_to_XYZ(illuminant)
+    )
+    ij_v = XYZ_to_ij(XYZ)
+
+    colours_v = normalise_maximum(
+        XYZ_to_plotting_colourspace(ij_to_XYZ(ij_v, illuminant), illuminant),
+        axis=-1,
+    )
+
+    lines_v = zeros(
+        ij_v.shape[0],
+        [
+            ("position", DEFAULT_FLOAT_DTYPE, 2),
+            ("normal", DEFAULT_FLOAT_DTYPE, 2),
+            ("colour", DEFAULT_FLOAT_DTYPE, 3),
+        ],  # pyright: ignore
+    )
+
+    lines_v["position"] = ij_v
+    lines_v["colour"] = colours_v
+
+    return lines_b, lines_v
+
+
 @override_style()
 def plot_pointer_gamut(
     pointer_gamut_colours: ArrayLike | str | None = None,
@@ -282,7 +376,7 @@ def plot_pointer_gamut(
 
     Examples
     --------
-    >>> plot_pointer_gamut()  # doctest: +ELLIPSIS
+    >>> plot_pointer_gamut(pointer_gamut_colours="RGB")  # doctest: +ELLIPSIS
     (<Figure size ... with 1 Axes>, <...Axes...>)
 
     .. image:: ../_static/Plotting_Plot_Pointer_Gamut.png
@@ -297,6 +391,9 @@ def plot_pointer_gamut(
     pointer_gamut_colours = optional(
         pointer_gamut_colours, CONSTANTS_COLOUR_STYLE.colour.dark
     )
+
+    use_RGB_colours = str(pointer_gamut_colours).upper() == "RGB"
+
     pointer_gamut_opacity = optional(
         pointer_gamut_opacity, CONSTANTS_COLOUR_STYLE.opacity.high
     )
@@ -306,93 +403,33 @@ def plot_pointer_gamut(
 
     _figure, axes = artist(**settings)
 
-    if method == "cie 1931":
+    lines_b, lines_v = lines_pointer_gamut(method)
 
-        def XYZ_to_ij(
-            XYZ: NDArrayFloat, *args: Any  # noqa: ARG001
-        ) -> NDArrayFloat:
-            """
-            Convert given *CIE XYZ* tristimulus values to *ij* chromaticity
-            coordinates.
-            """
-
-            return XYZ_to_xy(XYZ)
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy
-
-    elif method == "cie 1960 ucs":
-
-        def XYZ_to_ij(
-            XYZ: NDArrayFloat, *args: Any  # noqa: ARG001
-        ) -> NDArrayFloat:
-            """
-            Convert given *CIE XYZ* tristimulus values to *ij* chromaticity
-            coordinates.
-            """
-
-            return UCS_to_uv(XYZ_to_UCS(XYZ))
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy_to_UCS_uv(xy)
-
-    elif method == "cie 1976 ucs":
-
-        def XYZ_to_ij(XYZ: NDArrayFloat, *args: Any) -> NDArrayFloat:
-            """
-            Convert given *CIE XYZ* tristimulus values to *ij* chromaticity
-            coordinates.
-            """
-
-            return Luv_to_uv(XYZ_to_Luv(XYZ, *args), *args)
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy_to_Luv_uv(xy)
-
-    ij = xy_to_ij(CCS_POINTER_GAMUT_BOUNDARY)
-    axes.plot(
-        ij[..., 0],
-        ij[..., 1],
-        label="Pointer's Gamut",
-        color=pointer_gamut_colours,
-        alpha=pointer_gamut_opacity,
-        zorder=CONSTANTS_COLOUR_STYLE.zorder.foreground_line,
+    axes.add_collection(
+        LineCollection(
+            np.concatenate(
+                [lines_b["position"][:-1], lines_b["position"][1:]],
+                axis=1,  # pyright: ignore
+            ).reshape([-1, 2, 2]),
+            colors=lines_b["colour"]
+            if use_RGB_colours
+            else pointer_gamut_colours,
+            alpha=pointer_gamut_opacity,
+            zorder=CONSTANTS_COLOUR_STYLE.zorder.foreground_line,
+        )
     )
-    axes.plot(
-        (ij[-1][0], ij[0][0]),
-        (ij[-1][1], ij[0][1]),
-        color=pointer_gamut_colours,
-        alpha=pointer_gamut_opacity,
-        zorder=CONSTANTS_COLOUR_STYLE.zorder.foreground_line,
-    )
-
-    XYZ = Lab_to_XYZ(
-        LCHab_to_Lab(DATA_POINTER_GAMUT_VOLUME), CCS_ILLUMINANT_POINTER_GAMUT
-    )
-    ij = XYZ_to_ij(XYZ, CCS_ILLUMINANT_POINTER_GAMUT)
 
     scatter_settings = {
         "alpha": pointer_gamut_opacity / 2,
-        "color": pointer_gamut_colours,
+        "c": lines_v["colour"] if use_RGB_colours else pointer_gamut_colours,
         "marker": "+",
         "zorder": CONSTANTS_COLOUR_STYLE.zorder.foreground_scatter,
     }
-    axes.scatter(ij[..., 0], ij[..., 1], **scatter_settings)
+    axes.scatter(
+        lines_v["position"][..., 0],
+        lines_v["position"][..., 1],
+        **scatter_settings,
+    )
 
     settings.update({"axes": axes})
     settings.update(kwargs)
@@ -522,42 +559,17 @@ Plot_RGB_Colourspaces_In_Chromaticity_Diagram.png
 
         plot_pointer_gamut(**settings)
 
+    xy_to_ij = METHODS_CHROMATICITY_DIAGRAM[method]["xy_to_ij"]
+
     if method == "cie 1931":
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy
-
         x_limit_min, x_limit_max = [-0.1], [0.9]
         y_limit_min, y_limit_max = [-0.1], [0.9]
 
     elif method == "cie 1960 ucs":
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy_to_UCS_uv(xy)
-
         x_limit_min, x_limit_max = [-0.1], [0.7]
         y_limit_min, y_limit_max = [-0.2], [0.6]
 
     elif method == "cie 1976 ucs":
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy_to_Luv_uv(xy)
-
         x_limit_min, x_limit_max = [-0.1], [0.7]
         y_limit_min, y_limit_max = [-0.1], [0.7]
 
@@ -1048,16 +1060,9 @@ Plot_RGB_Chromaticities_In_Chromaticity_Diagram.png
 
     XYZ = RGB_to_XYZ(RGB, colourspace)
 
-    if method == "cie 1931":
-        ij = XYZ_to_xy(XYZ)
+    XYZ_to_ij = METHODS_CHROMATICITY_DIAGRAM[method]["XYZ_to_ij"]
 
-    elif method == "cie 1960 ucs":
-        ij = UCS_to_uv(XYZ_to_UCS(XYZ))
-
-    elif method == "cie 1976 ucs":
-        ij = Luv_to_uv(
-            XYZ_to_Luv(XYZ, colourspace.whitepoint), colourspace.whitepoint
-        )
+    ij = XYZ_to_ij(XYZ, colourspace.whitepoint)
 
     axes.scatter(ij[..., 0], ij[..., 1], **scatter_settings)
 
@@ -1334,35 +1339,7 @@ def ellipses_MacAdam1942(
         method, ("CIE 1931", "CIE 1960 UCS", "CIE 1976 UCS")
     )
 
-    if method == "cie 1931":
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy
-
-    elif method == "cie 1960 ucs":
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy_to_UCS_uv(xy)
-
-    elif method == "cie 1976 ucs":
-
-        def xy_to_ij(xy: NDArrayFloat) -> NDArrayFloat:
-            """
-            Convert given *CIE xy* chromaticity coordinates to *ij*
-            chromaticity coordinates.
-            """
-
-            return xy_to_Luv_uv(xy)
+    xy_to_ij = METHODS_CHROMATICITY_DIAGRAM[method]["xy_to_ij"]
 
     x, y, _a, _b, _theta, a, b, theta = tsplit(DATA_MACADAM_1942_ELLIPSES)
 
