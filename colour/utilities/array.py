@@ -19,12 +19,13 @@ numpy-fastest-way-of-computing-diagonal-for-each-row-of-a-2d-array/\
 from __future__ import annotations
 
 import functools
-import numpy as np
 import sys
 from collections.abc import KeysView, ValuesView
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass, replace
 from operator import add, mul, pow, sub, truediv
+
+import numpy as np
 
 from colour.constants import DEFAULT_FLOAT_DTYPE, DEFAULT_INT_DTYPE, EPSILON
 from colour.hints import (
@@ -37,11 +38,11 @@ from colour.hints import (
     DTypeFloat,
     DTypeInt,
     DTypeReal,
-    NDArrayFloat,
     Generator,
-    NDArrayInt,
     Literal,
     NDArray,
+    NDArrayFloat,
+    NDArrayInt,
     Real,
     Tuple,
     Type,
@@ -553,7 +554,7 @@ def as_array(
     Parameters
     ----------
     a
-        Variable to convert.
+        Variable :math:`a` to convert.
     dtype
         :class:`numpy.dtype` to use for conversion, default to the
         :class:`numpy.dtype` defined by the
@@ -589,7 +590,7 @@ def as_int(a: ArrayLike, dtype: Type[DTypeInt] | None = None) -> NDArrayInt:
     Parameters
     ----------
     a
-        Variable to convert.
+        Variable :math:`a` to convert.
     dtype
         :class:`numpy.dtype` to use for conversion, default to the
         :class:`numpy.dtype` defined by the
@@ -631,7 +632,7 @@ def as_float(
     Parameters
     ----------
     a
-        Variable to convert.
+        Variable :math:`a` to convert.
     dtype
         :class:`numpy.dtype` to use for conversion, default to the
         :class:`numpy.dtype` defined by the
@@ -681,7 +682,7 @@ def as_int_array(
     Parameters
     ----------
     a
-        Variable to convert.
+        Variable :math:`a` to convert.
     dtype
         :class:`numpy.dtype` to use for conversion, default to the
         :class:`numpy.dtype` defined by the
@@ -718,7 +719,7 @@ def as_float_array(
     Parameters
     ----------
     a
-        Variable to convert.
+        Variable :math:`a` to convert.
     dtype
         :class:`numpy.dtype` to use for conversion, default to the
         :class:`numpy.dtype` defined by the
@@ -753,7 +754,7 @@ def as_int_scalar(a: ArrayLike, dtype: Type[DTypeInt] | None = None) -> int:
     Parameters
     ----------
     a
-        Variable to convert.
+        Variable :math:`a` to convert.
     dtype
         :class:`numpy.dtype` to use for conversion, default to the
         :class:`numpy.dtype` defined by the
@@ -792,7 +793,7 @@ def as_float_scalar(
     Parameters
     ----------
     a
-        Variable to convert.
+        Variable :math:`a` to convert.
     dtype
         :class:`numpy.dtype` to use for conversion, default to the
         :class:`numpy.dtype` defined by the
@@ -2817,5 +2818,5 @@ def format_array_as_row(
     a = np.ravel(a)
 
     return separator.join(
-        "{1:0.{0}f}".format(decimals, x) for x in a  # noqa: PLE1300
+        "{1:0.{0}f}".format(decimals, x) for x in a  # noqa: PLE1300, RUF100
     )
