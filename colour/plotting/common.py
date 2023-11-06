@@ -6,6 +6,7 @@ Defines the common plotting objects:
 
 -   :func:`colour.plotting.colour_style`
 -   :func:`colour.plotting.override_style`
+-   :func:`colour.plotting.font_scaling`
 -   :func:`colour.plotting.XYZ_to_plotting_colourspace`
 -   :class:`colour.plotting.ColourSwatch`
 -   :func:`colour.plotting.colour_cycle`
@@ -29,10 +30,12 @@ from __future__ import annotations
 import contextlib
 import functools
 import itertools
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import partial
 
 import matplotlib.cm
+import matplotlib.font_manager
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 import numpy as np
@@ -56,9 +59,11 @@ from colour.hints import (
     ArrayLike,
     Callable,
     Dict,
+    Generator,
     List,
     Literal,
     LiteralChromaticAdaptationTransform,
+    LiteralFontScaling,
     LiteralRGBColourspace,
     Mapping,
     NDArrayFloat,
@@ -96,6 +101,7 @@ __all__ = [
     "CONSTANTS_ARROW_STYLE",
     "colour_style",
     "override_style",
+    "font_scaling",
     "XYZ_to_plotting_colourspace",
     "ColourSwatch",
     "colour_cycle",
@@ -163,15 +169,20 @@ CONSTANTS_COLOUR_STYLE: Structure = Structure(
                 "colourspace": RGB_COLOURSPACES["sRGB"],
             }
         ),
-        "font_size": Structure(
-            **{
-                "xx_small": 10 * 0.55,
-                "x_small": 10 * 0.60,
-                "small": 10 * 0.85,
-                "medium": 10,
-                "large": 10 * (1 / 0.55),
-                "x_large": 10 * (1 / 0.60),
-                "xx_large": 10 * (1 / 0.85),
+        "font": Structure(
+            {
+                "size": 10,
+                "scaling": Structure(
+                    **{
+                        "xx_small": 0.579,
+                        "x_small": 0.694,
+                        "small": 0.833,
+                        "medium": 1,
+                        "large": 1 / 0.579,
+                        "x_large": 1 / 0.694,
+                        "xx_large": 1 / 0.833,
+                    }
+                ),
             }
         ),
         "opacity": Structure(**{"high": 0.75, "medium": 0.5, "low": 0.25}),
@@ -210,6 +221,15 @@ CONSTANTS_COLOUR_STYLE: Structure = Structure(
     }
 )
 """Various defaults settings used across the plotting sub-package."""
+
+# NOTE: Adding our font scaling items so that they can be tweaked without
+# affecting *Matplotplib* ones.
+for _scaling, _value in CONSTANTS_COLOUR_STYLE.font.scaling.items():
+    matplotlib.font_manager.font_scalings[
+        f'{_scaling.replace("_", "-")}-colour-science'
+    ] = _value
+
+del _scaling, _value
 
 CONSTANTS_ARROW_STYLE: Structure = Structure(
     **{
@@ -353,6 +373,43 @@ def override_style(**kwargs: Any) -> Callable:
         return wrapped
 
     return wrapper
+
+
+@contextmanager
+def font_scaling(scaling: LiteralFontScaling, value: float) -> Generator:
+    """
+    Define a context manager setting temporarily a *Matplotlib* font scaling.
+
+    Parameters
+    ----------
+    scaling
+        Font scaling to temporarily set.
+    value
+        Value to temporarily set the font scaling with.
+
+    Yields
+    ------
+    Generator.
+
+    Examples
+    --------
+    >>> with font_scaling("medium-colour-science", 2):
+    ...     print(
+    ...         matplotlib.font_manager.font_scalings["medium-colour-science"]
+    ...     )
+    ...
+    2
+    >>> print(matplotlib.font_manager.font_scalings["medium-colour-science"])
+    1
+    """
+
+    current_value = matplotlib.font_manager.font_scalings[scaling]
+
+    matplotlib.font_manager.font_scalings[scaling] = value
+
+    yield
+
+    matplotlib.font_manager.font_scalings[scaling] = current_value
 
 
 def XYZ_to_plotting_colourspace(
@@ -721,7 +778,7 @@ def label_rectangles(
     labels: Sequence[str],
     rectangles: Sequence[Patch],
     rotation: Literal["horizontal", "vertical"] | str = "vertical",
-    text_size: float = 10,
+    text_size: float = CONSTANTS_COLOUR_STYLE.font.scaling.medium,
     offset: ArrayLike | None = None,
     **kwargs: Any,
 ) -> Tuple[Figure, Axes]:
@@ -774,14 +831,12 @@ def label_rectangles(
         x = rectangle.get_x()  # pyright: ignore
         height = rectangle.get_height()  # pyright: ignore
         width = rectangle.get_width()  # pyright: ignore
-        ha = "center"
-        va = "bottom"
         axes.text(
             x + width / 2 + offset[0] * width,
             height + offset[1] * y_m,
             labels[i],
-            ha=ha,
-            va=va,
+            ha="center",
+            va="bottom",
             rotation=rotation,
             fontsize=text_size,
             clip_on=True,

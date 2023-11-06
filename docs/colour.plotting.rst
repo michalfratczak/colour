@@ -20,6 +20,7 @@ Common
     :toctree: generated/
 
     colour_style
+    override_style
     colour_cycle
     artist
     camera
@@ -44,6 +45,7 @@ Common
     KwargsArtist
     KwargsCamera
     KwargsRender
+    font_scaling
     filter_passthrough
     filter_RGB_colourspaces
     filter_cmfs
@@ -272,6 +274,9 @@ Colour Temperature & Correlated Colour Temperature
 .. autosummary::
     :toctree: generated/
 
+    lines_daylight_locus
+    LABELS_PLANCKIAN_LOCUS_DEFAULT
+    lines_planckian_locus
     plot_planckian_locus_in_chromaticity_diagram_CIE1931
     plot_planckian_locus_in_chromaticity_diagram_CIE1960UCS
     plot_planckian_locus_in_chromaticity_diagram_CIE1976UCS

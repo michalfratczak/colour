@@ -18,6 +18,7 @@ if not is_matplotlib_installed():
         "matplotlib.collections",
         "matplotlib.colors",
         "matplotlib.figure",
+        "matplotlib.font_manager",
         "matplotlib.patches",
         "matplotlib.path",
         "matplotlib.pyplot",
@@ -36,6 +37,7 @@ from .common import (
     CONSTANTS_ARROW_STYLE,
     colour_style,
     override_style,
+    font_scaling,
     XYZ_to_plotting_colourspace,
     ColourSwatch,
     colour_cycle,
@@ -127,6 +129,9 @@ from .section import (
     plot_RGB_colourspace_section,
 )
 from .temperature import (
+    lines_daylight_locus,
+    LABELS_PLANCKIAN_LOCUS_DEFAULT,
+    lines_planckian_locus,
     plot_planckian_locus_in_chromaticity_diagram_CIE1931,
     plot_planckian_locus_in_chromaticity_diagram_CIE1960UCS,
     plot_planckian_locus_in_chromaticity_diagram_CIE1976UCS,
@@ -144,6 +149,7 @@ __all__ += [
     "CONSTANTS_ARROW_STYLE",
     "colour_style",
     "override_style",
+    "font_scaling",
     "XYZ_to_plotting_colourspace",
     "ColourSwatch",
     "colour_cycle",
@@ -239,6 +245,9 @@ __all__ += [
     "plot_RGB_colourspace_section",
 ]
 __all__ += [
+    "lines_daylight_locus",
+    "LABELS_PLANCKIAN_LOCUS_DEFAULT",
+    "lines_planckian_locus",
     "plot_planckian_locus_in_chromaticity_diagram_CIE1931",
     "plot_planckian_locus_in_chromaticity_diagram_CIE1960UCS",
     "plot_planckian_locus_in_chromaticity_diagram_CIE1976UCS",
