@@ -45,6 +45,7 @@ Sub-packages
 """
 
 import contextlib
+import os
 import sys
 
 import numpy as np
@@ -948,7 +949,7 @@ if not is_documentation_building():
         sys.modules["colour"], build_API_changes(API_CHANGES)
     )
 
-    del ModuleAPI, is_documentation_building, build_API_changes, sys
+    del ModuleAPI, is_documentation_building, build_API_changes
 
 colour.__disable_lazy_load__ = True  # pyright: ignore
 __disable_lazy_load__ = colour.__disable_lazy_load__  # pyright: ignore
@@ -956,3 +957,77 @@ __disable_lazy_load__ = colour.__disable_lazy_load__  # pyright: ignore
 Ensures that the lazy loaded datasets are not transformed during import.
 See :class:`colour.utilities.LazyCanonicalMapping` for more information.
 """
+
+# NOTE: We are solving the clash with https://github.com/vaab/colour by loading
+# a known subset of the objects given by vaab/colour-0.1.5 into our namespace
+# if the *COLOUR_SCIENCE__COLOUR__IMPORT_VAAB_COLOUR=True* environment variable
+# is defined.
+#
+# See the following issues for more information:
+# - https://github.com/colour-science/colour/issues/958
+# - https://github.com/colour-science/colour/issues/1221
+# - https://github.com/vaab/colour/issues/62
+for _path in sys.path:
+    _module_path = os.path.join(_path, "colour.py")
+    if os.path.exists(_module_path):
+        import colour  # pyright: ignore
+
+        if not os.environ.get("COLOUR_SCIENCE__COLOUR__IMPORT_VAAB_COLOUR"):
+            colour.utilities.warning(  # pyright: ignore
+                '"vaab/colour" was detected in "sys.path", please define a '
+                '"COLOUR_SCIENCE__COLOUR__IMPORT_VAAB_COLOUR=True" environment '
+                'variable to import its objects into "colour" namespace!'
+            )
+            break
+
+        import importlib.machinery
+
+        _module = importlib.machinery.SourceFileLoader(
+            "__vaab_colour__", _module_path
+        ).load_module()
+
+        for name in [
+            "COLOR_NAME_TO_RGB",
+            "C_HEX",
+            "C_HSL",
+            "C_RGB",
+            "Color",
+            "HEX",
+            "HSL",
+            "HSL_equivalence",
+            "LONG_HEX_COLOR",
+            "RGB",
+            "RGB_TO_COLOR_NAMES",
+            "RGB_color_picker",
+            "RGB_equivalence",
+            "SHORT_HEX_COLOR",
+            "color_scale",
+            "hash_or_str",
+            "hex2hsl",
+            "hex2rgb",
+            "hex2web",
+            "hsl2hex",
+            "hsl2rgb",
+            "hsl2web",
+            "make_color_factory",
+            "rgb2hex",
+            "rgb2hsl",
+            "rgb2web",
+            "web2hex",
+            "web2hsl",
+            "web2rgb",
+        ]:
+            if name in dir(_module):
+                colour.utilities.warning(  # pyright: ignore
+                    f'Importing "vaab/colour" "{name}" object into '
+                    f'"Colour"\'s namespace!'
+                )
+                setattr(sys.modules["colour"], name, getattr(_module, name))
+
+        del importlib, _module
+
+        break
+
+    del _module_path, _path
+
+del os, sys
