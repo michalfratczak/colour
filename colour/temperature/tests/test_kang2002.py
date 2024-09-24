@@ -1,11 +1,10 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.temperature.kang2002` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.temperature import CCT_to_xy_Kang2002, xy_to_CCT_Kang2002
 from colour.utilities import ignore_numpy_errors
 
@@ -22,7 +21,7 @@ __all__ = [
 ]
 
 
-class TestXy_to_CCT_Kang2002(unittest.TestCase):
+class TestXy_to_CCT_Kang2002:
     """
     Define :func:`colour.temperature.kang2002.xy_to_CCT_Kang2002`
     definition unit tests methods.
@@ -40,8 +39,7 @@ class TestXy_to_CCT_Kang2002(unittest.TestCase):
                 {"method": "Nelder-Mead"},
             ),
             4000,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         np.testing.assert_allclose(
@@ -50,8 +48,7 @@ class TestXy_to_CCT_Kang2002(unittest.TestCase):
                 {"method": "Nelder-Mead"},
             ),
             7000,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         np.testing.assert_allclose(
@@ -60,8 +57,7 @@ class TestXy_to_CCT_Kang2002(unittest.TestCase):
                 {"method": "Nelder-Mead"},
             ),
             25000,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_xy_to_CCT_Kang2002(self):
@@ -75,14 +71,14 @@ class TestXy_to_CCT_Kang2002(unittest.TestCase):
 
         uv = np.tile(uv, (6, 1))
         CCT = np.tile(CCT, 6)
-        np.testing.assert_array_almost_equal(
-            xy_to_CCT_Kang2002(uv), CCT, decimal=7
+        np.testing.assert_allclose(
+            xy_to_CCT_Kang2002(uv), CCT, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         uv = np.reshape(uv, (2, 3, 2))
         CCT = np.reshape(CCT, (2, 3))
-        np.testing.assert_array_almost_equal(
-            xy_to_CCT_Kang2002(uv), CCT, decimal=7
+        np.testing.assert_allclose(
+            xy_to_CCT_Kang2002(uv), CCT, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     @ignore_numpy_errors
@@ -97,7 +93,7 @@ class TestXy_to_CCT_Kang2002(unittest.TestCase):
         xy_to_CCT_Kang2002(cases)
 
 
-class TestCCT_to_xy_Kang2002(unittest.TestCase):
+class TestCCT_to_xy_Kang2002:
     """
     Define :func:`colour.temperature.kang2002.CCT_to_xy_Kang2002` definition
     unit tests methods.
@@ -109,22 +105,22 @@ class TestCCT_to_xy_Kang2002(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             CCT_to_xy_Kang2002(4000),
             np.array([0.380528282812500, 0.376733530961114]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             CCT_to_xy_Kang2002(7000),
             np.array([0.306374019533528, 0.316552869726577]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             CCT_to_xy_Kang2002(25000),
             np.array([0.252472994438400, 0.252254791243654]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_CCT_to_xy_Kang2002(self):
@@ -138,14 +134,14 @@ class TestCCT_to_xy_Kang2002(unittest.TestCase):
 
         CCT = np.tile(CCT, 6)
         xy = np.tile(xy, (6, 1))
-        np.testing.assert_array_almost_equal(
-            CCT_to_xy_Kang2002(CCT), xy, decimal=7
+        np.testing.assert_allclose(
+            CCT_to_xy_Kang2002(CCT), xy, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         CCT = np.reshape(CCT, (2, 3))
         xy = np.reshape(xy, (2, 3, 2))
-        np.testing.assert_array_almost_equal(
-            CCT_to_xy_Kang2002(CCT), xy, decimal=7
+        np.testing.assert_allclose(
+            CCT_to_xy_Kang2002(CCT), xy, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     @ignore_numpy_errors
@@ -158,7 +154,3 @@ class TestCCT_to_xy_Kang2002(unittest.TestCase):
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=2))))
         CCT_to_xy_Kang2002(cases)
-
-
-if __name__ == "__main__":
-    unittest.main()

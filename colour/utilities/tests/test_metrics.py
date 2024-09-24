@@ -1,10 +1,9 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.utilities.metrics` module."""
 
-import unittest
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.utilities import metric_mse, metric_psnr
 
 __author__ = "Colour Developers"
@@ -20,7 +19,7 @@ __all__ = [
 ]
 
 
-class TestMetricMse(unittest.TestCase):
+class TestMetricMse:
     """
     Define :func:`colour.utilities.metrics.metric_mse` definition unit tests
     methods.
@@ -30,20 +29,24 @@ class TestMetricMse(unittest.TestCase):
         """Test :func:`colour.utilities.metrics.metric_mse` definition."""
 
         a = np.array([0.48222001, 0.31654775, 0.22070353])
-        self.assertEqual(metric_mse(a, a), 0)
+        assert metric_mse(a, a) == 0
 
         b = a * 0.9
-        self.assertAlmostEqual(
-            metric_mse(a, b), 0.0012714955474297446, places=7
+        np.testing.assert_allclose(
+            metric_mse(a, b),
+            0.0012714955474297446,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         b = a * 1.1
-        self.assertAlmostEqual(
-            metric_mse(a, b), 0.0012714955474297446, places=7
+        np.testing.assert_allclose(
+            metric_mse(a, b),
+            0.0012714955474297446,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestMetricPsnr(unittest.TestCase):
+class TestMetricPsnr:
     """
     Define :func:`colour.utilities.metrics.metric_psnr` definition unit tests
     methods.
@@ -53,14 +56,18 @@ class TestMetricPsnr(unittest.TestCase):
         """Test :func:`colour.utilities.metrics.metric_psnr` definition."""
 
         a = np.array([0.48222001, 0.31654775, 0.22070353])
-        self.assertEqual(metric_psnr(a, a), 0)
+        assert metric_psnr(a, a) == 0
 
         b = a * 0.9
-        self.assertAlmostEqual(metric_psnr(a, b), 28.956851563141299, places=7)
+        np.testing.assert_allclose(
+            metric_psnr(a, b),
+            28.956851563141299,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
         b = a * 1.1
-        self.assertAlmostEqual(metric_psnr(a, b), 28.956851563141296, places=7)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        np.testing.assert_allclose(
+            metric_psnr(a, b),
+            28.956851563141296,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )

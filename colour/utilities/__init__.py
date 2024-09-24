@@ -4,18 +4,56 @@ import sys
 
 from colour.hints import Any
 
-from .data_structures import (
+from .verbose import (
+    MixinLogging,
+    ColourWarning,
+    ColourUsageWarning,
+    ColourRuntimeWarning,
+    message_box,
+    show_warning,
+    warning,
+    runtime_warning,
+    usage_warning,
+    filter_warnings,
+    as_bool,
+    suppress_warnings,
+    suppress_stdout,
+    numpy_print_options,
+    ANCILLARY_COLOUR_SCIENCE_PACKAGES,
+    ANCILLARY_RUNTIME_PACKAGES,
+    ANCILLARY_DEVELOPMENT_PACKAGES,
+    ANCILLARY_EXTRAS_PACKAGES,
+    describe_environment,
+    multiline_str,
+    multiline_repr,
+)
+from .structures import (
     Lookup,
     Structure,
     CanonicalMapping,
     LazyCanonicalMapping,
-    Node,
+)
+from .requirements import (
+    is_ctlrender_installed,
+    is_graphviz_installed,
+    is_matplotlib_installed,
+    is_networkx_installed,
+    is_opencolorio_installed,
+    is_openimageio_installed,
+    is_pandas_installed,
+    is_tqdm_installed,
+    is_trimesh_installed,
+    is_xxhash_installed,
+    required,
 )
 from .callback import (
     Callback,
     MixinCallback,
 )
 from .common import (
+    is_caching_enabled,
+    set_caching_enable,
+    caching_enable,
     CacheRegistry,
     CACHE_REGISTRY,
     handle_numpy_errors,
@@ -28,19 +66,7 @@ from .common import (
     batch,
     disable_multiprocessing,
     multiprocessing_pool,
-    is_ctlrender_installed,
-    is_graphviz_installed,
-    is_matplotlib_installed,
-    is_networkx_installed,
-    is_opencolorio_installed,
-    is_openimageio_installed,
-    is_pandas_installed,
-    is_tqdm_installed,
-    is_trimesh_installed,
-    is_xxhash_installed,
-    required,
     is_iterable,
-    is_string,
     is_numeric,
     is_integer,
     is_sibling,
@@ -52,27 +78,6 @@ from .common import (
     optional,
     slugify,
     int_digest,
-)
-from .verbose import (
-    ColourWarning,
-    ColourUsageWarning,
-    ColourRuntimeWarning,
-    message_box,
-    show_warning,
-    warning,
-    runtime_warning,
-    usage_warning,
-    filter_warnings,
-    suppress_warnings,
-    suppress_stdout,
-    numpy_print_options,
-    ANCILLARY_COLOUR_SCIENCE_PACKAGES,
-    ANCILLARY_RUNTIME_PACKAGES,
-    ANCILLARY_DEVELOPMENT_PACKAGES,
-    ANCILLARY_EXTRAS_PACKAGES,
-    describe_environment,
-    multiline_str,
-    multiline_repr,
 )
 from .array import (
     MixinDataclassFields,
@@ -125,22 +130,71 @@ from .array import (
     format_array_as_row,
 )
 from .metrics import metric_mse, metric_psnr
-
+from .network import (
+    TreeNode,
+    Port,
+    PortNode,
+    PortGraph,
+    ExecutionPort,
+    ExecutionNode,
+    ControlFlowNode,
+    For,
+    ParallelForThread,
+    ParallelForMultiprocess,
+)
 from colour.utilities.deprecation import ModuleAPI, build_API_changes
 from colour.utilities.documentation import is_documentation_building
 
 __all__ = [
+    "MixinLogging",
+    "ColourWarning",
+    "ColourUsageWarning",
+    "ColourRuntimeWarning",
+    "message_box",
+    "show_warning",
+    "warning",
+    "runtime_warning",
+    "usage_warning",
+    "filter_warnings",
+    "as_bool",
+    "suppress_warnings",
+    "suppress_stdout",
+    "numpy_print_options",
+    "ANCILLARY_COLOUR_SCIENCE_PACKAGES",
+    "ANCILLARY_RUNTIME_PACKAGES",
+    "ANCILLARY_DEVELOPMENT_PACKAGES",
+    "ANCILLARY_EXTRAS_PACKAGES",
+    "describe_environment",
+    "multiline_str",
+    "multiline_repr",
+]
+__all__ += [
     "Lookup",
     "Structure",
     "CanonicalMapping",
     "LazyCanonicalMapping",
-    "Node",
+]
+__all__ += [
+    "is_ctlrender_installed",
+    "is_graphviz_installed",
+    "is_matplotlib_installed",
+    "is_networkx_installed",
+    "is_opencolorio_installed",
+    "is_openimageio_installed",
+    "is_pandas_installed",
+    "is_tqdm_installed",
+    "is_trimesh_installed",
+    "is_xxhash_installed",
+    "required",
 ]
 __all__ += [
     "Callback",
     "MixinCallback",
 ]
 __all__ += [
+    "is_caching_enabled",
+    "set_caching_enable",
+    "caching_enable",
     "CacheRegistry",
     "CACHE_REGISTRY",
     "handle_numpy_errors",
@@ -153,19 +207,7 @@ __all__ += [
     "batch",
     "disable_multiprocessing",
     "multiprocessing_pool",
-    "is_ctlrender_installed",
-    "is_graphviz_installed",
-    "is_matplotlib_installed",
-    "is_networkx_installed",
-    "is_opencolorio_installed",
-    "is_openimageio_installed",
-    "is_pandas_installed",
-    "is_tqdm_installed",
-    "is_trimesh_installed",
-    "is_xxhash_installed",
-    "required",
     "is_iterable",
-    "is_string",
     "is_numeric",
     "is_integer",
     "is_sibling",
@@ -177,27 +219,6 @@ __all__ += [
     "optional",
     "slugify",
     "int_digest",
-]
-__all__ += [
-    "ColourWarning",
-    "ColourUsageWarning",
-    "ColourRuntimeWarning",
-    "message_box",
-    "show_warning",
-    "warning",
-    "runtime_warning",
-    "usage_warning",
-    "filter_warnings",
-    "suppress_warnings",
-    "suppress_stdout",
-    "numpy_print_options",
-    "ANCILLARY_COLOUR_SCIENCE_PACKAGES",
-    "ANCILLARY_RUNTIME_PACKAGES",
-    "ANCILLARY_DEVELOPMENT_PACKAGES",
-    "ANCILLARY_EXTRAS_PACKAGES",
-    "describe_environment",
-    "multiline_str",
-    "multiline_repr",
 ]
 __all__ += [
     "MixinDataclassFields",
@@ -239,8 +260,6 @@ __all__ += [
     "tstack",
     "tsplit",
     "row_as_diagonal",
-    "vector_dot",
-    "matrix_dot",
     "orient",
     "centroid",
     "linear_conversion",
@@ -257,6 +276,18 @@ __all__ += [
 __all__ += [
     "metric_mse",
     "metric_psnr",
+]
+__all__ += [
+    "TreeNode",
+    "Port",
+    "PortNode",
+    "PortGraph",
+    "ExecutionPort",
+    "ExecutionNode",
+    "ControlFlowNode",
+    "For",
+    "ParallelForThread",
+    "ParallelForMultiprocess",
 ]
 
 
@@ -294,19 +325,20 @@ API_CHANGES: dict = {
             "colour.algebra.linear_conversion",
         ],
         [
-            "colour.utilities.matrix_dot",
-            "colour.algebra.matrix_dot",
-        ],
-        [
             "colour.utilities.normalise_maximum",
             "colour.algebra.normalise_maximum",
         ],
         [
-            "colour.utilities.vector_dot",
-            "colour.algebra.vector_dot",
+            "colour.utilities.vecmul",
+            "colour.algebra.vecmul",
         ],
     ],
 }
+"""
+Define the *colour.utilities* sub-package API changes.
+
+API_CHANGES
+"""
 
 # v0.4.2
 API_CHANGES["ObjectRenamed"].extend(
@@ -321,11 +353,11 @@ API_CHANGES["ObjectRenamed"].extend(
         ],
     ]
 )
-"""
-Define the *colour.utilities* sub-package API changes.
 
-API_CHANGES
-"""
+# v0.4.5
+API_CHANGES["ObjectRemoved"] = [  # pyright: ignore
+    "colour.utilities.is_string",
+]
 
 if not is_documentation_building():
     sys.modules["colour.utilities"] = utilities(  # pyright: ignore

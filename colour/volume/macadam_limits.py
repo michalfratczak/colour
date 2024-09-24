@@ -2,7 +2,7 @@
 Optimal Colour Stimuli - MacAdam Limits
 =======================================
 
-Defines the objects related to *Optimal Colour Stimuli* computations.
+Define the objects related to *Optimal Colour Stimuli* computations.
 """
 
 from __future__ import annotations
@@ -13,7 +13,11 @@ from scipy.spatial import Delaunay
 from colour.constants import EPSILON
 from colour.hints import ArrayLike, Literal, NDArrayFloat
 from colour.models import xyY_to_XYZ
-from colour.utilities import CACHE_REGISTRY, validate_method
+from colour.utilities import (
+    CACHE_REGISTRY,
+    is_caching_enabled,
+    validate_method,
+)
 from colour.volume import OPTIMAL_COLOUR_STIMULI_ILLUMINANTS
 
 __author__ = "Colour Developers"
@@ -31,15 +35,13 @@ _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ: dict = CACHE_REGISTRY.register_cache(
     f"{__name__}._CACHE_OPTIMAL_COLOUR_STIMULI_XYZ"
 )
 
-_CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS: dict = (
-    CACHE_REGISTRY.register_cache(
-        f"{__name__}._CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS"
-    )
+_CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS: dict = CACHE_REGISTRY.register_cache(
+    f"{__name__}._CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS"
 )
 
 
 def _XYZ_optimal_colour_stimuli(
-    illuminant: Literal["A", "C", "D65"] | str = "D65"
+    illuminant: Literal["A", "C", "D65"] | str = "D65",
 ) -> NDArrayFloat:
     """
     Return given illuminant *Optimal Colour Stimuli* in *CIE XYZ* tristimulus
@@ -66,10 +68,12 @@ def _XYZ_optimal_colour_stimuli(
 
     vertices = _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ.get(illuminant)
 
-    if vertices is None:
-        _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ[illuminant] = vertices = (
-            xyY_to_XYZ(optimal_colour_stimuli) / 100
-        )
+    if is_caching_enabled() and vertices is not None:
+        return vertices
+
+    _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ[illuminant] = vertices = (
+        xyY_to_XYZ(optimal_colour_stimuli) / 100
+    )
 
     return vertices
 
@@ -115,14 +119,12 @@ def is_within_macadam_limits(
     """
 
     optimal_colour_stimuli = _XYZ_optimal_colour_stimuli(illuminant)
-    triangulation = _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS.get(
-        illuminant
-    )
+    triangulation = _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS.get(illuminant)
 
     if triangulation is None:
-        _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS[
-            illuminant
-        ] = triangulation = Delaunay(optimal_colour_stimuli)
+        _CACHE_OPTIMAL_COLOUR_STIMULI_XYZ_TRIANGULATIONS[illuminant] = (
+            triangulation
+        ) = Delaunay(optimal_colour_stimuli)
 
     simplex = triangulation.find_simplex(xyY_to_XYZ(xyY), tol=tolerance)
     simplex = np.where(simplex >= 0, True, False)

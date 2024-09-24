@@ -2,7 +2,7 @@
 Sony .spimtx LUT Format Input / Output Utilities
 ================================================
 
-Defines *Sony* *.spimtx* *LUT* format related input / output utilities objects.
+Define *Sony* *.spimtx* *LUT* format related input / output utilities objects.
 
 -   :func:`colour.io.read_LUT_SonySPImtx`
 -   :func:`colour.io.write_LUT_SonySPImtx`
@@ -10,9 +10,11 @@ Defines *Sony* *.spimtx* *LUT* format related input / output utilities objects.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 
-from colour.constants import DEFAULT_FLOAT_DTYPE
+from colour.constants import DTYPE_FLOAT_DEFAULT
 from colour.io.luts import LUTOperatorMatrix
 from colour.io.luts.common import path_to_title
 
@@ -29,7 +31,7 @@ __all__ = [
 ]
 
 
-def read_LUT_SonySPImtx(path: str) -> LUTOperatorMatrix:
+def read_LUT_SonySPImtx(path: str | Path) -> LUTOperatorMatrix:
     """
     Read given *Sony* *.spimtx* *LUT* file.
 
@@ -64,7 +66,9 @@ def read_LUT_SonySPImtx(path: str) -> LUTOperatorMatrix:
     Offset     : [ 0.  0.  0.  0.]
     """
 
-    matrix = np.loadtxt(path, dtype=DEFAULT_FLOAT_DTYPE)
+    path = str(path)
+
+    matrix = np.loadtxt(path, dtype=DTYPE_FLOAT_DEFAULT)
     matrix = np.reshape(matrix, (3, 4))
     offset = matrix[:, 3] / 65535
     matrix = matrix[:3, :3]
@@ -75,7 +79,7 @@ def read_LUT_SonySPImtx(path: str) -> LUTOperatorMatrix:
 
 
 def write_LUT_SonySPImtx(
-    LUT: LUTOperatorMatrix, path: str, decimals: int = 7
+    LUT: LUTOperatorMatrix, path: str | Path, decimals: int = 7
 ) -> bool:
     """
     Write given *LUT* to given *Sony* *.spimtx* *LUT* file.
@@ -107,6 +111,8 @@ def write_LUT_SonySPImtx(
     >>> M = LUTOperatorMatrix(matrix)
     >>> write_LUT_SonySPI1D(M, "My_LUT.spimtx")  # doctest: +SKIP
     """
+
+    path = str(path)
 
     matrix, offset = LUT.matrix, LUT.offset
     offset *= 65535

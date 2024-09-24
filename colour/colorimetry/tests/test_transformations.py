@@ -3,7 +3,6 @@ Define the unit tests for the :mod:`colour.colorimetry.transformations`
 module.
 """
 
-import unittest
 
 import numpy as np
 
@@ -15,6 +14,7 @@ from colour.colorimetry import (
     RGB_10_degree_cmfs_to_LMS_10_degree_cmfs,
     RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.utilities import ignore_numpy_errors
 
 __author__ = "Colour Developers"
@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 
-class TestRGB_2_degree_cmfs_to_XYZ_2_degree_cmfs(unittest.TestCase):
+class TestRGB_2_degree_cmfs_to_XYZ_2_degree_cmfs:
     """
     Define :func:`colour.colorimetry.transformations.\
 RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs` definition unit tests methods.
@@ -70,20 +70,26 @@ RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs` definition n-dimensional arrays
 
         wl = np.tile(wl, 6)
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
-            RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3, 1))
         XYZ = np.reshape(XYZ, (2, 3, 1, 3))
-        np.testing.assert_array_almost_equal(
-            RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -98,7 +104,7 @@ RGB_2_degree_cmfs_to_XYZ_2_degree_cmfs` definition nan support.
         )
 
 
-class TestRGB_10_degree_cmfs_to_XYZ_10_degree_cmfs(unittest.TestCase):
+class TestRGB_10_degree_cmfs_to_XYZ_10_degree_cmfs:
     """
     Define :func:`colour.colorimetry.transformations.\
 RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs` definition unit tests methods.
@@ -141,20 +147,26 @@ RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs` definition n-dimensional arrays
 
         wl = np.tile(wl, 6)
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
-            RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3, 1))
         XYZ = np.reshape(XYZ, (2, 3, 1, 3))
-        np.testing.assert_array_almost_equal(
-            RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -169,7 +181,7 @@ RGB_10_degree_cmfs_to_XYZ_10_degree_cmfs` definition nan support.
         )
 
 
-class TestRGB_10_degree_cmfs_to_LMS_10_degree_cmfs(unittest.TestCase):
+class TestRGB_10_degree_cmfs_to_LMS_10_degree_cmfs:
     """
     Define :func:`colour.colorimetry.transformations.\
 RGB_10_degree_cmfs_to_LMS_10_degree_cmfs` definition unit tests methods.
@@ -212,20 +224,26 @@ RGB_10_degree_cmfs_to_LMS_10_degree_cmfs` definition n-dimensional arrays
 
         wl = np.tile(wl, 6)
         LMS = np.tile(LMS, (6, 1))
-        np.testing.assert_array_almost_equal(
-            RGB_10_degree_cmfs_to_LMS_10_degree_cmfs(wl), LMS
+        np.testing.assert_allclose(
+            RGB_10_degree_cmfs_to_LMS_10_degree_cmfs(wl),
+            LMS,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3))
         LMS = np.reshape(LMS, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            RGB_10_degree_cmfs_to_LMS_10_degree_cmfs(wl), LMS
+        np.testing.assert_allclose(
+            RGB_10_degree_cmfs_to_LMS_10_degree_cmfs(wl),
+            LMS,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3, 1))
         LMS = np.reshape(LMS, (2, 3, 1, 3))
-        np.testing.assert_array_almost_equal(
-            RGB_10_degree_cmfs_to_LMS_10_degree_cmfs(wl), LMS
+        np.testing.assert_allclose(
+            RGB_10_degree_cmfs_to_LMS_10_degree_cmfs(wl),
+            LMS,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -240,7 +258,7 @@ RGB_10_degree_cmfs_to_LMS_10_degree_cmfs` definition nan support.
         )
 
 
-class TestLMS_2_degree_cmfs_to_XYZ_2_degree_cmfs(unittest.TestCase):
+class TestLMS_2_degree_cmfs_to_XYZ_2_degree_cmfs:
     """
     Define :func:`colour.colorimetry.transformations.\
 LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs` definition unit tests methods.
@@ -283,20 +301,26 @@ LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs` definition n-dimensional arrays
 
         wl = np.tile(wl, 6)
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
-            LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3, 1))
         XYZ = np.reshape(XYZ, (2, 3, 1, 3))
-        np.testing.assert_array_almost_equal(
-            LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -311,7 +335,7 @@ LMS_2_degree_cmfs_to_XYZ_2_degree_cmfs` definition nan support.
         )
 
 
-class TestLMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(unittest.TestCase):
+class TestLMS_10_degree_cmfs_to_XYZ_10_degree_cmfs:
     """
     Define :func:`colour.colorimetry.transformations.\
 LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs` definition unit tests methods.
@@ -354,20 +378,26 @@ LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs` definition n-dimensional arrays
 
         wl = np.tile(wl, 6)
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
-            LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3, 1))
         XYZ = np.reshape(XYZ, (2, 3, 1, 3))
-        np.testing.assert_array_almost_equal(
-            LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl), XYZ
+        np.testing.assert_allclose(
+            LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(wl),
+            XYZ,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -380,7 +410,3 @@ LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs` definition nan support.
         LMS_10_degree_cmfs_to_XYZ_10_degree_cmfs(
             np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan])
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

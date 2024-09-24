@@ -54,8 +54,6 @@ CIE L*a*b* Colourspace
 
     XYZ_to_Lab
     Lab_to_XYZ
-    Lab_to_LCHab
-    LCHab_to_Lab
 
 CIE L*u*v* Colourspace
 ----------------------
@@ -69,12 +67,12 @@ CIE L*u*v* Colourspace
 
     XYZ_to_Luv
     Luv_to_XYZ
-    Luv_to_LCHuv
-    LCHuv_to_Luv
     Luv_to_uv
     uv_to_Luv
     Luv_uv_to_xy
     xy_to_Luv_uv
+    XYZ_to_CIE1976UCS
+    CIE1976UCS_to_XYZ
 
 CIE 1960 UCS Colourspace
 ------------------------
@@ -92,6 +90,8 @@ CIE 1960 UCS Colourspace
     uv_to_UCS
     UCS_uv_to_xy
     xy_to_UCS_uv
+    XYZ_to_CIE1960UCS
+    CIE1960UCS_to_XYZ
 
 CIE 1964 U*V*W* Colourspace
 ---------------------------
@@ -363,6 +363,48 @@ Yrg Colourspace - Kirk (2019)
     XYZ_to_Izazbz
     Izazbz_to_XYZ
 
+Polar Conversions
+-----------------
+
+``colour``
+
+.. currentmodule:: colour
+
+.. autosummary::
+    :toctree: generated/
+
+    COLOURSPACE_MODELS_POLAR_CONVERSIONS
+    Lab_to_LCHab
+    LCHab_to_Lab
+    Luv_to_LCHuv
+    LCHuv_to_Luv
+    hdr_CIELab_to_hdr_CIELCHab
+    hdr_CIELCHab_to_hdr_CIELab
+    Hunter_Lab_to_Hunter_LCHab
+    Hunter_LCHab_to_Hunter_Lab
+    Hunter_Rdab_to_Hunter_RdCHab
+    Hunter_RdCHab_to_Hunter_Rdab
+    ICaCb_to_ICHab
+    ICHab_to_ICaCb
+    ICtCp_to_ICHtp
+    ICHtp_to_ICtCp
+    IgPgTg_to_IgCHpt
+    IgCHpt_to_IgPgTg
+    IPT_to_ICH
+    ICH_to_IPT
+    Izazbz_to_IzCHab
+    IzCHab_to_Izazbz
+    Jzazbz_to_JzCHab
+    JzCHab_to_Jzazbz
+    hdr_IPT_to_hdr_ICH
+    hdr_ICH_to_hdr_IPT
+    Oklab_to_Oklch
+    Oklch_to_Oklab
+    ProLab_to_ProLCHab
+    ProLCHab_to_ProLab
+    IPT_Ragoo2021_to_ICH_Ragoo2021
+    ICH_Ragoo2021_to_IPT_Ragoo2021
+
 RGB Colourspace and Transformations
 -----------------------------------
 
@@ -455,15 +497,18 @@ RGB Colourspaces
     RGB_COLOURSPACE_DCI_P3
     RGB_COLOURSPACE_DCI_P3_P
     RGB_COLOURSPACE_DISPLAY_P3
+    RGB_COLOURSPACE_DJI_D_GAMUT
     RGB_COLOURSPACE_DON_RGB_4
     RGB_COLOURSPACE_EBU_3213_E
     RGB_COLOURSPACE_ECI_RGB_V2
     RGB_COLOURSPACE_EKTA_SPACE_PS_5
     RGB_COLOURSPACE_F_GAMUT
+    RGB_COLOURSPACE_FILMLIGHT_E_GAMUT
     RGB_COLOURSPACE_H273_GENERIC_FILM
     RGB_COLOURSPACE_H273_22_UNSPECIFIED
     RGB_COLOURSPACE_PROTUNE_NATIVE
     RGB_COLOURSPACE_MAX_RGB
+    RGB_COLOURSPACE_N_GAMUT
     RGB_COLOURSPACE_NTSC1953
     RGB_COLOURSPACE_NTSC1987
     RGB_COLOURSPACE_P3_D65
@@ -481,6 +526,7 @@ RGB Colourspaces
     RGB_COLOURSPACE_PROPHOTO_RGB
     RGB_COLOURSPACE_PLASA_ANSI_E154
     RGB_COLOURSPACE_RUSSELL_RGB
+    RGB_COLOURSPACE_SHARP_RGB
     RGB_COLOURSPACE_SMPTE_240M
     RGB_COLOURSPACE_SMPTE_C
     RGB_COLOURSPACE_S_GAMUT
@@ -694,6 +740,8 @@ Log Encoding and Decoding
     log_decoding_ACEScct
     log_encoding_ACESproxy
     log_decoding_ACESproxy
+    log_encoding_AppleLogProfile
+    log_decoding_AppleLogProfile
     log_encoding_ARRILogC3
     log_decoding_ARRILogC3
     log_encoding_CanonLog2

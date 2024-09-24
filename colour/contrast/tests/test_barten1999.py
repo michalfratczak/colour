@@ -1,11 +1,10 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.contrast.barten1999` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.contrast import (
     contrast_sensitivity_function_Barten1999,
     maximum_angular_size_Barten1999,
@@ -33,7 +32,7 @@ __all__ = [
 ]
 
 
-class TestOpticalMTFBarten1999(unittest.TestCase):
+class TestOpticalMTFBarten1999:
     """
     Define :func:`colour.contrast.barten1999.optical_MTF_Barten1999`
     definition unit tests methods.
@@ -45,16 +44,22 @@ class TestOpticalMTFBarten1999(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
-            optical_MTF_Barten1999(4, 0.01), 0.968910791191297, decimal=7
+        np.testing.assert_allclose(
+            optical_MTF_Barten1999(4, 0.01),
+            0.968910791191297,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            optical_MTF_Barten1999(8, 0.01), 0.881323136669471, decimal=7
+        np.testing.assert_allclose(
+            optical_MTF_Barten1999(8, 0.01),
+            0.881323136669471,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            optical_MTF_Barten1999(4, 0.05), 0.454040738727245, decimal=7
+        np.testing.assert_allclose(
+            optical_MTF_Barten1999(4, 0.05),
+            0.454040738727245,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_optical_MTF_Barten1999(self):
@@ -70,15 +75,19 @@ class TestOpticalMTFBarten1999(unittest.TestCase):
         u = np.tile(u, (6, 1))
         sigma = np.tile(sigma, (6, 1))
         M_opt = np.tile(M_opt, (6, 1))
-        np.testing.assert_array_almost_equal(
-            optical_MTF_Barten1999(u, sigma), M_opt, decimal=7
+        np.testing.assert_allclose(
+            optical_MTF_Barten1999(u, sigma),
+            M_opt,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         u = np.reshape(u, (2, 3, 3))
         sigma = np.reshape(sigma, (2, 3, 3))
         M_opt = np.reshape(M_opt, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            optical_MTF_Barten1999(u, sigma), M_opt, decimal=7
+        np.testing.assert_allclose(
+            optical_MTF_Barten1999(u, sigma),
+            M_opt,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -93,7 +102,7 @@ class TestOpticalMTFBarten1999(unittest.TestCase):
         optical_MTF_Barten1999(cases, cases)
 
 
-class TestPupilDiameterBarten1999(unittest.TestCase):
+class TestPupilDiameterBarten1999:
     """
     Define :func:`colour.contrast.barten1999.pupil_diameter_Barten1999`
     definition unit tests methods.
@@ -105,16 +114,22 @@ class TestPupilDiameterBarten1999(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
-            pupil_diameter_Barten1999(20, 60), 3.262346170373243, decimal=7
+        np.testing.assert_allclose(
+            pupil_diameter_Barten1999(20, 60),
+            3.262346170373243,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            pupil_diameter_Barten1999(0.2, 600), 3.262346170373243, decimal=7
+        np.testing.assert_allclose(
+            pupil_diameter_Barten1999(0.2, 600),
+            3.262346170373243,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            pupil_diameter_Barten1999(20, 60, 30), 3.519054451149336, decimal=7
+        np.testing.assert_allclose(
+            pupil_diameter_Barten1999(20, 60, 30),
+            3.519054451149336,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_pupil_diameter_Barten1999(self):
@@ -131,15 +146,19 @@ class TestPupilDiameterBarten1999(unittest.TestCase):
         L = np.tile(L, (6, 1))
         X_0 = np.tile(X_0, (6, 1))
         d = np.tile(d, (6, 1))
-        np.testing.assert_array_almost_equal(
-            pupil_diameter_Barten1999(L, X_0, Y_0), d, decimal=7
+        np.testing.assert_allclose(
+            pupil_diameter_Barten1999(L, X_0, Y_0),
+            d,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         L = np.reshape(L, (2, 3, 3))
         X_0 = np.reshape(X_0, (2, 3, 3))
         d = np.reshape(d, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            pupil_diameter_Barten1999(L, X_0, Y_0), d, decimal=7
+        np.testing.assert_allclose(
+            pupil_diameter_Barten1999(L, X_0, Y_0),
+            d,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -154,7 +173,7 @@ class TestPupilDiameterBarten1999(unittest.TestCase):
         pupil_diameter_Barten1999(cases, cases, cases)
 
 
-class TestSigmaBarten1999(unittest.TestCase):
+class TestSigmaBarten1999:
     """
     Define :func:`colour.contrast.barten1999.sigma_Barten1999` definition unit
     tests methods.
@@ -163,28 +182,28 @@ class TestSigmaBarten1999(unittest.TestCase):
     def test_sigma_Barten1999(self):
         """Test :func:`colour.contrast.barten1999.sigma_Barten1999` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sigma_Barten1999(0.5 / 60, 0.08 / 60, 2.1),
             0.008791157173231,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sigma_Barten1999(0.75 / 60, 0.08 / 60, 2.1),
             0.012809761902549,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sigma_Barten1999(0.5 / 60, 0.16 / 60, 2.1),
             0.010040141654601,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sigma_Barten1999(0.5 / 60, 0.08 / 60, 2.5),
             0.008975274678558,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_sigma_Barten1999(self):
@@ -201,15 +220,19 @@ class TestSigmaBarten1999(unittest.TestCase):
         sigma_0 = np.tile(sigma_0, (6, 1))
         C_ab = np.tile(C_ab, (6, 1))
         sigma = np.tile(sigma, (6, 1))
-        np.testing.assert_array_almost_equal(
-            sigma_Barten1999(sigma_0, C_ab, d), sigma, decimal=7
+        np.testing.assert_allclose(
+            sigma_Barten1999(sigma_0, C_ab, d),
+            sigma,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         sigma_0 = np.reshape(sigma_0, (2, 3, 3))
         C_ab = np.reshape(C_ab, (2, 3, 3))
         sigma = np.reshape(sigma, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            sigma_Barten1999(sigma_0, C_ab, d), sigma, decimal=7
+        np.testing.assert_allclose(
+            sigma_Barten1999(sigma_0, C_ab, d),
+            sigma,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -224,7 +247,7 @@ class TestSigmaBarten1999(unittest.TestCase):
         sigma_Barten1999(cases, cases, cases)
 
 
-class TestRetinalIlluminanceBarten1999(unittest.TestCase):
+class TestRetinalIlluminanceBarten1999:
     """
     Define :func:`colour.contrast.barten1999.retinal_illuminance_Barten1999`
     definition unit tests methods.
@@ -236,22 +259,22 @@ class TestRetinalIlluminanceBarten1999(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             retinal_illuminance_Barten1999(20, 2.1, True),
             66.082316060529919,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             retinal_illuminance_Barten1999(20, 2.5, True),
             91.815644777503664,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             retinal_illuminance_Barten1999(20, 2.1, False),
             69.272118011654939,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_retinal_illuminance_Barten1999(self):
@@ -267,15 +290,19 @@ class TestRetinalIlluminanceBarten1999(unittest.TestCase):
         L = np.tile(L, (6, 1))
         d = np.tile(d, (6, 1))
         E = np.tile(E, (6, 1))
-        np.testing.assert_array_almost_equal(
-            retinal_illuminance_Barten1999(L, d), E, decimal=7
+        np.testing.assert_allclose(
+            retinal_illuminance_Barten1999(L, d),
+            E,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         L = np.reshape(L, (2, 3, 3))
         d = np.reshape(d, (2, 3, 3))
         E = np.reshape(E, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            retinal_illuminance_Barten1999(L, d), E, decimal=7
+        np.testing.assert_allclose(
+            retinal_illuminance_Barten1999(L, d),
+            E,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -290,7 +317,7 @@ class TestRetinalIlluminanceBarten1999(unittest.TestCase):
         retinal_illuminance_Barten1999(cases, cases)
 
 
-class TestMaximumAngularSizeBarten1999(unittest.TestCase):
+class TestMaximumAngularSizeBarten1999:
     """
     Define :func:`colour.contrast.barten1999.maximum_angular_size_Barten1999`
     definition unit tests methods.
@@ -302,34 +329,34 @@ class TestMaximumAngularSizeBarten1999(unittest.TestCase):
 maximum_angular_size_Barten1999` definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             maximum_angular_size_Barten1999(4, 60, 12, 15),
             3.572948005052482,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             maximum_angular_size_Barten1999(8, 60, 12, 15),
             1.851640199545103,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             maximum_angular_size_Barten1999(4, 120, 12, 15),
             3.577708763999663,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             maximum_angular_size_Barten1999(4, 60, 24, 15),
             3.698001308168194,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             maximum_angular_size_Barten1999(4, 60, 12, 30),
             6.324555320336758,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_maximum_angular_size_Barten1999(self):
@@ -347,15 +374,19 @@ maximum_angular_size_Barten1999` definition n-dimensional support.
         u = np.tile(u, (6, 1))
         X_0 = np.tile(X_0, (6, 1))
         X = np.tile(X, (6, 1))
-        np.testing.assert_array_almost_equal(
-            maximum_angular_size_Barten1999(u, X_0, X_max, N_max), X, decimal=7
+        np.testing.assert_allclose(
+            maximum_angular_size_Barten1999(u, X_0, X_max, N_max),
+            X,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         u = np.reshape(u, (2, 3, 3))
         X_0 = np.reshape(X_0, (2, 3, 3))
         X = np.reshape(X, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            maximum_angular_size_Barten1999(u, X_0, X_max, N_max), X, decimal=7
+        np.testing.assert_allclose(
+            maximum_angular_size_Barten1999(u, X_0, X_max, N_max),
+            X,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -370,7 +401,7 @@ maximum_angular_size_Barten1999` definition nan support.
         maximum_angular_size_Barten1999(cases, cases, cases, cases)
 
 
-class TestContrastSensitivityFunctionBarten1999(unittest.TestCase):
+class TestContrastSensitivityFunctionBarten1999:
     """
     Define :func:`colour.contrast.barten1999.\
 contrast_sensitivity_function_Barten1999` definition unit tests methods.
@@ -382,7 +413,7 @@ contrast_sensitivity_function_Barten1999` definition unit tests methods.
 contrast_sensitivity_function_Barten1999` definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=4,
                 sigma=0.01,
@@ -394,10 +425,10 @@ contrast_sensitivity_function_Barten1999` definition.
                 p=1.2 * 10**6,
             ),
             352.761342126727020,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=8,
                 sigma=0.01,
@@ -409,10 +440,10 @@ contrast_sensitivity_function_Barten1999` definition.
                 p=1.2 * 10**6,
             ),
             177.706338840717340,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=4,
                 sigma=0.02,
@@ -424,10 +455,10 @@ contrast_sensitivity_function_Barten1999` definition.
                 p=1.2 * 10**6,
             ),
             320.872401634215750,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=4,
                 sigma=0.01,
@@ -439,10 +470,10 @@ contrast_sensitivity_function_Barten1999` definition.
                 p=1.2 * 10**6,
             ),
             455.171315756946400,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=4,
                 sigma=0.01,
@@ -454,10 +485,10 @@ contrast_sensitivity_function_Barten1999` definition.
                 p=1.2 * 10**6,
             ),
             352.996281545740660,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=4,
                 sigma=0.01,
@@ -469,10 +500,10 @@ contrast_sensitivity_function_Barten1999` definition.
                 p=1.2 * 10**6,
             ),
             358.881580104493650,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=4,
                 sigma=0.01,
@@ -493,10 +524,10 @@ contrast_sensitivity_function_Barten1999` definition.
                 Y_max=12,
                 p=1.2 * 10**6,
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             contrast_sensitivity_function_Barten1999(
                 u=4,
                 sigma=0.01,
@@ -508,7 +539,7 @@ contrast_sensitivity_function_Barten1999` definition.
                 p=1.4 * 10**6,
             ),
             374.791328640476140,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_contrast_sensitivity_function_Barten1999(self):
@@ -521,30 +552,24 @@ contrast_sensitivity_function_Barten1999` definition n-dimensional support.
         sigma = np.array([0.01, 0.02, 0.04])
         E = np.array([0.65, 90, 1500])
         X_0 = np.array([60, 120, 240])
-        S = contrast_sensitivity_function_Barten1999(
-            u=u, sigma=sigma, E=E, X_0=X_0
-        )
+        S = contrast_sensitivity_function_Barten1999(u=u, sigma=sigma, E=E, X_0=X_0)
 
         u = np.tile(u, (6, 1))
         E = np.tile(E, (6, 1))
         S = np.tile(S, (6, 1))
-        np.testing.assert_array_almost_equal(
-            contrast_sensitivity_function_Barten1999(
-                u=u, sigma=sigma, E=E, X_0=X_0
-            ),
+        np.testing.assert_allclose(
+            contrast_sensitivity_function_Barten1999(u=u, sigma=sigma, E=E, X_0=X_0),
             S,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         u = np.reshape(u, (2, 3, 3))
         E = np.reshape(E, (2, 3, 3))
         S = np.reshape(S, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            contrast_sensitivity_function_Barten1999(
-                u=u, sigma=sigma, E=E, X_0=X_0
-            ),
+        np.testing.assert_allclose(
+            contrast_sensitivity_function_Barten1999(u=u, sigma=sigma, E=E, X_0=X_0),
             S,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -559,7 +584,3 @@ contrast_sensitivity_function_Barten1999` definition nan support.
         contrast_sensitivity_function_Barten1999(
             u=cases, sigma=cases, E=cases, X_0=cases
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

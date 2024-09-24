@@ -1,11 +1,10 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.io.luts.operator` module."""
 
 import textwrap
-import unittest
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.io.luts import AbstractLUTSequenceOperator, LUTOperatorMatrix
 from colour.utilities import tstack, zeros
 
@@ -22,7 +21,7 @@ __all__ = [
 ]
 
 
-class TestAbstractLUTSequenceOperator(unittest.TestCase):
+class TestAbstractLUTSequenceOperator:
     """
     Define :class:`colour.io.luts.operator.AbstractLUTSequenceOperator` class
     unit tests methods.
@@ -34,7 +33,7 @@ class TestAbstractLUTSequenceOperator(unittest.TestCase):
         required_attributes = ("name", "comments")
 
         for method in required_attributes:
-            self.assertIn(method, dir(AbstractLUTSequenceOperator))
+            assert method in dir(AbstractLUTSequenceOperator)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -42,20 +41,20 @@ class TestAbstractLUTSequenceOperator(unittest.TestCase):
         required_methods = ("apply",)
 
         for method in required_methods:
-            self.assertIn(method, dir(AbstractLUTSequenceOperator))
+            assert method in dir(AbstractLUTSequenceOperator)
 
 
-class TestLUTOperatorMatrix(unittest.TestCase):
+class TestLUTOperatorMatrix:
     """
     Define :class:`colour.io.luts.operator.LUTOperatorMatrix` class unit tests
     methods.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """Initialise the common tests attributes."""
 
         self._lut_operator_matrix = LUTOperatorMatrix(
-            np.linspace(0, 1, 16).reshape([4, 4]),
+            np.reshape(np.linspace(0, 1, 16), (4, 4)),
             offset=np.array([0.25, 0.5, 0.75, 1.0]),
             name="Nemo Matrix",
             comments=["A first comment.", "A second comment."],
@@ -67,7 +66,7 @@ class TestLUTOperatorMatrix(unittest.TestCase):
         required_attributes = ("matrix", "offset")
 
         for method in required_attributes:
-            self.assertIn(method, dir(LUTOperatorMatrix))
+            assert method in dir(LUTOperatorMatrix)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -75,7 +74,7 @@ class TestLUTOperatorMatrix(unittest.TestCase):
         required_methods = ("__str__", "__repr__", "__eq__", "__ne__", "apply")
 
         for method in required_methods:
-            self.assertIn(method, dir(LUTOperatorMatrix))
+            assert method in dir(LUTOperatorMatrix)
 
     def test_matrix(self):
         """
@@ -86,9 +85,7 @@ class TestLUTOperatorMatrix(unittest.TestCase):
         M = np.identity(3)
 
         lut_operator_matrix = LUTOperatorMatrix(M)
-        np.testing.assert_array_equal(
-            lut_operator_matrix.matrix, np.identity(4)
-        )
+        np.testing.assert_array_equal(lut_operator_matrix.matrix, np.identity(4))
 
     def test_offset(self):
         """
@@ -107,10 +104,11 @@ class TestLUTOperatorMatrix(unittest.TestCase):
         method.
         """
 
-        self.assertEqual(
-            str(self._lut_operator_matrix),
-            textwrap.dedent(
-                """
+        assert (
+            str(self._lut_operator_matrix)
+            == (
+                textwrap.dedent(
+                    """
             LUTOperatorMatrix - Nemo Matrix
             -------------------------------
 
@@ -122,7 +120,8 @@ class TestLUTOperatorMatrix(unittest.TestCase):
 
             A first comment.
             A second comment."""
-            )[1:],
+                )[1:]
+            )
         )
 
     def test__repr__(self):
@@ -131,8 +130,7 @@ class TestLUTOperatorMatrix(unittest.TestCase):
         method.
         """
 
-        self.assertEqual(
-            repr(self._lut_operator_matrix),
+        assert repr(self._lut_operator_matrix) == (
             textwrap.dedent(
                 """
 LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
@@ -141,21 +139,19 @@ LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
                    [ 0.8       ,  0.86666667,  0.93333333,  1.        ]],
                   [ 0.25,  0.5 ,  0.75,  1.  ],
                   name='Nemo Matrix',
-                  comments=['A first comment.', 'A second comment.'])"""[
-                    1:
-                ]
-            ),
+                  comments=['A first comment.', 'A second comment.'])"""[1:]
+            )
         )
 
     def test__eq__(self):
         """Test :class:`colour.io.luts.operator.LUTOperatorMatrix.__eq__` method."""
 
         matrix = LUTOperatorMatrix(
-            np.linspace(0, 1, 16).reshape([4, 4]),
+            np.reshape(np.linspace(0, 1, 16), (4, 4)),
             np.array([0.25, 0.5, 0.75, 1.0]),
         )
 
-        self.assertEqual(self._lut_operator_matrix, matrix)
+        assert self._lut_operator_matrix == matrix
 
     def test__neq__(self):
         """
@@ -163,11 +159,9 @@ LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
         method.
         """
 
-        matrix = LUTOperatorMatrix(
-            np.linspace(0, 1, 16).reshape([4, 4]) * 0.75
-        )
+        matrix = LUTOperatorMatrix(np.reshape(np.linspace(0, 1, 16), (4, 4)) * 0.75)
 
-        self.assertNotEqual(self._lut_operator_matrix, matrix)
+        assert self._lut_operator_matrix != matrix
 
     def test_apply(self):
         """Test :class:`colour.io.luts.operator.LUTOperatorMatrix.apply` method."""
@@ -177,7 +171,7 @@ LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
 
         np.testing.assert_array_equal(LUTOperatorMatrix().apply(RGB), RGB)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             self._lut_operator_matrix.apply(RGB),
             np.array(
                 [
@@ -188,9 +182,10 @@ LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
                     [0.45000000, 1.50000000, 2.55000000],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             self._lut_operator_matrix.apply(RGB, apply_offset_first=True),
             np.array(
                 [
@@ -201,13 +196,14 @@ LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
                     [0.33333333, 1.53333333, 2.73333333],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         RGBA = tstack([samples, samples, samples, samples])
 
         np.testing.assert_array_equal(LUTOperatorMatrix().apply(RGBA), RGBA)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             self._lut_operator_matrix.apply(RGBA),
             np.array(
                 [
@@ -218,9 +214,10 @@ LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
                     [0.65000000, 1.96666667, 3.28333333, 4.60000000],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             self._lut_operator_matrix.apply(RGBA, apply_offset_first=True),
             np.array(
                 [
@@ -231,8 +228,5 @@ LUTOperatorMatrix([[ 0.        ,  0.06666667,  0.13333333,  0.2       ],
                     [0.73333333, 2.46666667, 4.20000000, 5.93333333],
                 ],
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

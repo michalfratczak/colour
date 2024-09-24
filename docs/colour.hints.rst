@@ -25,6 +25,7 @@ Annotation Type Hints
     Optional
     Protocol
     Sequence
+    Set
     SupportsIndex
     TYPE_CHECKING
     TextIO
@@ -69,6 +70,9 @@ Annotation Type Hints
     LiteralCCTFDecoding
     LiteralOOTF
     LiteralOOTFInverse
-    LiteralLUTReadMethods
-    LiteralLUTWriteMethods
+    LiteralLUTReadMethod
+    LiteralLUTWriteMethod
+
+
+
     LiteralFontScaling

@@ -1,4 +1,3 @@
-# !/usr/bin/env python
 """
 Define the unit tests for the :mod:`colour.appearance.hellwig2022` module.
 
@@ -8,10 +7,10 @@ References
     Discussion with Mansencal, T.
 """
 
-import unittest
 from itertools import product
 
 import numpy as np
+import pytest
 
 from colour.appearance import (
     VIEWING_CONDITIONS_HELLWIG2022,
@@ -20,6 +19,7 @@ from colour.appearance import (
     InductionFactors_Hellwig2022,
     XYZ_to_Hellwig2022,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.utilities import (
     as_float_array,
     domain_range_scale,
@@ -40,7 +40,7 @@ __all__ = [
 ]
 
 
-class TestXYZ_to_Hellwig2022(unittest.TestCase):
+class TestXYZ_to_Hellwig2022:
     """
     Define :func:`colour.appearance.hellwig2022.XYZ_to_Hellwig2022` definition
     unit tests methods.
@@ -73,7 +73,6 @@ class TestXYZ_to_Hellwig2022(unittest.TestCase):
                     56.05183586,
                 ]
             ),
-            rtol=0.01,
             atol=0.01,
         )
 
@@ -95,7 +94,6 @@ class TestXYZ_to_Hellwig2022(unittest.TestCase):
                     69.04574688,
                 ]
             ),
-            rtol=0.01,
             atol=0.01,
         )
 
@@ -118,7 +116,6 @@ class TestXYZ_to_Hellwig2022(unittest.TestCase):
                     39.28664523,
                 ]
             ),
-            rtol=0.01,
             atol=0.01,
         )
 
@@ -141,7 +138,6 @@ class TestXYZ_to_Hellwig2022(unittest.TestCase):
                     48.627748198047854,
                 ]
             ),
-            rtol=0.01,
             atol=0.01,
         )
 
@@ -160,26 +156,26 @@ class TestXYZ_to_Hellwig2022(unittest.TestCase):
 
         XYZ = np.tile(XYZ, (6, 1))
         specification = np.tile(specification, (6, 1))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Hellwig2022(XYZ, XYZ_w, L_A, Y_b, surround),
             specification,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         XYZ_w = np.tile(XYZ_w, (6, 1))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Hellwig2022(XYZ, XYZ_w, L_A, Y_b, surround),
             specification,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         XYZ = np.reshape(XYZ, (2, 3, 3))
         XYZ_w = np.reshape(XYZ_w, (2, 3, 3))
         specification = np.reshape(specification, (2, 3, 10))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Hellwig2022(XYZ, XYZ_w, L_A, Y_b, surround),
             specification,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -224,12 +220,12 @@ class TestXYZ_to_Hellwig2022(unittest.TestCase):
         )
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     XYZ_to_Hellwig2022(
                         XYZ * factor_a, XYZ_w * factor_a, L_A, Y_b, surround
                     ),
                     as_float_array(specification) * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -241,15 +237,11 @@ class TestXYZ_to_Hellwig2022(unittest.TestCase):
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
-        surround = InductionFactors_Hellwig2022(
-            cases[0, 0], cases[0, 0], cases[0, 0]
-        )
-        XYZ_to_Hellwig2022(
-            cases, cases, cases[..., 0], cases[..., 0], surround
-        )
+        surround = InductionFactors_Hellwig2022(cases[0, 0], cases[0, 0], cases[0, 0])
+        XYZ_to_Hellwig2022(cases, cases, cases[..., 0], cases[..., 0], surround)
 
 
-class TestHellwig2022_to_XYZ(unittest.TestCase):
+class TestHellwig2022_to_XYZ:
     """
     Define :func:`colour.appearance.hellwig2022.Hellwig2022_to_XYZ` definition
     unit tests methods.
@@ -268,20 +260,20 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
         L_A = 318.31
         Y_b = 20
         surround = VIEWING_CONDITIONS_HELLWIG2022["Average"]
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             np.array([19.01, 20.00, 21.78]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         specification = CAM_Specification_Hellwig2022(
             65.428280687118473, 31.330032520870901, 17.486592427576902
         )
         L_A = 31.83
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             np.array([57.06, 43.06, 31.96]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         specification = CAM_Specification_Hellwig2022(
@@ -289,20 +281,20 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
         )
         XYZ_w = np.array([109.85, 100, 35.58])
         L_A = 318.31
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             np.array([3.53, 6.56, 2.14]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         specification = CAM_Specification_Hellwig2022(
             41.064050542871215, 31.939561618552826, 259.03405661643671
         )
         L_A = 31.38
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             np.array([19.01, 20.00, 21.78]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         specification = CAM_Specification_Hellwig2022(
@@ -312,10 +304,10 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
         L_A = 318.31
         Y_b = 20
         surround = VIEWING_CONDITIONS_HELLWIG2022["Average"]
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             np.array([19.01, 20.00, 21.78]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_Hellwig2022_to_XYZ(self):
@@ -336,17 +328,17 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
             *np.transpose(np.tile(tsplit(specification), (6, 1))).tolist()
         )
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             XYZ,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         XYZ_w = np.tile(XYZ_w, (6, 1))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             XYZ,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         specification = CAM_Specification_Hellwig2022(
@@ -354,10 +346,10 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
         )
         XYZ_w = np.reshape(XYZ_w, (2, 3, 3))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Hellwig2022_to_XYZ(specification, XYZ_w, L_A, Y_b, surround),
             XYZ,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -403,7 +395,7 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
         )
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     Hellwig2022_to_XYZ(
                         specification * factor_a,
                         XYZ_w * factor_b,
@@ -412,7 +404,7 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
                         surround,
                     ),
                     XYZ * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -421,7 +413,7 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
         Test :func:`colour.appearance.hellwig2022.Hellwig2022_to_XYZ`
         definition raised exception.
         """
-        self.assertRaises(
+        pytest.raises(
             ValueError,
             Hellwig2022_to_XYZ,
             CAM_Specification_Hellwig2022(
@@ -433,12 +425,10 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
             VIEWING_CONDITIONS_HELLWIG2022["Average"],
         )
 
-        self.assertRaises(
+        pytest.raises(
             ValueError,
             Hellwig2022_to_XYZ,
-            CAM_Specification_Hellwig2022(
-                41.731207905126638, None, 217.06795976739301
-            ),
+            CAM_Specification_Hellwig2022(41.731207905126638, None, 217.06795976739301),
             np.array([95.05, 100.00, 108.88]),
             318.31,
             20.0,
@@ -454,9 +444,7 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
-        surround = InductionFactors_Hellwig2022(
-            cases[0, 0], cases[0, 0], cases[0, 0]
-        )
+        surround = InductionFactors_Hellwig2022(cases[0, 0], cases[0, 0], cases[0, 0])
         Hellwig2022_to_XYZ(
             CAM_Specification_Hellwig2022(
                 cases[..., 0], cases[..., 0], cases[..., 0], M=50
@@ -466,7 +454,3 @@ class TestHellwig2022_to_XYZ(unittest.TestCase):
             cases[..., 0],
             surround,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

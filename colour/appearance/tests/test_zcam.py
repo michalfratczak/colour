@@ -1,10 +1,11 @@
-# !/usr/bin/env python
-"""Define the unit tests for the :mod:`colour.appearance.zcam` module."""
+"""
+Define the unit tests for the :mod:`colour.appearance.zcam` module.
+"""
 
-import unittest
-from itertools import product
+from itertools import permutations
 
 import numpy as np
+import pytest
 
 from colour.appearance import (
     VIEWING_CONDITIONS_ZCAM,
@@ -21,26 +22,25 @@ from colour.utilities import (
 )
 
 __author__ = "Colour Developers"
-__copyright__ = "Copyright 2013 Colour Developers"
-__license__ = "BSD-3-Clause - https://opensource.org/licenses/BSD-3-Clause"
+__copyright__ = "Copyright (C) 2013-2021 - Colour Developers"
+__license__ = "New BSD License - https://opensource.org/licenses/BSD-3-Clause"
 __maintainer__ = "Colour Developers"
 __email__ = "colour-developers@colour-science.org"
 __status__ = "Production"
 
-__all__ = [
-    "TestXYZ_to_ZCAM",
-    "TestZCAM_to_XYZ",
-]
+__all__ = ["TestXYZ_to_ZCAM", "TestZCAM_to_XYZ"]
 
 
-class TestXYZ_to_ZCAM(unittest.TestCase):
+class TestXYZ_to_ZCAM:
     """
-    Define :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition unit tests
+    Defines :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition unit tests
     methods.
     """
 
     def test_XYZ_to_ZCAM(self):
-        """Test :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition."""
+        """
+        Tests :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition.
+        """
 
         XYZ = np.array([185, 206, 163])
         XYZ_w = np.array([256, 264, 202])
@@ -170,7 +170,7 @@ class TestXYZ_to_ZCAM(unittest.TestCase):
 
     def test_n_dimensional_XYZ_to_ZCAM(self):
         """
-        Test :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition
+        Tests :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition
         n-dimensional support.
         """
 
@@ -183,32 +183,26 @@ class TestXYZ_to_ZCAM(unittest.TestCase):
 
         XYZ = np.tile(XYZ, (6, 1))
         specification = np.tile(specification, (6, 1))
-        np.testing.assert_array_almost_equal(
-            XYZ_to_ZCAM(XYZ, XYZ_w, L_a, Y_b, surround),
-            specification,
-            decimal=7,
+        np.testing.assert_almost_equal(
+            XYZ_to_ZCAM(XYZ, XYZ_w, L_a, Y_b, surround), specification, decimal=7
         )
 
         XYZ_w = np.tile(XYZ_w, (6, 1))
-        np.testing.assert_array_almost_equal(
-            XYZ_to_ZCAM(XYZ, XYZ_w, L_a, Y_b, surround),
-            specification,
-            decimal=7,
+        np.testing.assert_almost_equal(
+            XYZ_to_ZCAM(XYZ, XYZ_w, L_a, Y_b, surround), specification, decimal=7
         )
 
         XYZ = np.reshape(XYZ, (2, 3, 3))
         XYZ_w = np.reshape(XYZ_w, (2, 3, 3))
         specification = np.reshape(specification, (2, 3, 11))
-        np.testing.assert_array_almost_equal(
-            XYZ_to_ZCAM(XYZ, XYZ_w, L_a, Y_b, surround),
-            specification,
-            decimal=7,
+        np.testing.assert_almost_equal(
+            XYZ_to_ZCAM(XYZ, XYZ_w, L_a, Y_b, surround), specification, decimal=7
         )
 
     @ignore_numpy_errors
     def test_domain_range_scale_XYZ_to_ZCAM(self):
         """
-        Test :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition
+        Tests :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition
         domain and range scale support.
         """
 
@@ -221,13 +215,9 @@ class TestXYZ_to_ZCAM(unittest.TestCase):
 
         d_r = (
             ("reference", 1, 1),
+            (1, 1, np.array([1, 1, 1 / 360, 1, 1, 1, 1 / 400, np.nan, 1, 1, 1])),
             (
-                "1",
-                1,
-                np.array([1, 1, 1 / 360, 1, 1, 1, 1 / 400, np.nan, 1, 1, 1]),
-            ),
-            (
-                "100",
+                100,
                 100,
                 np.array(
                     [
@@ -248,10 +238,8 @@ class TestXYZ_to_ZCAM(unittest.TestCase):
         )
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    XYZ_to_ZCAM(
-                        XYZ * factor_a, XYZ_w * factor_a, L_a, Y_b, surround
-                    ),
+                np.testing.assert_almost_equal(
+                    XYZ_to_ZCAM(XYZ * factor_a, XYZ_w * factor_a, L_a, Y_b, surround),
                     as_float_array(specification) * factor_b,
                     decimal=7,
                 )
@@ -259,26 +247,31 @@ class TestXYZ_to_ZCAM(unittest.TestCase):
     @ignore_numpy_errors
     def test_nan_XYZ_to_ZCAM(self):
         """
-        Test :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition
+        Tests :func:`colour.appearance.zcam.XYZ_to_ZCAM` definition
         nan support.
         """
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
-        cases = np.array(list(set(product(cases, repeat=3))))
-        surround = InductionFactors_ZCAM(
-            cases[0, 0], cases[0, 0], cases[0, 0], cases[0, 0]
-        )
-        XYZ_to_ZCAM(cases, cases, cases[0, 0], cases[0, 0], surround)
+        cases = set(permutations(cases * 3, r=3))
+        for case in cases:
+            XYZ = np.array(case)
+            XYZ_w = np.array(case)
+            L_a = case[0]
+            Y_b = 100
+            surround = InductionFactors_ZCAM(case[0], case[0], case[0], case[0])
+            XYZ_to_ZCAM(XYZ, XYZ_w, L_a, Y_b, surround)
 
 
-class TestZCAM_to_XYZ(unittest.TestCase):
+class TestZCAM_to_XYZ:
     """
-    Define :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition unit
+    Defines :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition unit
     tests methods.
     """
 
     def test_ZCAM_to_XYZ(self):
-        """Test :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition."""
+        """
+        Tests :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition.
+        """
 
         specification = CAM_Specification_ZCAM(
             92.2520,
@@ -391,7 +384,7 @@ class TestZCAM_to_XYZ(unittest.TestCase):
 
     def test_n_dimensional_ZCAM_to_XYZ(self):
         """
-        Test :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition
+        Tests :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition
         n-dimensional support.
         """
 
@@ -407,17 +400,13 @@ class TestZCAM_to_XYZ(unittest.TestCase):
             *np.transpose(np.tile(tsplit(specification), (6, 1))).tolist()
         )
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
-            ZCAM_to_XYZ(specification, XYZ_w, L_a, Y_b, surround),
-            XYZ,
-            decimal=7,
+        np.testing.assert_almost_equal(
+            ZCAM_to_XYZ(specification, XYZ_w, L_a, Y_b, surround), XYZ, decimal=7
         )
 
         XYZ_w = np.tile(XYZ_w, (6, 1))
-        np.testing.assert_array_almost_equal(
-            ZCAM_to_XYZ(specification, XYZ_w, L_a, Y_b, surround),
-            XYZ,
-            decimal=7,
+        np.testing.assert_almost_equal(
+            ZCAM_to_XYZ(specification, XYZ_w, L_a, Y_b, surround), XYZ, decimal=7
         )
 
         specification = CAM_Specification_ZCAM(
@@ -425,16 +414,14 @@ class TestZCAM_to_XYZ(unittest.TestCase):
         )
         XYZ_w = np.reshape(XYZ_w, (2, 3, 3))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            ZCAM_to_XYZ(specification, XYZ_w, L_a, Y_b, surround),
-            XYZ,
-            decimal=7,
+        np.testing.assert_almost_equal(
+            ZCAM_to_XYZ(specification, XYZ_w, L_a, Y_b, surround), XYZ, decimal=7
         )
 
     @ignore_numpy_errors
     def test_domain_range_scale_ZCAM_to_XYZ(self):
         """
-        Test :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition
+        Tests :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition
         domain and range scale support.
         """
 
@@ -448,13 +435,9 @@ class TestZCAM_to_XYZ(unittest.TestCase):
 
         d_r = (
             ("reference", 1, 1),
+            (1, np.array([1, 1, 1 / 360, 1, 1, 1, 1 / 400, np.nan, 1, 1, 1]), 1),
             (
-                "1",
-                np.array([1, 1, 1 / 360, 1, 1, 1, 1 / 400, np.nan, 1, 1, 1]),
-                1,
-            ),
-            (
-                "100",
+                100,
                 np.array(
                     [
                         100,
@@ -475,13 +458,9 @@ class TestZCAM_to_XYZ(unittest.TestCase):
         )
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_almost_equal(
                     ZCAM_to_XYZ(
-                        specification * factor_a,
-                        XYZ_w * factor_b,
-                        L_a,
-                        Y_b,
-                        surround,
+                        specification * factor_a, XYZ_w * factor_b, L_a, Y_b, surround
                     ),
                     XYZ * factor_b,
                     decimal=7,
@@ -490,11 +469,11 @@ class TestZCAM_to_XYZ(unittest.TestCase):
     @ignore_numpy_errors
     def test_raise_exception_ZCAM_to_XYZ(self):
         """
-        Test :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition
+        Tests :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition
         raised exception.
         """
 
-        self.assertRaises(
+        pytest.raises(
             ValueError,
             ZCAM_to_XYZ,
             CAM_Specification_ZCAM(
@@ -511,25 +490,20 @@ class TestZCAM_to_XYZ(unittest.TestCase):
     @ignore_numpy_errors
     def test_nan_ZCAM_to_XYZ(self):
         """
-        Test :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition nan
+        Tests :func:`colour.appearance.zcam.ZCAM_to_XYZ` definition nan
         support.
         """
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
-        cases = np.array(list(set(product(cases, repeat=3))))
-        surround = InductionFactors_ZCAM(
-            cases[0, 0], cases[0, 0], cases[0, 0], cases[0, 0]
-        )
-        ZCAM_to_XYZ(
-            CAM_Specification_ZCAM(
-                cases[..., 0], cases[..., 0], cases[..., 0], M=50
-            ),
-            cases,
-            cases[0, 0],
-            cases[0, 0],
-            surround,
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()
+        cases = set(permutations(cases * 3, r=3))
+        for case in cases:
+            J = case[0]
+            C = case[0]
+            h = case[0]
+            XYZ_w = np.array(case)
+            L_a = case[0]
+            Y_b = 100
+            surround = InductionFactors_ZCAM(case[0], case[0], case[0], case[0])
+            ZCAM_to_XYZ(
+                CAM_Specification_ZCAM(J, C, h, M=50), XYZ_w, L_a, Y_b, surround
+            )

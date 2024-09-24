@@ -1,7 +1,5 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.volume.spectrum` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
@@ -12,6 +10,7 @@ from colour.colorimetry import (
     SpectralShape,
     reshape_msds,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.utilities import ignore_numpy_errors
 from colour.volume import (
     XYZ_outer_surface,
@@ -33,7 +32,7 @@ __all__ = [
 ]
 
 
-class TestGeneratePulseWaves(unittest.TestCase):
+class TestGeneratePulseWaves:
     """
     Define :func:`colour.volume.spectrum.generate_pulse_waves`
     definition unit tests methods.
@@ -131,7 +130,7 @@ class TestGeneratePulseWaves(unittest.TestCase):
     )
 
 
-class TestXYZOuterSurface(unittest.TestCase):
+class TestXYZOuterSurface:
     """
     Define :func:`colour.volume.spectrum.XYZ_outer_surface`
     definition unit tests methods.
@@ -148,7 +147,7 @@ class TestXYZOuterSurface(unittest.TestCase):
         )
         cmfs = MSDS_CMFS["CIE 1931 2 Degree Standard Observer"]
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_outer_surface(reshape_msds(cmfs, shape)),
             np.array(
                 [
@@ -186,11 +185,11 @@ class TestXYZOuterSurface(unittest.TestCase):
                     [1.10229434e00, 1.00000000e00, 1.35683013e00],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestIsWithinVisibleSpectrum(unittest.TestCase):
+class TestIsWithinVisibleSpectrum:
     """
     Define :func:`colour.volume.spectrum.is_within_visible_spectrum`
     definition unit tests methods.
@@ -202,21 +201,13 @@ class TestIsWithinVisibleSpectrum(unittest.TestCase):
         definition.
         """
 
-        self.assertTrue(
-            is_within_visible_spectrum(np.array([0.3205, 0.4131, 0.5100]))
-        )
+        assert is_within_visible_spectrum(np.array([0.3205, 0.4131, 0.5100]))
 
-        self.assertFalse(
-            is_within_visible_spectrum(np.array([-0.0005, 0.0031, 0.0010]))
-        )
+        assert not is_within_visible_spectrum(np.array([-0.0005, 0.0031, 0.0010]))
 
-        self.assertTrue(
-            is_within_visible_spectrum(np.array([0.4325, 0.3788, 0.1034]))
-        )
+        assert is_within_visible_spectrum(np.array([0.4325, 0.3788, 0.1034]))
 
-        self.assertFalse(
-            is_within_visible_spectrum(np.array([0.0025, 0.0088, 0.0340]))
-        )
+        assert not is_within_visible_spectrum(np.array([0.0025, 0.0088, 0.0340]))
 
     def test_n_dimensional_is_within_visible_spectrum(self):
         """
@@ -229,11 +220,11 @@ class TestIsWithinVisibleSpectrum(unittest.TestCase):
 
         a = np.tile(a, (6, 1))
         b = np.tile(b, 6)
-        np.testing.assert_array_almost_equal(is_within_visible_spectrum(a), b)
+        np.testing.assert_allclose(is_within_visible_spectrum(a), b)
 
         a = np.reshape(a, (2, 3, 3))
         b = np.reshape(b, (2, 3))
-        np.testing.assert_array_almost_equal(is_within_visible_spectrum(a), b)
+        np.testing.assert_allclose(is_within_visible_spectrum(a), b)
 
     @ignore_numpy_errors
     def test_nan_is_within_visible_spectrum(self):
@@ -245,7 +236,3 @@ class TestIsWithinVisibleSpectrum(unittest.TestCase):
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
         is_within_visible_spectrum(cases)
-
-
-if __name__ == "__main__":
-    unittest.main()

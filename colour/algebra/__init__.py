@@ -16,8 +16,7 @@ from .common import (
     spow,
     normalise_vector,
     normalise_maximum,
-    vector_dot,
-    matrix_dot,
+    vecmul,
     euclidean_distance,
     manhattan_distance,
     linear_conversion,
@@ -65,8 +64,7 @@ __all__ += [
     "spow",
     "normalise_vector",
     "normalise_maximum",
-    "vector_dot",
-    "matrix_dot",
+    "vecmul",
     "euclidean_distance",
     "manhattan_distance",
     "linear_conversion",
@@ -162,6 +160,18 @@ API_CHANGES = {
     ]
 }
 """Defines the *colour.algebra* sub-package API changes."""
+
+# v0.4.5
+API_CHANGES["ObjectRenamed"] = [
+    [
+        "colour.algebra.vector_dot",
+        "colour.algebra.vecmul",
+    ],
+]
+
+API_CHANGES["ObjectRemoved"] = [  # pyright: ignore
+    "colour.algebra.matrix_dot",
+]
 
 if not is_documentation_building():
     sys.modules["colour.algebra"] = algebra(  # pyright: ignore

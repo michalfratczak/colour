@@ -34,6 +34,10 @@ from .aces import (
     log_encoding_ACEScct,
     log_decoding_ACEScct,
 )
+from .apple_log_profile import (
+    log_encoding_AppleLogProfile,
+    log_decoding_AppleLogProfile,
+)
 from .arib_std_b67 import oetf_ARIBSTDB67, oetf_inverse_ARIBSTDB67
 from .arri import (
     log_encoding_ARRILogC3,
@@ -177,6 +181,7 @@ __all__ += [
     "log_encoding_ACEScct",
     "log_decoding_ACEScct",
 ]
+__all__ += ["log_encoding_AppleLogProfile", "log_decoding_AppleLogProfile"]
 __all__ += [
     "oetf_ARIBSTDB67",
     "oetf_inverse_ARIBSTDB67",
@@ -377,6 +382,7 @@ LOG_ENCODINGS: CanonicalMapping = CanonicalMapping(
         "ACEScc": log_encoding_ACEScc,
         "ACEScct": log_encoding_ACEScct,
         "ACESproxy": log_encoding_ACESproxy,
+        "Apple Log Profile": log_encoding_AppleLogProfile,
         "ARRI LogC3": log_encoding_ARRILogC3,
         "ARRI LogC4": log_encoding_ARRILogC4,
         "Canon Log 2": log_encoding_CanonLog2,
@@ -412,9 +418,7 @@ Supported *log* encoding functions.
 
 
 def log_encoding(
-    value: ArrayLike,
-    function: Union[LiteralLogEncoding, str] = "Cineon",
-    **kwargs: Any
+    value: ArrayLike, function: Union[LiteralLogEncoding, str] = "Cineon", **kwargs: Any
 ) -> Union[NDArrayFloat, NDArrayInt]:
     """
     Encode *scene-referred* exposure values to :math:`R'G'B'` video component
@@ -433,6 +437,7 @@ def log_encoding(
         {:func:`colour.models.log_encoding_ACEScc`,
         :func:`colour.models.log_encoding_ACEScct`,
         :func:`colour.models.log_encoding_ACESproxy`,
+        :func:`colour.models.log_encoding_AppleLogProfile`,
         :func:`colour.models.log_encoding_ARRILogC3`,
         :func:`colour.models.log_encoding_ARRILogC4`,
         :func:`colour.models.log_encoding_CanonLog2`,
@@ -496,6 +501,7 @@ LOG_DECODINGS: CanonicalMapping = CanonicalMapping(
         "ACEScc": log_decoding_ACEScc,
         "ACEScct": log_decoding_ACEScct,
         "ACESproxy": log_decoding_ACESproxy,
+        "Apple Log Profile": log_decoding_AppleLogProfile,
         "ARRI LogC3": log_decoding_ARRILogC3,
         "ARRI LogC4": log_decoding_ARRILogC4,
         "Canon Log 2": log_decoding_CanonLog2,
@@ -533,7 +539,7 @@ Supported *log* decoding functions.
 def log_decoding(
     value: Union[ArrayLike, ArrayLike],
     function: Union[LiteralLogDecoding, str] = "Cineon",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> NDArrayFloat:
     """
     Decode :math:`R'G'B'` video component signal value to *scene-referred*
@@ -552,6 +558,7 @@ def log_decoding(
         {:func:`colour.models.log_decoding_ACEScc`,
         :func:`colour.models.log_decoding_ACEScct`,
         :func:`colour.models.log_decoding_ACESproxy`,
+        :func:`colour.models.log_decoding_AppleLogProfile`,
         :func:`colour.models.log_decoding_ARRILogC3`,
         :func:`colour.models.log_decoding_ARRILogC4`,
         :func:`colour.models.log_decoding_CanonLog2`,
@@ -643,9 +650,7 @@ Supported opto-electrical transfer functions (OETFs / OECFs).
 
 
 def oetf(
-    value: ArrayLike,
-    function: Union[LiteralOETF, str] = "ITU-R BT.709",
-    **kwargs: Any
+    value: ArrayLike, function: Union[LiteralOETF, str] = "ITU-R BT.709", **kwargs: Any
 ) -> NDArrayFloat:
     """
     Encode estimated tristimulus values in a scene to :math:`R'G'B'` video
@@ -720,7 +725,7 @@ Supported inverse opto-electrical transfer functions (OETFs / OECFs).
 def oetf_inverse(
     value: ArrayLike,
     function: Union[LiteralOETFInverse, str] = "ITU-R BT.709",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> NDArrayFloat:
     """
     Decode :math:`R'G'B'` video component signal value to tristimulus values
@@ -795,7 +800,7 @@ Supported electro-optical transfer functions (EOTFs / EOCFs).
 def eotf(
     value: Union[ArrayLike, ArrayLike],
     function: Union[LiteralEOTF, str] = "ITU-R BT.1886",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> NDArrayFloat:
     """
     Decode :math:`R'G'B'` video component signal value to tristimulus values
@@ -866,7 +871,7 @@ Supported inverse electro-optical transfer functions (EOTFs / EOCFs).
 def eotf_inverse(
     value: ArrayLike,
     function: Union[LiteralEOTFInverse, str] = "ITU-R BT.1886",
-    **kwargs
+    **kwargs,
 ) -> Union[NDArrayFloat, NDArrayInt]:
     """
     Encode estimated tristimulus values in a scene to :math:`R'G'B'` video
@@ -963,9 +968,7 @@ For *ITU-R BT.2100*, only the inverse electro-optical transfer functions
 
 
 def cctf_encoding(
-    value: ArrayLike,
-    function: Union[LiteralCCTFEncoding, str] = "sRGB",
-    **kwargs: Any
+    value: ArrayLike, function: Union[LiteralCCTFEncoding, str] = "sRGB", **kwargs: Any
 ) -> Union[NDArrayFloat, NDArrayInt]:
     """
     Encode linear :math:`RGB` values to non-linear :math:`R'G'B'` values using
@@ -1069,7 +1072,7 @@ Notes
 def cctf_decoding(
     value: Union[ArrayLike, ArrayLike],
     function: Union[LiteralCCTFDecoding, str] = "sRGB",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> NDArrayFloat:
     """
     Decode non-linear :math:`R'G'B'` values to linear :math:`RGB` values using
@@ -1157,7 +1160,7 @@ Supported opto-optical transfer functions (OOTFs / OOCFs).
 def ootf(
     value: ArrayLike,
     function: Union[LiteralOOTF, str] = "ITU-R BT.2100 PQ",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> NDArrayFloat:
     """
     Map relative scene linear light to display linear light using given
@@ -1215,7 +1218,7 @@ Supported inverse opto-optical transfer functions (OOTFs / OOCFs).
 def ootf_inverse(
     value: ArrayLike,
     function: Union[LiteralOOTFInverse, str] = "ITU-R BT.2100 PQ",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> NDArrayFloat:
     """
     Map relative display linear light to scene linear light using given

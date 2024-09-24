@@ -3,10 +3,11 @@ Define the unit tests for the
 :mod:`colour.models.rgb.transfer_functions.common` module.
 """
 
-import unittest
 
 import numpy as np
+import pytest
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.models.rgb.transfer_functions import (
     CCTF_DECODINGS,
     CCTF_ENCODINGS,
@@ -37,7 +38,7 @@ __all__ = [
 ]
 
 
-class TestCctfEncoding(unittest.TestCase):
+class TestCctfEncoding:
     """
     Define :func:`colour.models.rgb.transfer_functions.cctf_encoding`
     definition unit tests methods.
@@ -49,13 +50,13 @@ class TestCctfEncoding(unittest.TestCase):
 log_encoding_ACESproxy` definition raised exception.
         """
 
-        self.assertWarns(
+        pytest.warns(
             ColourUsageWarning,
             cctf_encoding,
             0.18,
             function="ITU-R BT.2100 HLG",
         )
-        self.assertWarns(
+        pytest.warns(
             ColourUsageWarning,
             cctf_encoding,
             0.18,
@@ -63,7 +64,7 @@ log_encoding_ACESproxy` definition raised exception.
         )
 
 
-class TestCctfDecoding(unittest.TestCase):
+class TestCctfDecoding:
     """
     Define :func:`colour.models.rgb.transfer_functions.cctf_decoding`
     definition unit tests methods.
@@ -75,13 +76,13 @@ class TestCctfDecoding(unittest.TestCase):
 log_encoding_ACESproxy` definition raised exception.
         """
 
-        self.assertWarns(
+        pytest.warns(
             ColourUsageWarning,
             cctf_decoding,
             0.18,
             function="ITU-R BT.2100 HLG",
         )
-        self.assertWarns(
+        pytest.warns(
             ColourUsageWarning,
             cctf_decoding,
             0.18,
@@ -89,7 +90,7 @@ log_encoding_ACESproxy` definition raised exception.
         )
 
 
-class TestTransferFunctions(unittest.TestCase):
+class TestTransferFunctions:
     """Define the transfer functions unit tests methods."""
 
     def test_transfer_functions(self):
@@ -101,7 +102,7 @@ class TestTransferFunctions(unittest.TestCase):
             "Filmic Pro 6",
         )
 
-        decimals = {"D-Log": 1, "F-Log": 4, "L-Log": 4, "N-Log": 3}
+        tolerance = {"D-Log": 0.1, "F-Log": 5e-4, "L-Log": 5e-4, "N-Log": 5e-3}
 
         reciprocal_mappings = [
             (LOG_ENCODINGS, LOG_DECODINGS),
@@ -131,10 +132,8 @@ class TestTransferFunctions(unittest.TestCase):
                 samples_e = CCTF_ENCODINGS[name](samples_r)
                 samples_d = CCTF_DECODINGS[name](samples_e)
 
-                np.testing.assert_array_almost_equal(
-                    samples_r, samples_d, decimal=decimals.get(name, 7)
+                np.testing.assert_allclose(
+                    samples_r,
+                    samples_d,
+                    atol=tolerance.get(name, TOLERANCE_ABSOLUTE_TESTS),
                 )
-
-
-if __name__ == "__main__":
-    unittest.main()

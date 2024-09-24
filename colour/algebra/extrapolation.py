@@ -2,7 +2,7 @@
 Extrapolation
 =============
 
-Defines the classes for extrapolating variables:
+Define the classes for extrapolating variables:
 
 -   :class:`colour.Extrapolator`: 1-D function extrapolation.
 
@@ -21,7 +21,7 @@ from __future__ import annotations
 import numpy as np
 
 from colour.algebra import NullInterpolator, sdiv, sdiv_mode
-from colour.constants import DEFAULT_FLOAT_DTYPE
+from colour.constants import DTYPE_FLOAT_DEFAULT
 from colour.hints import (
     Any,
     ArrayLike,
@@ -37,7 +37,6 @@ from colour.utilities import (
     as_float_array,
     attest,
     is_numeric,
-    is_string,
     optional,
     validate_method,
 )
@@ -144,7 +143,7 @@ class Extrapolator:
         *args: Any,  # noqa: ARG002
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
-        dtype = optional(dtype, DEFAULT_FLOAT_DTYPE)
+        dtype = optional(dtype, DTYPE_FLOAT_DEFAULT)
 
         self._interpolator: ProtocolInterpolator = NullInterpolator(
             np.array([-np.inf, np.inf]), np.array([-np.inf, np.inf])
@@ -218,7 +217,7 @@ class Extrapolator:
         """Setter for the **self.method** property."""
 
         attest(
-            is_string(value),
+            isinstance(value, str),
             f'"method" property: "{value}" type is not "str"!',
         )
 

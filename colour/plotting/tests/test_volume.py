@@ -1,12 +1,11 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.plotting.volume` module."""
 
-import unittest
 
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.plotting import plot_RGB_colourspaces_gamuts, plot_RGB_scatter
 from colour.plotting.volume import RGB_identity_cube, nadir_grid
 
@@ -25,7 +24,7 @@ __all__ = [
 ]
 
 
-class TestNadirGrid(unittest.TestCase):
+class TestNadirGrid:
     """
     Define :func:`colour.plotting.volume.nadir_grid` definition unit tests
     methods.
@@ -36,7 +35,7 @@ class TestNadirGrid(unittest.TestCase):
 
         quads, faces_colours, edges_colours = nadir_grid(segments=1)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             quads,
             np.array(
                 [
@@ -84,10 +83,10 @@ class TestNadirGrid(unittest.TestCase):
                     ],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             faces_colours,
             np.array(
                 [
@@ -100,10 +99,10 @@ class TestNadirGrid(unittest.TestCase):
                     [0.00000000, 0.00000000, 0.00000000, 1.00000000],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             edges_colours,
             np.array(
                 [
@@ -116,11 +115,11 @@ class TestNadirGrid(unittest.TestCase):
                     [0.00000000, 0.00000000, 0.00000000, 1.00000000],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestRGBIdentityCube(unittest.TestCase):
+class TestRGBIdentityCube:
     """
     Define :func:`colour.plotting.volume.RGB_identity_cube` definition unit
     tests methods.
@@ -131,7 +130,7 @@ class TestRGBIdentityCube(unittest.TestCase):
 
         vertices, RGB = RGB_identity_cube(1, 1, 1)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             vertices,
             np.array(
                 [
@@ -173,10 +172,10 @@ class TestRGBIdentityCube(unittest.TestCase):
                     ],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             RGB,
             np.array(
                 [
@@ -188,11 +187,11 @@ class TestRGBIdentityCube(unittest.TestCase):
                     [1.00000000, 0.50000000, 0.50000000],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestPlotRGBColourspacesGamuts(unittest.TestCase):
+class TestPlotRGBColourspacesGamuts:
     """
     Define :func:`colour.plotting.volume.plot_RGB_colourspaces_gamuts`
     definition unit tests methods.
@@ -211,11 +210,11 @@ class TestPlotRGBColourspacesGamuts(unittest.TestCase):
             chromatically_adapt=True,
         )
 
-        self.assertIsInstance(figure, Figure)
-        self.assertIsInstance(axes, Axes)
+        assert isinstance(figure, Figure)
+        assert isinstance(axes, Axes)
 
 
-class TestPlotRGBScatter(unittest.TestCase):
+class TestPlotRGBScatter:
     """
     Define :func:`colour.plotting.volume.plot_RGB_scatter` definition unit
     tests methods.
@@ -224,13 +223,7 @@ class TestPlotRGBScatter(unittest.TestCase):
     def test_plot_RGB_scatter(self):
         """Test :func:`colour.plotting.volume.plot_RGB_scatter` definition."""
 
-        figure, axes = plot_RGB_scatter(
-            np.random.random((128, 128, 3)), "ITU-R BT.709"
-        )
+        figure, axes = plot_RGB_scatter(np.random.random((128, 128, 3)), "ITU-R BT.709")
 
-        self.assertIsInstance(figure, Figure)
-        self.assertIsInstance(axes, Axes)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert isinstance(figure, Figure)
+        assert isinstance(axes, Axes)

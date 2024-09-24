@@ -2,7 +2,7 @@
 Y'CbCr Colour Encoding
 ======================
 
-Defines the *Y'CbCr* colour encoding related attributes and objects:
+Define the *Y'CbCr* colour encoding related attributes and objects:
 
 -   :attr:`colour.WEIGHTS_YCBCR`
 -   :func:`colour.matrix_YCbCr`
@@ -244,12 +244,12 @@ def matrix_YCbCr(
     Matching the default output of the :func:`colour.RGB_to_YCbCr` is done as
     follows:
 
-    >>> from colour.algebra import vector_dot
+    >>> from colour.algebra import vecmul
     >>> from colour.utilities import as_int_array
     >>> RGB = np.array([1.0, 1.0, 1.0])
     >>> RGB_to_YCbCr(RGB)  # doctest: +ELLIPSIS
     array([ 0.9215686...,  0.5019607...,  0.5019607...])
-    >>> YCbCr = vector_dot(np.linalg.inv(matrix_YCbCr(is_legal=True)), RGB)
+    >>> YCbCr = vecmul(np.linalg.inv(matrix_YCbCr(is_legal=True)), RGB)
     >>> YCbCr += offset_YCbCr(is_legal=True)
     >>> YCbCr  # doctest: +ELLIPSIS
     array([ 0.9215686...,  0.5019607...,  0.5019607...])
@@ -261,7 +261,7 @@ def matrix_YCbCr(
     >>> RGB_to_YCbCr(RGB, in_bits=8, in_int=True, out_bits=8, out_int=True)
     ... # doctest: +SKIP
     array([ 38, 140, 171])
-    >>> YCbCr = vector_dot(np.linalg.inv(matrix_YCbCr(is_legal=True)), RGB)
+    >>> YCbCr = vecmul(np.linalg.inv(matrix_YCbCr(is_legal=True)), RGB)
     >>> YCbCr += offset_YCbCr(is_legal=True, is_int=True)
     >>> as_int_array(np.around(YCbCr))
     ... # doctest: +SKIP
@@ -436,9 +436,7 @@ def RGB_to_YCbCr(
     Matching the float output of *The Foundry Nuke*'s *Colorspace* node set to
     *YCbCr*:
 
-    >>> RGB_to_YCbCr(
-    ...     RGB, out_range=(16 / 255, 235 / 255, 15.5 / 255, 239.5 / 255)
-    ... )
+    >>> RGB_to_YCbCr(RGB, out_range=(16 / 255, 235 / 255, 15.5 / 255, 239.5 / 255))
     ... # doctest: +ELLIPSIS
     array([ 0.9215686...,  0.5       ,  0.5       ])
 
@@ -493,9 +491,7 @@ def RGB_to_YCbCr(
     RGB = as_float_array(RGB) if in_int else to_domain_1(RGB)
 
     Kr, Kb = K
-    RGB_min, RGB_max = kwargs.get(
-        "in_range", CV_range(in_bits, in_legal, in_int)
-    )
+    RGB_min, RGB_max = kwargs.get("in_range", CV_range(in_bits, in_legal, in_int))
     Y_min, Y_max, C_min, C_max = kwargs.get(
         "out_range", ranges_YCbCr(out_bits, out_legal, out_int)
     )
@@ -518,9 +514,7 @@ def RGB_to_YCbCr(
 
     if out_int:
         return as_int_array(
-            round_BT2100(
-                np.clip(YCbCr, 0, 2**out_bits - 1) if clamp_int else YCbCr
-            )
+            round_BT2100(np.clip(YCbCr, 0, 2**out_bits - 1) if clamp_int else YCbCr)
         )
     else:
         return from_range_1(YCbCr)
@@ -636,9 +630,7 @@ def YCbCr_to_RGB(
     Y_min, Y_max, C_min, C_max = kwargs.get(
         "in_range", ranges_YCbCr(in_bits, in_legal, in_int)
     )
-    RGB_min, RGB_max = kwargs.get(
-        "out_range", CV_range(out_bits, out_legal, out_int)
-    )
+    RGB_min, RGB_max = kwargs.get("out_range", CV_range(out_bits, out_legal, out_int))
 
     Y -= Y_min
     Cb -= (C_max + C_min) / 2
@@ -656,9 +648,7 @@ def YCbCr_to_RGB(
 
     RGB = (
         as_int_array(
-            round_BT2100(
-                np.clip(RGB, 0, 2**out_bits - 1) if clamp_int else RGB
-            )
+            round_BT2100(np.clip(RGB, 0, 2**out_bits - 1) if clamp_int else RGB)
         )
         if out_int
         else from_range_1(RGB)

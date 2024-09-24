@@ -1,12 +1,11 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.adaptation.cie1994` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
 
 from colour.adaptation import chromatic_adaptation_CIE1994
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.utilities import domain_range_scale, ignore_numpy_errors
 
 __author__ = "Colour Developers"
@@ -21,7 +20,7 @@ __all__ = [
 ]
 
 
-class TestChromaticAdaptationCIE1994(unittest.TestCase):
+class TestChromaticAdaptationCIE1994:
     """
     Define :func:`colour.adaptation.cie1994.chromatic_adaptation_CIE1994`
     definition unit tests methods.
@@ -33,7 +32,7 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             chromatic_adaptation_CIE1994(
                 XYZ_1=np.array([28.00, 21.26, 5.27]),
                 xy_o1=np.array([0.44760, 0.40740]),
@@ -43,10 +42,10 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
                 E_o2=1000,
             ),
             np.array([24.03379521, 21.15621214, 17.64301199]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             chromatic_adaptation_CIE1994(
                 XYZ_1=np.array([21.77, 19.18, 16.73]),
                 xy_o1=np.array([0.31270, 0.32900]),
@@ -56,10 +55,10 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
                 E_o2=1000,
             ),
             np.array([21.12891746, 19.42980532, 19.49577765]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             chromatic_adaptation_CIE1994(
                 XYZ_1=np.array([0.07818780, 0.06157201, 0.28099326]) * 100,
                 xy_o1=np.array([0.31270, 0.32900]),
@@ -69,7 +68,7 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
                 E_o2=1000,
             ),
             np.array([9.14287406, 9.35843355, 15.95753504]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_chromatic_adaptation_CIE1994(self):
@@ -84,16 +83,14 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
         Y_o = 20
         E_o1 = 1000
         E_o2 = 1000
-        XYZ_2 = chromatic_adaptation_CIE1994(
-            XYZ_1, xy_o1, xy_o2, Y_o, E_o1, E_o2
-        )
+        XYZ_2 = chromatic_adaptation_CIE1994(XYZ_1, xy_o1, xy_o2, Y_o, E_o1, E_o2)
 
         XYZ_1 = np.tile(XYZ_1, (6, 1))
         XYZ_2 = np.tile(XYZ_2, (6, 1))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             chromatic_adaptation_CIE1994(XYZ_1, xy_o1, xy_o2, Y_o, E_o1, E_o2),
             XYZ_2,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         xy_o1 = np.tile(xy_o1, (6, 1))
@@ -101,10 +98,10 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
         Y_o = np.tile(Y_o, 6)
         E_o1 = np.tile(E_o1, 6)
         E_o2 = np.tile(E_o2, 6)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             chromatic_adaptation_CIE1994(XYZ_1, xy_o1, xy_o2, Y_o, E_o1, E_o2),
             XYZ_2,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         XYZ_1 = np.reshape(XYZ_1, (2, 3, 3))
@@ -114,10 +111,10 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
         E_o1 = np.reshape(E_o1, (2, 3))
         E_o2 = np.reshape(E_o2, (2, 3))
         XYZ_2 = np.reshape(XYZ_2, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             chromatic_adaptation_CIE1994(XYZ_1, xy_o1, xy_o2, Y_o, E_o1, E_o2),
             XYZ_2,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_domain_range_scale_chromatic_adaptation_CIE1994(self):
@@ -132,19 +129,17 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
         Y_o = 20
         E_o1 = 1000
         E_o2 = 1000
-        XYZ_2 = chromatic_adaptation_CIE1994(
-            XYZ_1, xy_o1, xy_o2, Y_o, E_o1, E_o2
-        )
+        XYZ_2 = chromatic_adaptation_CIE1994(XYZ_1, xy_o1, xy_o2, Y_o, E_o1, E_o2)
 
         d_r = (("reference", 1), ("1", 0.01), ("100", 1))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     chromatic_adaptation_CIE1994(
                         XYZ_1 * factor, xy_o1, xy_o2, Y_o * factor, E_o1, E_o2
                     ),
                     XYZ_2 * factor,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -164,7 +159,3 @@ class TestChromaticAdaptationCIE1994(unittest.TestCase):
             cases[..., 0],
             cases[..., 0],
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

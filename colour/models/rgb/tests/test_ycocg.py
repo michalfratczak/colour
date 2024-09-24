@@ -1,11 +1,10 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.models.rgb.ycocg` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.models.rgb import RGB_to_YCoCg, YCoCg_to_RGB
 from colour.utilities import ignore_numpy_errors
 
@@ -22,7 +21,7 @@ __all__ = [
 ]
 
 
-class TestRGB_to_YCoCg(unittest.TestCase):
+class TestRGB_to_YCoCg:
     """
     Define :func:`colour.models.rgb.ycocg.RGB_to_YCoCg` definition unit tests
     methods.
@@ -59,19 +58,25 @@ class TestRGB_to_YCoCg(unittest.TestCase):
         RGB = np.reshape(RGB, (4, 3))
         YCoCg = np.tile(YCoCg, 4)
         YCoCg = np.reshape(YCoCg, (4, 3))
-        np.testing.assert_array_equal(RGB_to_YCoCg(RGB), YCoCg)
+        np.testing.assert_allclose(
+            RGB_to_YCoCg(RGB), YCoCg, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
         RGB = np.tile(RGB, 4)
         RGB = np.reshape(RGB, (4, 4, 3))
         YCoCg = np.tile(YCoCg, 4)
         YCoCg = np.reshape(YCoCg, (4, 4, 3))
-        np.testing.assert_array_equal(RGB_to_YCoCg(RGB), YCoCg)
+        np.testing.assert_allclose(
+            RGB_to_YCoCg(RGB), YCoCg, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
         RGB = np.tile(RGB, 4)
         RGB = np.reshape(RGB, (4, 4, 4, 3))
         YCoCg = np.tile(YCoCg, 4)
         YCoCg = np.reshape(YCoCg, (4, 4, 4, 3))
-        np.testing.assert_array_equal(RGB_to_YCoCg(RGB), YCoCg)
+        np.testing.assert_allclose(
+            RGB_to_YCoCg(RGB), YCoCg, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     @ignore_numpy_errors
     def test_nan_RGB_to_YCoCg(self):
@@ -85,7 +90,7 @@ class TestRGB_to_YCoCg(unittest.TestCase):
         RGB_to_YCoCg(cases)
 
 
-class TestYCoCg_to_RGB(unittest.TestCase):
+class TestYCoCg_to_RGB:
     """
     Define :func:`colour.models.rgb.ycocg.YCoCg_to_RGB` definition unit tests
     methods.
@@ -122,19 +127,25 @@ class TestYCoCg_to_RGB(unittest.TestCase):
         RGB = np.reshape(RGB, (4, 3))
         YCoCg = np.tile(YCoCg, 4)
         YCoCg = np.reshape(YCoCg, (4, 3))
-        np.testing.assert_array_equal(YCoCg_to_RGB(YCoCg), RGB)
+        np.testing.assert_allclose(
+            YCoCg_to_RGB(YCoCg), RGB, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
         RGB = np.tile(RGB, 4)
         RGB = np.reshape(RGB, (4, 4, 3))
         YCoCg = np.tile(YCoCg, 4)
         YCoCg = np.reshape(YCoCg, (4, 4, 3))
-        np.testing.assert_array_equal(YCoCg_to_RGB(YCoCg), RGB)
+        np.testing.assert_allclose(
+            YCoCg_to_RGB(YCoCg), RGB, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
         RGB = np.tile(RGB, 4)
         RGB = np.reshape(RGB, (4, 4, 4, 3))
         YCoCg = np.tile(YCoCg, 4)
         YCoCg = np.reshape(YCoCg, (4, 4, 4, 3))
-        np.testing.assert_array_equal(YCoCg_to_RGB(YCoCg), RGB)
+        np.testing.assert_allclose(
+            YCoCg_to_RGB(YCoCg), RGB, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     @ignore_numpy_errors
     def test_nan_YCoCg_to_RGB(self):
@@ -146,7 +157,3 @@ class TestYCoCg_to_RGB(unittest.TestCase):
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
         YCoCg_to_RGB(cases)
-
-
-if __name__ == "__main__":
-    unittest.main()

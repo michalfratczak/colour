@@ -2,7 +2,7 @@
 Geometry / Hull Section
 =======================
 
-Defines various objects to compute hull sections:
+Define various objects to compute hull sections:
 
 -   :func:`colour.geometry.hull_section`
 """
@@ -12,7 +12,7 @@ from __future__ import annotations
 import numpy as np
 
 from colour.algebra import linear_conversion
-from colour.constants import DEFAULT_FLOAT_DTYPE
+from colour.constants import DTYPE_FLOAT_DEFAULT
 from colour.hints import Any, ArrayLike, Literal, NDArrayFloat, cast
 from colour.utilities import (
     as_float_array,
@@ -103,7 +103,7 @@ def edges_to_chord(edges: ArrayLike, index: int = 0) -> NDArrayFloat:
             edges_ordered.append(edge_list.pop(d_1_argmin))
             segment = np.array(edges_ordered[-1][0])
 
-    return as_float_array(edges_ordered).reshape([-1, segment.shape[-1]])
+    return np.reshape(as_float_array(edges_ordered), (-1, segment.shape[-1]))
 
 
 def close_chord(vertices: ArrayLike) -> NDArrayFloat:
@@ -135,7 +135,7 @@ def close_chord(vertices: ArrayLike) -> NDArrayFloat:
 
 def unique_vertices(
     vertices: ArrayLike,
-    decimals: int = np.finfo(cast(Any, DEFAULT_FLOAT_DTYPE)).precision - 1,
+    decimals: int = np.finfo(cast(Any, DTYPE_FLOAT_DEFAULT)).precision - 1,
 ) -> NDArrayFloat:
     """
     Return the unique vertices from given vertices.
@@ -158,9 +158,7 @@ def unique_vertices(
 
     Examples
     --------
-    >>> unique_vertices(
-    ...     np.array([[0.0, 0.5, 0.0], [0.0, 0.0, 0.5], [0.0, 0.5, 0.0]])
-    ... )
+    >>> unique_vertices(np.array([[0.0, 0.5, 0.0], [0.0, 0.0, 0.5], [0.0, 0.5, 0.0]]))
     array([[ 0. ,  0.5,  0. ],
            [ 0. ,  0. ,  0.5]])
     """
@@ -210,7 +208,6 @@ def hull_section(
     ...
     ...     hull = trimesh.Trimesh(vertices["position"], faces, process=False)
     ...     hull_section(hull, origin=0)
-    ...
     array([[-0. , -0.5,  0. ],
            [ 0.5, -0.5,  0. ],
            [ 0.5,  0. , -0. ],
@@ -240,17 +237,14 @@ def hull_section(
     if normalise:
         vertices = hull.vertices * normal
         origin = as_float_scalar(
-            linear_conversion(
-                origin, [0, 1], [np.min(vertices), np.max(vertices)]
-            )
+            linear_conversion(origin, [0, 1], [np.min(vertices), np.max(vertices)])
         )
         plane[plane != 0] = origin
 
     section = trimesh.intersections.mesh_plane(hull, normal, plane)
     if len(section) == 0:
-        raise ValueError(
-            f'No section exists on "{axis}" axis at {origin} origin!'
-        )
+        raise ValueError(f'No section exists on "{axis}" axis at {origin} origin!')
+
     section = close_chord(unique_vertices(edges_to_chord(section)))
 
     return section

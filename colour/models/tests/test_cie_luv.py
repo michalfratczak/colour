@@ -1,17 +1,16 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.models.cie_luv` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.models import (
-    LCHuv_to_Luv,
-    Luv_to_LCHuv,
+    CIE1976UCS_to_XYZ,
     Luv_to_uv,
     Luv_to_XYZ,
     Luv_uv_to_xy,
+    XYZ_to_CIE1976UCS,
     XYZ_to_Luv,
     uv_to_Luv,
     xy_to_Luv_uv,
@@ -32,12 +31,12 @@ __all__ = [
     "Testuv_to_Luv",
     "TestLuv_uv_to_xy",
     "TestXy_to_Luv_uv",
-    "TestLuv_to_LCHuv",
-    "TestLCHuv_to_Luv",
+    "TestXYZ_to_CIE1976UCS",
+    "TestCIE1976UCS_to_XYZ",
 ]
 
 
-class TestXYZ_to_Luv(unittest.TestCase):
+class TestXYZ_to_Luv:
     """
     Define :func:`colour.models.cie_luv.XYZ_to_Luv` definition unit tests
     methods.
@@ -46,49 +45,49 @@ class TestXYZ_to_Luv(unittest.TestCase):
     def test_XYZ_to_Luv(self):
         """Test :func:`colour.models.cie_luv.XYZ_to_Luv` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Luv(np.array([0.20654008, 0.12197225, 0.05136952])),
             np.array([41.52787529, 96.83626054, 17.75210149]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Luv(np.array([0.14222010, 0.23042768, 0.10495772])),
             np.array([55.11636304, -37.59308176, 44.13768458]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Luv(np.array([0.07818780, 0.06157201, 0.28099326])),
             np.array([29.80565520, -10.96316802, -65.06751860]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Luv(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 np.array([0.44757, 0.40745]),
             ),
             np.array([41.52787529, 65.45180940, -12.46626977]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Luv(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 np.array([0.34570, 0.35850]),
             ),
             np.array([41.52787529, 90.70925962, 7.08455273]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_Luv(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 np.array([0.34570, 0.35850, 1.00000]),
             ),
             np.array([41.52787529, 90.70925962, 7.08455273]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_XYZ_to_Luv(self):
@@ -103,20 +102,20 @@ class TestXYZ_to_Luv(unittest.TestCase):
 
         XYZ = np.tile(XYZ, (6, 1))
         Luv = np.tile(Luv, (6, 1))
-        np.testing.assert_array_almost_equal(
-            XYZ_to_Luv(XYZ, illuminant), Luv, decimal=7
+        np.testing.assert_allclose(
+            XYZ_to_Luv(XYZ, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         illuminant = np.tile(illuminant, (6, 1))
-        np.testing.assert_array_almost_equal(
-            XYZ_to_Luv(XYZ, illuminant), Luv, decimal=7
+        np.testing.assert_allclose(
+            XYZ_to_Luv(XYZ, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         XYZ = np.reshape(XYZ, (2, 3, 3))
         illuminant = np.reshape(illuminant, (2, 3, 2))
         Luv = np.reshape(Luv, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            XYZ_to_Luv(XYZ, illuminant), Luv, decimal=7
+        np.testing.assert_allclose(
+            XYZ_to_Luv(XYZ, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_XYZ_to_Luv(self):
@@ -132,10 +131,10 @@ class TestXYZ_to_Luv(unittest.TestCase):
         d_r = (("reference", 1, 1), ("1", 1, 0.01), ("100", 100, 1))
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     XYZ_to_Luv(XYZ * factor_a, illuminant),
                     Luv * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -147,7 +146,7 @@ class TestXYZ_to_Luv(unittest.TestCase):
         XYZ_to_Luv(cases, cases[..., 0:2])
 
 
-class TestLuv_to_XYZ(unittest.TestCase):
+class TestLuv_to_XYZ:
     """
     Define :func:`colour.models.cie_luv.Luv_to_XYZ` definition unit tests
     methods.
@@ -156,49 +155,49 @@ class TestLuv_to_XYZ(unittest.TestCase):
     def test_Luv_to_XYZ(self):
         """Test :func:`colour.models.cie_luv.Luv_to_XYZ` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_XYZ(np.array([41.52787529, 96.83626054, 17.75210149])),
             np.array([0.20654008, 0.12197225, 0.05136952]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_XYZ(np.array([55.11636304, -37.59308176, 44.13768458])),
             np.array([0.14222010, 0.23042768, 0.10495772]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_XYZ(np.array([29.80565520, -10.96316802, -65.06751860])),
             np.array([0.07818780, 0.06157201, 0.28099326]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_XYZ(
                 np.array([41.52787529, 65.45180940, -12.46626977]),
                 np.array([0.44757, 0.40745]),
             ),
             np.array([0.20654008, 0.12197225, 0.05136952]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_XYZ(
                 np.array([41.52787529, 90.70925962, 7.08455273]),
                 np.array([0.34570, 0.35850]),
             ),
             np.array([0.20654008, 0.12197225, 0.05136952]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_XYZ(
                 np.array([41.52787529, 90.70925962, 7.08455273]),
                 np.array([0.34570, 0.35850, 1.00000]),
             ),
             np.array([0.20654008, 0.12197225, 0.05136952]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_Luv_to_XYZ(self):
@@ -213,20 +212,20 @@ class TestLuv_to_XYZ(unittest.TestCase):
 
         Luv = np.tile(Luv, (6, 1))
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
-            Luv_to_XYZ(Luv, illuminant), XYZ, decimal=7
+        np.testing.assert_allclose(
+            Luv_to_XYZ(Luv, illuminant), XYZ, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         illuminant = np.tile(illuminant, (6, 1))
-        np.testing.assert_array_almost_equal(
-            Luv_to_XYZ(Luv, illuminant), XYZ, decimal=7
+        np.testing.assert_allclose(
+            Luv_to_XYZ(Luv, illuminant), XYZ, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         Luv = np.reshape(Luv, (2, 3, 3))
         illuminant = np.reshape(illuminant, (2, 3, 2))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            Luv_to_XYZ(Luv, illuminant), XYZ, decimal=7
+        np.testing.assert_allclose(
+            Luv_to_XYZ(Luv, illuminant), XYZ, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_Luv_to_XYZ(self):
@@ -242,10 +241,10 @@ class TestLuv_to_XYZ(unittest.TestCase):
         d_r = (("reference", 1, 1), ("1", 0.01, 1), ("100", 1, 100))
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     Luv_to_XYZ(Luv * factor_a, illuminant),
                     XYZ * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -257,7 +256,7 @@ class TestLuv_to_XYZ(unittest.TestCase):
         Luv_to_XYZ(cases, cases[..., 0:2])
 
 
-class TestLuv_to_uv(unittest.TestCase):
+class TestLuv_to_uv:
     """
     Define :func:`colour.models.cie_luv.Luv_to_uv` definition unit tests
     methods.
@@ -266,49 +265,49 @@ class TestLuv_to_uv(unittest.TestCase):
     def test_Luv_to_uv(self):
         """Test :func:`colour.models.cie_luv.Luv_to_uv` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_uv(np.array([41.52787529, 96.83626054, 17.75210149])),
             np.array([0.37720213, 0.50120264]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_uv(np.array([55.11636304, -37.59308176, 44.13768458])),
             np.array([0.14536327, 0.52992069]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_uv(np.array([29.80565520, -10.96316802, -65.06751860])),
             np.array([0.16953603, 0.30039234]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_uv(
                 np.array([41.52787529, 65.45180940, -12.46626977]),
                 np.array([0.44757, 0.40745]),
             ),
             np.array([0.37720213, 0.50120264]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_uv(
                 np.array([41.52787529, 90.70925962, 7.08455273]),
                 np.array([0.34570, 0.35850]),
             ),
             np.array([0.37720213, 0.50120264]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_to_uv(
                 np.array([41.52787529, 90.70925962, 7.08455273]),
                 np.array([0.34570, 0.35850, 1.00000]),
             ),
             np.array([0.37720213, 0.50120264]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_Luv_to_uv(self):
@@ -323,20 +322,20 @@ class TestLuv_to_uv(unittest.TestCase):
 
         Luv = np.tile(Luv, (6, 1))
         uv = np.tile(uv, (6, 1))
-        np.testing.assert_array_almost_equal(
-            Luv_to_uv(Luv, illuminant), uv, decimal=7
+        np.testing.assert_allclose(
+            Luv_to_uv(Luv, illuminant), uv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         illuminant = np.tile(illuminant, (6, 1))
-        np.testing.assert_array_almost_equal(
-            Luv_to_uv(Luv, illuminant), uv, decimal=7
+        np.testing.assert_allclose(
+            Luv_to_uv(Luv, illuminant), uv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         Luv = np.reshape(Luv, (2, 3, 3))
         illuminant = np.reshape(illuminant, (2, 3, 2))
         uv = np.reshape(uv, (2, 3, 2))
-        np.testing.assert_array_almost_equal(
-            Luv_to_uv(Luv, illuminant), uv, decimal=7
+        np.testing.assert_allclose(
+            Luv_to_uv(Luv, illuminant), uv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_Luv_to_uv(self):
@@ -352,8 +351,10 @@ class TestLuv_to_uv(unittest.TestCase):
         d_r = (("reference", 1), ("1", 0.01), ("100", 1))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    Luv_to_uv(Luv * factor, illuminant), uv, decimal=7
+                np.testing.assert_allclose(
+                    Luv_to_uv(Luv * factor, illuminant),
+                    uv,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -365,7 +366,7 @@ class TestLuv_to_uv(unittest.TestCase):
         Luv_to_uv(cases, cases[..., 0:2])
 
 
-class Testuv_to_Luv(unittest.TestCase):
+class Testuv_to_Luv:
     """
     Define :func:`colour.models.cie_luv.uv_to_Luv` definition unit tests
     methods.
@@ -374,55 +375,55 @@ class Testuv_to_Luv(unittest.TestCase):
     def test_uv_to_Luv(self):
         """Test :func:`colour.models.cie_luv.uv_to_Luv` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             uv_to_Luv(np.array([0.37720213, 0.50120264])),
             np.array([100.00000000, 233.18376036, 42.74743858]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             uv_to_Luv(np.array([0.14536327, 0.52992069])),
             np.array([100.00000000, -68.20675764, 80.08090358]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             uv_to_Luv(np.array([0.16953603, 0.30039234])),
             np.array([100.00000000, -36.78216964, -218.3059514]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             uv_to_Luv(
                 np.array([0.37720213, 0.50120264]),
                 np.array([0.44757, 0.40745]),
             ),
             np.array([100.00000000, 157.60933976, -30.01903705]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             uv_to_Luv(
                 np.array([0.37720213, 0.50120264]),
                 np.array([0.34570, 0.35850]),
             ),
             np.array([100.00000000, 218.42981284, 17.05975609]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             uv_to_Luv(
                 np.array([0.37720213, 0.50120264]),
                 np.array([0.34570, 0.35850, 1.00000]),
             ),
             np.array([100.00000000, 218.42981284, 17.05975609]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            uv_to_Luv(np.array([0.37720213, 0.50120264]), Y=0.18),
-            np.array([49.49610761, 115.41688496, -243.29048251]),
-            decimal=7,
+        np.testing.assert_allclose(
+            uv_to_Luv(np.array([0.37720213, 0.50120264]), L=41.5278752),
+            np.array([41.52787529, 96.83626054, 17.75210149]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_uv_to_Luv(self):
@@ -437,20 +438,20 @@ class Testuv_to_Luv(unittest.TestCase):
 
         uv = np.tile(uv, (6, 1))
         Luv = np.tile(Luv, (6, 1))
-        np.testing.assert_array_almost_equal(
-            uv_to_Luv(uv, illuminant), Luv, decimal=7
+        np.testing.assert_allclose(
+            uv_to_Luv(uv, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         illuminant = np.tile(illuminant, (6, 1))
-        np.testing.assert_array_almost_equal(
-            uv_to_Luv(uv, illuminant), Luv, decimal=7
+        np.testing.assert_allclose(
+            uv_to_Luv(uv, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         uv = np.reshape(uv, (2, 3, 2))
         illuminant = np.reshape(illuminant, (2, 3, 2))
         Luv = np.reshape(Luv, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            uv_to_Luv(uv, illuminant), Luv, decimal=7
+        np.testing.assert_allclose(
+            uv_to_Luv(uv, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_uv_to_Luv(self):
@@ -461,16 +462,16 @@ class Testuv_to_Luv(unittest.TestCase):
 
         uv = np.array([0.37720213, 0.50120264])
         illuminant = np.array([0.31270, 0.32900])
-        Y = 1
-        Luv = uv_to_Luv(uv, illuminant, Y)
+        L = 100
+        Luv = uv_to_Luv(uv, illuminant, L)
 
-        d_r = (("reference", 1, 1), ("1", 1, 0.01), ("100", 100, 1))
-        for scale, factor_a, factor_b in d_r:
+        d_r = (("reference", 1), ("1", 0.01), ("100", 1))
+        for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    uv_to_Luv(uv, illuminant, Y * factor_a),
-                    Luv * factor_b,
-                    decimal=7,
+                np.testing.assert_allclose(
+                    uv_to_Luv(uv, illuminant, L * factor),
+                    Luv * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -482,7 +483,7 @@ class Testuv_to_Luv(unittest.TestCase):
         uv_to_Luv(cases, cases[..., 0:2])
 
 
-class TestLuv_uv_to_xy(unittest.TestCase):
+class TestLuv_uv_to_xy:
     """
     Define :func:`colour.models.cie_luv.Luv_uv_to_xy` definition unit tests
     methods.
@@ -491,22 +492,22 @@ class TestLuv_uv_to_xy(unittest.TestCase):
     def test_Luv_uv_to_xy(self):
         """Test :func:`colour.models.cie_luv.Luv_uv_to_xy` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_uv_to_xy(np.array([0.37720213, 0.50120264])),
             np.array([0.54369558, 0.32107944]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_uv_to_xy(np.array([0.14536327, 0.52992069])),
             np.array([0.29777734, 0.48246445]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             Luv_uv_to_xy(np.array([0.16953603, 0.30039234])),
             np.array([0.18582824, 0.14633764]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_Luv_uv_to_xy(self):
@@ -520,11 +521,11 @@ class TestLuv_uv_to_xy(unittest.TestCase):
 
         uv = np.tile(uv, (6, 1))
         xy = np.tile(xy, (6, 1))
-        np.testing.assert_array_almost_equal(Luv_uv_to_xy(uv), xy, decimal=7)
+        np.testing.assert_allclose(Luv_uv_to_xy(uv), xy, atol=TOLERANCE_ABSOLUTE_TESTS)
 
         uv = np.reshape(uv, (2, 3, 2))
         xy = np.reshape(xy, (2, 3, 2))
-        np.testing.assert_array_almost_equal(Luv_uv_to_xy(uv), xy, decimal=7)
+        np.testing.assert_allclose(Luv_uv_to_xy(uv), xy, atol=TOLERANCE_ABSOLUTE_TESTS)
 
     @ignore_numpy_errors
     def test_nan_Luv_uv_to_xy(self):
@@ -538,7 +539,7 @@ class TestLuv_uv_to_xy(unittest.TestCase):
         Luv_uv_to_xy(cases)
 
 
-class TestXy_to_Luv_uv(unittest.TestCase):
+class TestXy_to_Luv_uv:
     """
     Define :func:`colour.models.cie_luv.xy_to_Luv_uv` definition unit tests
     methods.
@@ -547,22 +548,22 @@ class TestXy_to_Luv_uv(unittest.TestCase):
     def test_xy_to_Luv_uv(self):
         """Test :func:`colour.models.cie_luv.xy_to_Luv_uv` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             xy_to_Luv_uv(np.array([0.54369558, 0.32107944])),
             np.array([0.37720213, 0.50120264]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             xy_to_Luv_uv(np.array([0.29777734, 0.48246445])),
             np.array([0.14536327, 0.52992069]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             xy_to_Luv_uv(np.array([0.18582824, 0.14633764])),
             np.array([0.16953603, 0.30039234]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_xy_to_Luv_uv(self):
@@ -576,11 +577,11 @@ class TestXy_to_Luv_uv(unittest.TestCase):
 
         xy = np.tile(xy, (6, 1))
         uv = np.tile(uv, (6, 1))
-        np.testing.assert_array_almost_equal(xy_to_Luv_uv(xy), uv, decimal=7)
+        np.testing.assert_allclose(xy_to_Luv_uv(xy), uv, atol=TOLERANCE_ABSOLUTE_TESTS)
 
         xy = np.reshape(xy, (2, 3, 2))
         uv = np.reshape(uv, (2, 3, 2))
-        np.testing.assert_array_almost_equal(xy_to_Luv_uv(xy), uv, decimal=7)
+        np.testing.assert_allclose(xy_to_Luv_uv(xy), uv, atol=TOLERANCE_ABSOLUTE_TESTS)
 
     @ignore_numpy_errors
     def test_nan_xy_to_Luv_uv(self):
@@ -594,165 +595,227 @@ class TestXy_to_Luv_uv(unittest.TestCase):
         xy_to_Luv_uv(cases)
 
 
-class TestLuv_to_LCHuv(unittest.TestCase):
+class TestXYZ_to_CIE1976UCS:
     """
-    Define :func:`colour.models.cie_luv.Luv_to_LCHuv` definition unit tests
+    Define :func:`colour.models.cie_luv.XYZ_to_CIE1976UCS` definition unit tests
     methods.
     """
 
-    def test_Luv_to_LCHuv(self):
-        """Test :func:`colour.models.cie_luv.Luv_to_LCHuv` definition."""
+    def test_XYZ_to_CIE1976UCS(self):
+        """Test :func:`colour.models.cie_luv.XYZ_to_CIE1976UCS` definition."""
 
-        np.testing.assert_array_almost_equal(
-            Luv_to_LCHuv(np.array([41.52787529, 96.83626054, 17.75210149])),
-            np.array([41.52787529, 98.44997950, 10.38816348]),
-            decimal=7,
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(np.array([0.20654008, 0.12197225, 0.05136952])),
+            np.array([0.37720213, 0.50120264, 41.52787529]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            Luv_to_LCHuv(np.array([55.11636304, -37.59308176, 44.13768458])),
-            np.array([55.11636304, 57.97736624, 130.42180076]),
-            decimal=7,
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(np.array([0.14222010, 0.23042768, 0.10495772])),
+            np.array([0.14536327, 0.52992069, 55.11636304]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            Luv_to_LCHuv(np.array([29.80565520, -10.96316802, -65.06751860])),
-            np.array([29.80565520, 65.98464238, 260.43611196]),
-            decimal=7,
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(np.array([0.07818780, 0.06157201, 0.28099326])),
+            np.array([0.16953603, 0.30039234, 29.80565520]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-    def test_n_dimensional_Luv_to_LCHuv(self):
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(
+                np.array([0.20654008, 0.12197225, 0.05136952]),
+                np.array([0.44757, 0.40745]),
+            ),
+            np.array([0.37720213, 0.50120264, 41.52787529]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(
+                np.array([0.20654008, 0.12197225, 0.05136952]),
+                np.array([0.34570, 0.35850]),
+            ),
+            np.array([0.37720213, 0.50120264, 41.52787529]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(
+                np.array([0.20654008, 0.12197225, 0.05136952]),
+                np.array([0.34570, 0.35850, 1.00000]),
+            ),
+            np.array([0.37720213, 0.50120264, 41.52787529]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+    def test_n_dimensional_XYZ_to_CIE1976UCS(self):
         """
-        Test :func:`colour.models.cie_luv.Luv_to_LCHuv` definition
-        n-dimensional arrays support.
+        Test :func:`colour.models.cie_luv.XYZ_to_CIE1976UCS` definition n-dimensional
+        support.
         """
 
-        Luv = np.array([41.52787529, 96.83626054, 17.75210149])
-        LCHuv = Luv_to_LCHuv(Luv)
+        XYZ = np.array([0.20654008, 0.12197225, 0.05136952])
+        illuminant = np.array([0.31270, 0.32900])
+        Luv = XYZ_to_CIE1976UCS(XYZ, illuminant)
 
+        XYZ = np.tile(XYZ, (6, 1))
         Luv = np.tile(Luv, (6, 1))
-        LCHuv = np.tile(LCHuv, (6, 1))
-        np.testing.assert_array_almost_equal(
-            Luv_to_LCHuv(Luv), LCHuv, decimal=7
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(XYZ, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
+        illuminant = np.tile(illuminant, (6, 1))
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(XYZ, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
+
+        XYZ = np.reshape(XYZ, (2, 3, 3))
+        illuminant = np.reshape(illuminant, (2, 3, 2))
         Luv = np.reshape(Luv, (2, 3, 3))
-        LCHuv = np.reshape(LCHuv, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            Luv_to_LCHuv(Luv), LCHuv, decimal=7
+        np.testing.assert_allclose(
+            XYZ_to_CIE1976UCS(XYZ, illuminant), Luv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-    def test_domain_range_scale_Luv_to_LCHuv(self):
+    def test_domain_range_scale_XYZ_to_CIE1976UCS(self):
         """
-        Test :func:`colour.models.cie_luv.Luv_to_LCHuv` definition domain and
-        range scale support.
+        Test :func:`colour.models.cie_luv.XYZ_to_CIE1976UCS` definition
+        domain and range scale support.
         """
 
-        Luv = np.array([41.52787529, 96.83626054, 17.75210149])
-        LCHuv = Luv_to_LCHuv(Luv)
+        XYZ = np.array([0.20654008, 0.12197225, 0.05136952])
+        illuminant = np.array([0.31270, 0.32900])
+        uvL = XYZ_to_CIE1976UCS(XYZ, illuminant)
 
-        d_r = (
-            ("reference", 1, 1),
-            ("1", 0.01, np.array([0.01, 0.01, 1 / 360])),
-            ("100", 1, np.array([1, 1, 1 / 3.6])),
-        )
+        d_r = (("reference", 1, 1), ("1", 1, np.array([1, 1, 0.01])), ("100", 100, 1))
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    Luv_to_LCHuv(Luv * factor_a), LCHuv * factor_b, decimal=7
+                np.testing.assert_allclose(
+                    XYZ_to_CIE1976UCS(XYZ * factor_a, illuminant),
+                    uvL * factor_b,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
-    def test_nan_Luv_to_LCHuv(self):
+    def test_nan_XYZ_to_CIE1976UCS(self):
         """
-        Test :func:`colour.models.cie_luv.Luv_to_LCHuv` definition nan
+        Test :func:`colour.models.cie_luv.XYZ_to_CIE1976UCS` definition nan
         support.
         """
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
-        Luv_to_LCHuv(cases)
+        XYZ_to_CIE1976UCS(cases, cases[..., 0:2])
 
 
-class TestLCHuv_to_Luv(unittest.TestCase):
+class TestCIE1976UCS_to_XYZ:
     """
-    Define :func:`colour.models.cie_luv.LCHuv_to_Luv` definition unit tests
+    Define :func:`colour.models.cie_luv.CIE1976UCS_to_XYZ` definition unit tests
     methods.
     """
 
-    def test_LCHuv_to_Luv(self):
-        """Test :func:`colour.models.cie_luv.LCHuv_to_Luv` definition."""
+    def test_CIE1976UCS_to_XYZ(self):
+        """Test :func:`colour.models.cie_luv.CIE1976UCS_to_XYZ` definition."""
 
-        np.testing.assert_array_almost_equal(
-            LCHuv_to_Luv(np.array([41.52787529, 98.44997950, 10.38816348])),
-            np.array([41.52787529, 96.83626054, 17.75210149]),
-            decimal=7,
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(np.array([0.37720213, 0.50120264, 41.52787529])),
+            np.array([0.20654008, 0.12197225, 0.05136952]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            LCHuv_to_Luv(np.array([55.11636304, 57.97736624, 130.42180076])),
-            np.array([55.11636304, -37.59308176, 44.13768458]),
-            decimal=7,
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(np.array([0.14536327, 0.52992069, 55.11636304])),
+            np.array([0.14222010, 0.23042768, 0.10495772]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            LCHuv_to_Luv(np.array([29.80565520, 65.98464238, 260.43611196])),
-            np.array([29.80565520, -10.96316802, -65.06751860]),
-            decimal=7,
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(np.array([0.16953603, 0.30039234, 29.80565520])),
+            np.array([0.07818780, 0.06157201, 0.28099326]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-    def test_n_dimensional_LCHuv_to_Luv(self):
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(
+                np.array([0.37720213, 0.50120264, 41.52787529]),
+                np.array([0.44757, 0.40745]),
+            ),
+            np.array([0.20654008, 0.12197225, 0.05136952]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(
+                np.array([0.37720213, 0.50120264, 41.52787529]),
+                np.array([0.34570, 0.35850]),
+            ),
+            np.array([0.20654008, 0.12197225, 0.05136952]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(
+                np.array([0.37720213, 0.50120264, 41.52787529]),
+                np.array([0.34570, 0.35850, 1.00000]),
+            ),
+            np.array([0.20654008, 0.12197225, 0.05136952]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+    def test_n_dimensional_CIE1976UCS_to_XYZ(self):
         """
-        Test :func:`colour.models.cie_luv.LCHuv_to_Luv` definition
-        n-dimensional arrays support.
+        Test :func:`colour.models.cie_luv.CIE1976UCS_to_XYZ` definition n-dimensional
+        support.
         """
 
-        LCHuv = np.array([41.52787529, 98.44997950, 10.38816348])
-        Luv = LCHuv_to_Luv(LCHuv)
+        Luv = np.array([0.37720213, 0.50120264, 41.52787529])
+        illuminant = np.array([0.31270, 0.32900])
+        XYZ = CIE1976UCS_to_XYZ(Luv, illuminant)
 
         Luv = np.tile(Luv, (6, 1))
-        LCHuv = np.tile(LCHuv, (6, 1))
-        np.testing.assert_array_almost_equal(
-            LCHuv_to_Luv(LCHuv), Luv, decimal=7
+        XYZ = np.tile(XYZ, (6, 1))
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(Luv, illuminant), XYZ, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
+
+        illuminant = np.tile(illuminant, (6, 1))
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(Luv, illuminant), XYZ, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         Luv = np.reshape(Luv, (2, 3, 3))
-        LCHuv = np.reshape(LCHuv, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            LCHuv_to_Luv(LCHuv), Luv, decimal=7
+        illuminant = np.reshape(illuminant, (2, 3, 2))
+        XYZ = np.reshape(XYZ, (2, 3, 3))
+        np.testing.assert_allclose(
+            CIE1976UCS_to_XYZ(Luv, illuminant), XYZ, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-    def test_domain_range_scale_LCHuv_to_Lab(self):
+    def test_domain_range_scale_CIE1976UCS_to_XYZ(self):
         """
-        Test :func:`colour.models.cie_luv.LCHuv_to_Luv` definition domain and
-        range scale support.
+        Test :func:`colour.models.cie_luv.CIE1976UCS_to_XYZ` definition
+        domain and range scale support.
         """
 
-        LCHuv = np.array([41.52787529, 98.44997950, 10.38816348])
-        Luv = LCHuv_to_Luv(LCHuv)
+        uvL = np.array([0.37720213, 0.50120264, 41.52787529])
+        illuminant = np.array([0.31270, 0.32900])
+        XYZ = CIE1976UCS_to_XYZ(uvL, illuminant)
 
-        d_r = (
-            ("reference", 1, 1),
-            ("1", np.array([0.01, 0.01, 1 / 360]), 0.01),
-            ("100", np.array([1, 1, 1 / 3.6]), 1),
-        )
+        d_r = (("reference", 1, 1), ("1", np.array([1, 1, 0.01]), 1), ("100", 1, 100))
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    LCHuv_to_Luv(LCHuv * factor_a), Luv * factor_b, decimal=7
+                np.testing.assert_allclose(
+                    CIE1976UCS_to_XYZ(uvL * factor_a, illuminant),
+                    XYZ * factor_b,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
-    def test_nan_LCHuv_to_Luv(self):
+    def test_nan_CIE1976UCS_to_XYZ(self):
         """
-        Test :func:`colour.models.cie_luv.LCHuv_to_Luv` definition nan
+        Test :func:`colour.models.cie_luv.CIE1976UCS_to_XYZ` definition nan
         support.
         """
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
-        LCHuv_to_Luv(cases)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        CIE1976UCS_to_XYZ(cases, cases[..., 0:2])

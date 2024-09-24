@@ -1,13 +1,12 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.io.ocio` module."""
 
 from __future__ import annotations
 
 import os
-import unittest
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.io import process_image_OpenColorIO
 from colour.utilities import full, is_opencolorio_installed
 
@@ -26,7 +25,7 @@ __all__ = [
 ROOT_RESOURCES: str = os.path.join(os.path.dirname(__file__), "resources")
 
 
-class TestProcessImageOpenColorIO(unittest.TestCase):
+class TestProcessImageOpenColorIO:
     """
     Define :func:`colour.io.ocio.process_image_OpenColorIO` definition unit
     tests methods.
@@ -42,13 +41,11 @@ class TestProcessImageOpenColorIO(unittest.TestCase):
 
         import PyOpenColorIO as ocio
 
-        config = os.path.join(
-            ROOT_RESOURCES, "config-aces-reference.ocio.yaml"
-        )
+        config = os.path.join(ROOT_RESOURCES, "config-aces-reference.ocio.yaml")
 
         a = full([4, 2, 3], 0.18)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             process_image_OpenColorIO(
                 a, "ACES - ACES2065-1", "ACES - ACEScct", config=config
             ),
@@ -72,10 +69,10 @@ class TestProcessImageOpenColorIO(unittest.TestCase):
                     ],
                 ]
             ),
-            decimal=5,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             process_image_OpenColorIO(
                 a,
                 "ACES - ACES2065-1",
@@ -104,9 +101,5 @@ class TestProcessImageOpenColorIO(unittest.TestCase):
                     ],
                 ]
             ),
-            decimal=5,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

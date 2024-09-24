@@ -1,7 +1,5 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.colorimetry.lefs` module."""
 
-import unittest
 
 import numpy as np
 
@@ -9,6 +7,7 @@ from colour.colorimetry import (
     mesopic_weighting_function,
     sd_mesopic_luminous_efficiency_function,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.utilities import ignore_numpy_errors
 
 __author__ = "Colour Developers"
@@ -429,7 +428,7 @@ DATA_MESOPIC_LEF: tuple = (
 )
 
 
-class TestMesopicWeightingFunction(unittest.TestCase):
+class TestMesopicWeightingFunction:
     """
     Define :func:`colour.colorimetry.lefs.mesopic_weighting_function`
     definition unit tests methods.
@@ -441,24 +440,22 @@ class TestMesopicWeightingFunction(unittest.TestCase):
         definition.
         """
 
-        self.assertAlmostEqual(
-            mesopic_weighting_function(500, 0.2), 0.70522000, places=7
+        np.testing.assert_allclose(
+            mesopic_weighting_function(500, 0.2),
+            0.70522000,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
-            mesopic_weighting_function(
-                500, 0.2, source="Red Heavy", method="LRC"
-            ),
+        np.testing.assert_allclose(
+            mesopic_weighting_function(500, 0.2, source="Red Heavy", method="LRC"),
             0.90951000,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
-            mesopic_weighting_function(
-                700, 10, source="Red Heavy", method="LRC"
-            ),
+        np.testing.assert_allclose(
+            mesopic_weighting_function(700, 10, source="Red Heavy", method="LRC"),
             0.00410200,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_mesopic_weighting_function(self):
@@ -472,20 +469,26 @@ class TestMesopicWeightingFunction(unittest.TestCase):
 
         wl = np.tile(wl, 6)
         Vm = np.tile(Vm, 6)
-        np.testing.assert_array_almost_equal(
-            mesopic_weighting_function(wl, 0.2), Vm
+        np.testing.assert_allclose(
+            mesopic_weighting_function(wl, 0.2),
+            Vm,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3))
         Vm = np.reshape(Vm, (2, 3))
-        np.testing.assert_array_almost_equal(
-            mesopic_weighting_function(wl, 0.2), Vm
+        np.testing.assert_allclose(
+            mesopic_weighting_function(wl, 0.2),
+            Vm,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         wl = np.reshape(wl, (2, 3, 1))
         Vm = np.reshape(Vm, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            mesopic_weighting_function(wl, 0.2), Vm
+        np.testing.assert_allclose(
+            mesopic_weighting_function(wl, 0.2),
+            Vm,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -495,12 +498,14 @@ class TestMesopicWeightingFunction(unittest.TestCase):
         definition nan support.
         """
 
-        mesopic_weighting_function(
-            np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]), 0.2
-        ),
+        (
+            mesopic_weighting_function(
+                np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]), 0.2
+            ),
+        )
 
 
-class TestSdMesopicLuminousEfficiencyFunction(unittest.TestCase):
+class TestSdMesopicLuminousEfficiencyFunction:
     """
     Define :func:`colour.colorimetry.lefs.\
 sd_mesopic_luminous_efficiency_function` definition unit tests methods.
@@ -512,12 +517,8 @@ sd_mesopic_luminous_efficiency_function` definition unit tests methods.
 sd_mesopic_luminous_efficiency_function` definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sd_mesopic_luminous_efficiency_function(0.2).values,
             DATA_MESOPIC_LEF,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

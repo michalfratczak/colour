@@ -1,10 +1,9 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.colorimetry.spectrum` module."""
 
 import pickle
-import unittest
 
 import numpy as np
+import pytest
 
 import colour
 from colour.algebra import CubicSplineInterpolator
@@ -18,7 +17,8 @@ from colour.colorimetry.spectrum import (
     sds_and_msds_to_msds,
     sds_and_msds_to_sds,
 )
-from colour.utilities import tstack
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
+from colour.utilities import is_caching_enabled, tstack
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
@@ -1247,7 +1247,7 @@ DATA_MULTI_SAMPLE_ABRIDGED: dict = {
 }
 
 
-class TestSpectralShape(unittest.TestCase):
+class TestSpectralShape:
     """
     Define :class:`colour.colorimetry.spectrum.SpectralShape` class unit tests
     methods.
@@ -1265,7 +1265,7 @@ class TestSpectralShape(unittest.TestCase):
         )
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(SpectralShape))
+            assert attribute in dir(SpectralShape)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1284,7 +1284,7 @@ class TestSpectralShape(unittest.TestCase):
         )
 
         for method in required_methods:
-            self.assertIn(method, dir(SpectralShape))
+            assert method in dir(SpectralShape)
 
     def test_pickling(self):
         """
@@ -1295,7 +1295,7 @@ class TestSpectralShape(unittest.TestCase):
         shape = SpectralShape(360, 830, 1)
         data = pickle.dumps(shape)
         data = pickle.loads(data)  # noqa: S301
-        self.assertEqual(shape, data)
+        assert shape == data
 
     def test_start(self):
         """
@@ -1303,20 +1303,20 @@ class TestSpectralShape(unittest.TestCase):
         attribute.
         """
 
-        self.assertEqual(SpectralShape(360, 830, 1).start, 360)
+        assert SpectralShape(360, 830, 1).start == 360
 
-        self.assertRaises(AssertionError, lambda: SpectralShape(360, 360, 1))
+        pytest.raises(AssertionError, lambda: SpectralShape(360, 360, 1))
 
-        self.assertRaises(AssertionError, lambda: SpectralShape(360, 0, 1))
+        pytest.raises(AssertionError, lambda: SpectralShape(360, 0, 1))
 
     def test_end(self):
         """Test :attr:`colour.colorimetry.spectrum.SpectralShape.end` property."""
 
-        self.assertEqual(SpectralShape(360, 830, 1).end, 830)
+        assert SpectralShape(360, 830, 1).end == 830
 
-        self.assertRaises(AssertionError, lambda: SpectralShape(830, 830, 1))
+        pytest.raises(AssertionError, lambda: SpectralShape(830, 830, 1))
 
-        self.assertRaises(AssertionError, lambda: SpectralShape(830, 0, 1))
+        pytest.raises(AssertionError, lambda: SpectralShape(830, 0, 1))
 
     def test_interval(self):
         """
@@ -1324,7 +1324,7 @@ class TestSpectralShape(unittest.TestCase):
         property.
         """
 
-        self.assertEqual(SpectralShape(360, 830, 1).interval, 1)
+        assert SpectralShape(360, 830, 1).interval == 1
 
     def test_boundaries(self):
         """
@@ -1335,8 +1335,8 @@ class TestSpectralShape(unittest.TestCase):
         shape = SpectralShape(400, 700, 1)
         shape.boundaries = (360, 830)
 
-        self.assertEqual(shape.start, 360)
-        self.assertEqual(shape.end, 830)
+        assert shape.start == 360
+        assert shape.end == 830
 
     def test_wavelengths(self):
         """
@@ -1344,7 +1344,7 @@ class TestSpectralShape(unittest.TestCase):
         property.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_array_equal(
             SpectralShape(0, 10, 0.1).wavelengths,
             np.arange(0, 10 + 0.1, 0.1),
         )
@@ -1355,7 +1355,7 @@ class TestSpectralShape(unittest.TestCase):
         method.
         """
 
-        self.assertIsInstance(hash(SpectralShape(0, 10, 0.1)), int)
+        assert isinstance(hash(SpectralShape(0, 10, 0.1)), int)
 
     def test__iter__(self):
         """
@@ -1363,7 +1363,7 @@ class TestSpectralShape(unittest.TestCase):
         method.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_array_equal(
             list(SpectralShape(0, 10, 0.1)),
             np.arange(0, 10 + 0.1, 0.1),
         )
@@ -1374,13 +1374,13 @@ class TestSpectralShape(unittest.TestCase):
         method.
         """
 
-        self.assertIn(360.1, SpectralShape(360, 830, 0.1))
+        assert 360.1 in SpectralShape(360, 830, 0.1)
 
-        self.assertNotIn(360.11, SpectralShape(360, 830, 0.1))
+        assert 360.11 not in SpectralShape(360, 830, 0.1)
 
-        self.assertIn(np.array([0.5, 0.6]), SpectralShape(0, 10, 0.1))
+        assert np.array([0.5, 0.6]) in SpectralShape(0, 10, 0.1)
 
-        self.assertNotIn(np.array([0.5, 0.61]), SpectralShape(0, 10, 0.1))
+        assert np.array([0.5, 0.61]) not in SpectralShape(0, 10, 0.1)
 
     def test__len__(self):
         """
@@ -1388,7 +1388,7 @@ class TestSpectralShape(unittest.TestCase):
         method.
         """
 
-        self.assertEqual(len(SpectralShape(0, 10, 0.1)), 101)
+        assert len(SpectralShape(0, 10, 0.1)) == 101
 
     def test__eq__(self):
         """
@@ -1396,8 +1396,8 @@ class TestSpectralShape(unittest.TestCase):
         method.
         """
 
-        self.assertEqual(SpectralShape(0, 10, 0.1), SpectralShape(0, 10, 0.1))
-        self.assertNotEqual(SpectralShape(0, 10, 0.1), None)
+        assert SpectralShape(0, 10, 0.1) == SpectralShape(0, 10, 0.1)
+        assert SpectralShape(0, 10, 0.1) != ()
 
     def test__ne__(self):
         """
@@ -1405,26 +1405,24 @@ class TestSpectralShape(unittest.TestCase):
         method.
         """
 
-        self.assertNotEqual(
-            SpectralShape(0, 10, 0.1), SpectralShape(1, 10, 0.1)
-        )
+        assert SpectralShape(0, 10, 0.1) != SpectralShape(1, 10, 0.1)
 
     def test_range(self):
         """Test :func:`colour.colorimetry.spectrum.SpectralShape.range` method."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_array_equal(
             list(SpectralShape(0, 10, 0.1)),
             np.arange(0, 10 + 0.1, 0.1),
         )
 
 
-class TestSpectralDistribution(unittest.TestCase):
+class TestSpectralDistribution:
     """
     Define :class:`colour.colorimetry.spectrum.SpectralDistribution`
     class unit tests methods.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """Initialise the common tests attributes."""
 
         self._sd = SpectralDistribution(DATA_SAMPLE, name="Sample")
@@ -1448,7 +1446,7 @@ class TestSpectralDistribution(unittest.TestCase):
         )
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(SpectralDistribution))
+            assert attribute in dir(SpectralDistribution)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1463,7 +1461,7 @@ class TestSpectralDistribution(unittest.TestCase):
         )
 
         for method in required_methods:
-            self.assertIn(method, dir(SpectralDistribution))
+            assert method in dir(SpectralDistribution)
 
     def test_pickling(self):
         """
@@ -1473,7 +1471,7 @@ SpectralDistribution` class can be pickled.
 
         data = pickle.dumps(self._sd)
         data = pickle.loads(data)  # noqa: S301
-        self.assertEqual(self._sd, data)
+        assert self._sd == data
 
     def test_display_name(self):
         """
@@ -1481,10 +1479,8 @@ SpectralDistribution` class can be pickled.
         property.
         """
 
-        self.assertEqual(self._sd.display_name, "Sample")
-        self.assertEqual(
-            self._non_uniform_sd.display_name, "Display Non Uniform Sample"
-        )
+        assert self._sd.display_name == "Sample"
+        assert self._non_uniform_sd.display_name == "Display Non Uniform Sample"
 
     def test_wavelengths(self):
         """
@@ -1516,7 +1512,7 @@ SpectralDistribution` class can be pickled.
         property.
         """
 
-        self.assertEqual(self._sd.shape, SpectralShape(340, 820, 20))
+        assert self._sd.shape == SpectralShape(340, 820, 20)
 
     def test__init__(self):
         """
@@ -1524,12 +1520,13 @@ SpectralDistribution` class can be pickled.
         method.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             SpectralDistribution(DATA_SAMPLE).wavelengths,
             SpectralDistribution(
                 DATA_SAMPLE.values(),
                 SpectralShape(340, 820, 20),
             ).wavelengths,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_interpolate(self):
@@ -1540,12 +1537,10 @@ SpectralDistribution.interpolate` method.
 
         shape = SpectralShape(self._sd.shape.start, self._sd.shape.end, 1)
         sd = reshape_sd(self._sd, shape, "Interpolate")
-        np.testing.assert_array_almost_equal(
-            sd.values,
-            DATA_SAMPLE_INTERPOLATED,
-            decimal=7,
+        np.testing.assert_allclose(
+            sd.values, DATA_SAMPLE_INTERPOLATED, atol=TOLERANCE_ABSOLUTE_TESTS
         )
-        self.assertEqual(sd.shape, shape)
+        assert sd.shape == shape
 
         shape = SpectralShape(
             self._non_uniform_sd.shape.start,
@@ -1556,16 +1551,12 @@ SpectralDistribution.interpolate` method.
         np.testing.assert_allclose(
             sd.values,
             DATA_SAMPLE_INTERPOLATED_NON_UNIFORM,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-        self.assertEqual(
-            sd.shape,
-            SpectralShape(
-                np.ceil(self._non_uniform_sd.shape.start),
-                np.floor(self._non_uniform_sd.shape.end),
-                1,
-            ),
+        assert sd.shape == SpectralShape(
+            np.ceil(self._non_uniform_sd.shape.start),
+            np.floor(self._non_uniform_sd.shape.end),
+            1,
         )
 
     def test_extrapolate(self):
@@ -1578,12 +1569,10 @@ SpectralDistribution.extrapolate` method.
         sd = SpectralDistribution(data)
         sd.extrapolate(SpectralShape(10, 50, 5))
 
-        self.assertAlmostEqual(sd[10], 0, places=7)
-        self.assertAlmostEqual(sd[50], 1, places=7)
+        np.testing.assert_allclose(sd[10], 0, atol=TOLERANCE_ABSOLUTE_TESTS)
+        np.testing.assert_allclose(sd[50], 1, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        sd = SpectralDistribution(
-            np.linspace(0, 1, 10), np.linspace(25, 35, 10)
-        )
+        sd = SpectralDistribution(np.linspace(0, 1, 10), np.linspace(25, 35, 10))
         shape = SpectralShape(10, 50, 10)
         sd.extrapolate(
             shape,
@@ -1594,8 +1583,12 @@ SpectralDistribution.extrapolate` method.
             },
         )
 
-        self.assertAlmostEqual(sd[10], -1.5000000000000004, places=7)
-        self.assertAlmostEqual(sd[50], 2.4999999999999964, places=7)
+        np.testing.assert_allclose(
+            sd[10], -1.5000000000000004, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
+        np.testing.assert_allclose(
+            sd[50], 2.4999999999999964, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     def test_align(self):
         """
@@ -1604,10 +1597,10 @@ SpectralDistribution.align` method.
         """
 
         shape = SpectralShape(100, 900, 5)
-        self.assertEqual(self._sd.copy().align(shape).shape, shape)
+        assert self._sd.copy().align(shape).shape == shape
 
         shape = SpectralShape(600, 650, 1)
-        self.assertEqual(self._sd.copy().align(shape).shape, shape)
+        assert self._sd.copy().align(shape).shape == shape
 
     def test_trim(self):
         """
@@ -1616,10 +1609,10 @@ SpectralDistribution.trim` method.
         """
 
         shape = SpectralShape(400, 700, 20)
-        self.assertEqual(self._sd.copy().trim(shape).shape, shape)
+        assert self._sd.copy().trim(shape).shape == shape
 
         shape = SpectralShape(200, 900, 1)
-        self.assertEqual(self._sd.copy().trim(shape).shape, self._sd.shape)
+        assert self._sd.copy().trim(shape).shape == self._sd.shape
 
     def test_normalise(self):
         """
@@ -1627,8 +1620,10 @@ SpectralDistribution.trim` method.
 SpectralDistribution.normalise` method.
         """
 
-        np.testing.assert_array_almost_equal(
-            self._sd.copy().normalise(100).values, DATA_SAMPLE_NORMALISED
+        np.testing.assert_allclose(
+            self._sd.copy().normalise(100).values,
+            DATA_SAMPLE_NORMALISED,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_callback_on_domain_changed(self):
@@ -1638,18 +1633,18 @@ SpectralDistribution` *on_domain_changed* callback.
         """
 
         sd = self._sd.copy()
-        self.assertEqual(sd.shape, SpectralShape(340, 820, 20))
+        assert sd.shape == SpectralShape(340, 820, 20)
         sd[840] = 0
-        self.assertEqual(sd.shape, SpectralShape(340, 840, 20))
+        assert sd.shape == SpectralShape(340, 840, 20)
 
 
-class TestMultiSpectralDistributions(unittest.TestCase):
+class TestMultiSpectralDistributions:
     """
     Define :class:`colour.colorimetry.spectrum.MultiSpectralDistributions`
     class unit tests methods.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """Initialise the common tests attributes."""
 
         self._labels = ("x_bar", "y_bar", "z_bar")
@@ -1701,7 +1696,7 @@ class TestMultiSpectralDistributions(unittest.TestCase):
         )
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(MultiSpectralDistributions))
+            assert attribute in dir(MultiSpectralDistributions)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1717,7 +1712,7 @@ class TestMultiSpectralDistributions(unittest.TestCase):
         )
 
         for method in required_methods:
-            self.assertIn(method, dir(MultiSpectralDistributions))
+            assert method in dir(MultiSpectralDistributions)
 
     def test_pickling(self):
         """
@@ -1727,7 +1722,7 @@ MultiSpectralDistributions` class can be pickled.
 
         data = pickle.dumps(self._msds)
         data = pickle.loads(data)  # noqa: S301
-        self.assertEqual(self._msds, data)
+        assert self._msds == data
 
     def test_display_name(self):
         """
@@ -1735,10 +1730,10 @@ MultiSpectralDistributions` class can be pickled.
         property.
         """
 
-        self.assertEqual(self._sample_msds.display_name, "Sample Observer")
-        self.assertEqual(
-            self._non_uniform_sample_msds.display_name,
-            "Display Non Uniform Sample Observer",
+        assert self._sample_msds.display_name == "Sample Observer"
+        assert (
+            self._non_uniform_sample_msds.display_name
+            == "Display Non Uniform Sample Observer"
         )
 
     def test_wavelengths(self):
@@ -1747,9 +1742,7 @@ MultiSpectralDistributions` class can be pickled.
         property.
         """
 
-        np.testing.assert_array_equal(
-            self._msds.wavelengths, self._msds.domain
-        )
+        np.testing.assert_array_equal(self._msds.wavelengths, self._msds.domain)
 
         msds = self._msds.copy()
         msds.wavelengths = msds.wavelengths + 10
@@ -1773,12 +1766,11 @@ MultiSpectralDistributions` class can be pickled.
 display_labels` property.
         """
 
-        self.assertTupleEqual(
-            tuple(self._sample_msds.display_labels), self._labels
-        )
-        self.assertEqual(
-            tuple(self._non_uniform_sample_msds.display_labels),
-            ("Display x_bar", "Display y_bar", "Display z_bar"),
+        assert tuple(self._sample_msds.display_labels) == self._labels
+        assert tuple(self._non_uniform_sample_msds.display_labels) == (
+            "Display x_bar",
+            "Display y_bar",
+            "Display z_bar",
         )
 
     def test_shape(self):
@@ -1787,7 +1779,7 @@ display_labels` property.
         property.
         """
 
-        self.assertEqual(self._msds.shape, SpectralShape(380, 780, 5))
+        assert self._msds.shape == SpectralShape(380, 780, 5)
 
     def test__init__(self):
         """
@@ -1795,12 +1787,13 @@ display_labels` property.
 MultiSpectralDistributions.__init__` method.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             MultiSpectralDistributions(DATA_CMFS).wavelengths,
             MultiSpectralDistributions(
                 DATA_CMFS.values(),
                 SpectralShape(380, 780, 5),
             ).wavelengths,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_interpolate(self):
@@ -1814,10 +1807,12 @@ MultiSpectralDistributions.interpolate` method.
         )
         msds = reshape_msds(self._sample_msds, shape, "Interpolate")
         for signal in msds.signals.values():
-            np.testing.assert_array_almost_equal(
-                signal.values, DATA_SAMPLE_INTERPOLATED, decimal=7
+            np.testing.assert_allclose(
+                signal.values,
+                DATA_SAMPLE_INTERPOLATED,
+                atol=TOLERANCE_ABSOLUTE_TESTS,
             )
-        self.assertEqual(msds.shape, shape)
+        assert msds.shape == shape
 
         shape = SpectralShape(
             self._non_uniform_sample_msds.shape.start,
@@ -1833,16 +1828,12 @@ MultiSpectralDistributions.interpolate` method.
             np.testing.assert_allclose(
                 signal.values,
                 DATA_SAMPLE_INTERPOLATED_NON_UNIFORM,
-                rtol=0.0000001,
-                atol=0.0000001,
+                atol=TOLERANCE_ABSOLUTE_TESTS,
             )
-        self.assertEqual(
-            msds.shape,
-            SpectralShape(
-                np.ceil(self._non_uniform_sample_msds.shape.start),
-                np.floor(self._non_uniform_sample_msds.shape.end),
-                1,
-            ),
+        assert msds.shape == SpectralShape(
+            np.ceil(self._non_uniform_sample_msds.shape.start),
+            np.floor(self._non_uniform_sample_msds.shape.end),
+            1,
         )
 
     def test_extrapolate(self):
@@ -1855,11 +1846,11 @@ MultiSpectralDistributions.extrapolate` method.
         msds = MultiSpectralDistributions(data)
         msds.extrapolate(SpectralShape(10, 50, 5))
 
-        np.testing.assert_array_almost_equal(
-            msds[10], np.array([0.0, 0.0, 0.0]), decimal=7
+        np.testing.assert_allclose(
+            msds[10], np.array([0.0, 0.0, 0.0]), atol=TOLERANCE_ABSOLUTE_TESTS
         )
-        np.testing.assert_array_almost_equal(
-            msds[50], np.array([1.0, 1.0, 1.0]), decimal=7
+        np.testing.assert_allclose(
+            msds[50], np.array([1.0, 1.0, 1.0]), atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         msds = MultiSpectralDistributions(
@@ -1873,11 +1864,13 @@ MultiSpectralDistributions.extrapolate` method.
                 "right": None,
             },
         )
-        np.testing.assert_array_almost_equal(
-            msds[10], np.array([-1.5, -1.5, -1.5]), decimal=7
+        np.testing.assert_allclose(
+            msds[10],
+            np.array([-1.5, -1.5, -1.5]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-        np.testing.assert_array_almost_equal(
-            msds[50], np.array([2.5, 2.5, 2.5]), decimal=7
+        np.testing.assert_allclose(
+            msds[50], np.array([2.5, 2.5, 2.5]), atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_align(self):
@@ -1889,10 +1882,10 @@ MultiSpectralDistributions.align` method.
         msds = self._sample_msds.copy()
 
         shape = SpectralShape(100, 900, 5)
-        self.assertEqual(msds.align(shape).shape, shape)
+        assert msds.align(shape).shape == shape
 
         shape = SpectralShape(600, 650, 1)
-        self.assertEqual(msds.align(shape).shape, shape)
+        assert msds.align(shape).shape == shape
 
     def test_trim(self):
         """
@@ -1901,10 +1894,10 @@ MultiSpectralDistributions.trim` method.
         """
 
         shape = SpectralShape(400, 700, 5)
-        self.assertEqual(self._msds.copy().trim(shape).shape, shape)
+        assert self._msds.copy().trim(shape).shape == shape
 
         shape = SpectralShape(200, 900, 1)
-        self.assertEqual(self._msds.copy().trim(shape).shape, self._msds.shape)
+        assert self._msds.copy().trim(shape).shape == self._msds.shape
 
     def test_normalise(self):
         """
@@ -1912,9 +1905,10 @@ MultiSpectralDistributions.trim` method.
         MultiSpectralDistributions.normalise` method.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             self._sample_msds.copy().normalise(100).values,
             tstack([DATA_SAMPLE_NORMALISED] * 3),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_to_sds(self):
@@ -1924,11 +1918,11 @@ MultiSpectralDistributions.to_sds` method.
         """
 
         sds = self._non_uniform_sample_msds.to_sds()
-        self.assertEqual(len(sds), 3)
+        assert len(sds) == 3
 
         for i, sd in enumerate(sds):
-            self.assertEqual(sd.name, self._labels[i])
-            self.assertEqual(sd.display_name, self._display_labels[i])
+            assert sd.name == self._labels[i]
+            assert sd.display_name == self._display_labels[i]
 
     def test_callback_on_domain_changed(self):
         """
@@ -1938,12 +1932,12 @@ SpectralDistribution` *on_domain_changed* callback when used with
         """
 
         msds = self._msds.copy()
-        self.assertEqual(msds.shape, SpectralShape(380, 780, 5))
+        assert msds.shape == SpectralShape(380, 780, 5)
         msds[785] = 0
-        self.assertEqual(msds.shape, SpectralShape(380, 785, 5))
+        assert msds.shape == SpectralShape(380, 785, 5)
 
 
-class TestReshapeSd(unittest.TestCase):
+class TestReshapeSd:
     """
     Define :func:`colour.colorimetry.spectrum.reshape_sd` definition unit
     tests methods.
@@ -1954,8 +1948,8 @@ class TestReshapeSd(unittest.TestCase):
 
         sd = SpectralDistribution(DATA_SAMPLE_ABRIDGED)
         sd_reshaped = reshape_sd(sd)
-        self.assertEqual(sd_reshaped, sd.copy().align(SPECTRAL_SHAPE_DEFAULT))
-        self.assertEqual(reshape_sd(sd), sd_reshaped)
+        assert sd_reshaped == sd.copy().align(SPECTRAL_SHAPE_DEFAULT)
+        assert reshape_sd(sd) == sd_reshaped
 
         shape = colour.SpectralShape(100, 900, 1)
         extrapolator_kwargs = {
@@ -1969,11 +1963,8 @@ class TestReshapeSd(unittest.TestCase):
             method="Extrapolate",
             extrapolator_kwargs=extrapolator_kwargs,
         )
-        self.assertEqual(
-            sd_reshaped,
-            sd.copy().extrapolate(
-                shape, extrapolator_kwargs=extrapolator_kwargs
-            ),
+        assert sd_reshaped == sd.copy().extrapolate(
+            shape, extrapolator_kwargs=extrapolator_kwargs
         )
 
         shape = colour.SpectralShape(400, 700, 1)
@@ -1985,26 +1976,22 @@ class TestReshapeSd(unittest.TestCase):
             interpolator=CubicSplineInterpolator,
             interpolator_kwargs=interpolator_kwargs,
         )
-        self.assertEqual(
-            sd_reshaped,
-            sd.copy().interpolate(
-                shape,
-                interpolator=CubicSplineInterpolator,
-                interpolator_kwargs=interpolator_kwargs,
-            ),
+        assert sd_reshaped == sd.copy().interpolate(
+            shape,
+            interpolator=CubicSplineInterpolator,
+            interpolator_kwargs=interpolator_kwargs,
         )
 
         sd = SpectralDistribution(DATA_SAMPLE)
         shape = colour.SpectralShape(500, 600, 1)
         sd_reshaped = reshape_sd(sd, shape, method="Trim")
-        self.assertEqual(sd_reshaped, sd.copy().trim(shape))
+        assert sd_reshaped == sd.copy().trim(shape)
 
-        self.assertIs(
-            reshape_sd(sd, shape, method="Trim", copy=False), sd_reshaped
-        )
+        if is_caching_enabled():
+            assert reshape_sd(sd, shape, method="Trim", copy=False) is sd_reshaped
 
 
-class TestSdsAndMdsToSds(unittest.TestCase):
+class TestSdsAndMdsToSds:
     """
     Define :func:`colour.colorimetry.spectrum.sds_and_msds_to_sds` definition
     unit tests methods.
@@ -2021,8 +2008,8 @@ class TestSdsAndMdsToSds(unittest.TestCase):
         multi_sds_1 = MultiSpectralDistributions(DATA_MULTI_SAMPLE_ABRIDGED)
         multi_sds_2 = MultiSpectralDistributions(DATA_MULTI_SAMPLE_ABRIDGED)
 
-        self.assertEqual(sds_and_msds_to_sds(sd_1), [sd_1])
-        self.assertEqual(
+        assert sds_and_msds_to_sds(sd_1) == [sd_1]
+        assert (
             len(
                 sds_and_msds_to_sds(
                     [
@@ -2032,14 +2019,14 @@ class TestSdsAndMdsToSds(unittest.TestCase):
                         multi_sds_2,
                     ]
                 )
-            ),
-            8,
+            )
+            == 8
         )
 
-        self.assertEqual(len(sds_and_msds_to_sds(multi_sds_1)), 3)
+        assert len(sds_and_msds_to_sds(multi_sds_1)) == 3
 
 
-class TestSdsAndMsdsToMsds(unittest.TestCase):
+class TestSdsAndMsdsToMsds:
     """
     Define :func:`colour.colorimetry.spectrum.sds_and_msds_to_msds`
     definition unit tests methods.
@@ -2056,46 +2043,31 @@ class TestSdsAndMsdsToMsds(unittest.TestCase):
         multi_sds_1 = MultiSpectralDistributions(DATA_MULTI_SAMPLE_ABRIDGED)
         multi_sds_2 = MultiSpectralDistributions(DATA_MULTI_SAMPLE_ABRIDGED)
 
-        self.assertEqual(len(sds_and_msds_to_msds(sd_1)), 6)
+        assert len(sds_and_msds_to_msds(sd_1)) == 6
 
-        self.assertEqual(sds_and_msds_to_msds(multi_sds_1), multi_sds_1)
+        assert sds_and_msds_to_msds(multi_sds_1) == multi_sds_1
 
         multi_sds_0 = sds_and_msds_to_msds([multi_sds_1])
         np.testing.assert_array_equal(multi_sds_0.range, multi_sds_1.range)
-        self.assertEqual(sds_and_msds_to_msds([multi_sds_1]), multi_sds_1)
+        assert sds_and_msds_to_msds([multi_sds_1]) == multi_sds_1
 
         shape = SpectralShape(500, 560, 10)
-        self.assertEqual(
-            sds_and_msds_to_msds([sd_1, sd_2, multi_sds_1, multi_sds_2]).shape,
-            shape,
+        assert (
+            sds_and_msds_to_msds([sd_1, sd_2, multi_sds_1, multi_sds_2]).shape == shape
         )
 
-        np.testing.assert_array_almost_equal(
-            sds_and_msds_to_msds(
-                [sd_1, sd_2, multi_sds_1, multi_sds_2]
-            ).wavelengths,
+        np.testing.assert_allclose(
+            sds_and_msds_to_msds([sd_1, sd_2, multi_sds_1, multi_sds_2]).wavelengths,
             shape.wavelengths,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            sds_and_msds_to_msds(
-                [sd_1, sd_2, multi_sds_1, multi_sds_2]
-            ).values,
+        np.testing.assert_allclose(
+            sds_and_msds_to_msds([sd_1, sd_2, multi_sds_1, multi_sds_2]).values,
             tstack(
                 [sd_1.align(shape).values, sd_2.align(shape).values]
-                + [
-                    sd.values
-                    for sd in sds_and_msds_to_sds(multi_sds_1.align(shape))
-                ]
-                + [
-                    sd.values
-                    for sd in sds_and_msds_to_sds(multi_sds_2.align(shape))
-                ]
+                + [sd.values for sd in sds_and_msds_to_sds(multi_sds_1.align(shape))]
+                + [sd.values for sd in sds_and_msds_to_sds(multi_sds_2.align(shape))]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

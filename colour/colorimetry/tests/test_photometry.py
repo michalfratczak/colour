@@ -1,7 +1,7 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.colorimetry.photometry` module."""
 
-import unittest
+
+import numpy as np
 
 from colour.colorimetry import (
     SDS_ILLUMINANTS,
@@ -11,6 +11,7 @@ from colour.colorimetry import (
     luminous_flux,
     sd_zeros,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
@@ -26,7 +27,7 @@ __all__ = [
 ]
 
 
-class TestLuminousFlux(unittest.TestCase):
+class TestLuminousFlux:
     """
     Define :func:`colour.colorimetry.photometry.luminous_flux` definition unit
     tests methods.
@@ -35,26 +36,26 @@ class TestLuminousFlux(unittest.TestCase):
     def test_luminous_flux(self):
         """Test :func:`colour.colorimetry.photometry.luminous_flux` definition."""
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_flux(SDS_ILLUMINANTS["FL2"].copy().normalise()),
             28588.73612977,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_flux(SDS_LIGHT_SOURCES["Neodimium Incandescent"]),
             23807.65552737,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_flux(SDS_LIGHT_SOURCES["F32T8/TL841 (Triphosphor)"]),
             13090.06759053,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestLuminousEfficiency(unittest.TestCase):
+class TestLuminousEfficiency:
     """
     Define :func:`colour.colorimetry.photometry.luminous_efficiency`
     definition unit tests methods.
@@ -66,28 +67,26 @@ class TestLuminousEfficiency(unittest.TestCase):
         definition.
         """
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_efficiency(SDS_ILLUMINANTS["FL2"].copy().normalise()),
             0.49317624,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_efficiency(SDS_LIGHT_SOURCES["Neodimium Incandescent"]),
             0.19943936,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
-            luminous_efficiency(
-                SDS_LIGHT_SOURCES["F32T8/TL841 (Triphosphor)"]
-            ),
+        np.testing.assert_allclose(
+            luminous_efficiency(SDS_LIGHT_SOURCES["F32T8/TL841 (Triphosphor)"]),
             0.51080919,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestLuminousEfficacy(unittest.TestCase):
+class TestLuminousEfficacy:
     """
     Define :func:`colour.colorimetry.photometry.luminous_efficacy`
     definition unit tests methods.
@@ -99,28 +98,26 @@ class TestLuminousEfficacy(unittest.TestCase):
         definition.
         """
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_efficacy(SDS_ILLUMINANTS["FL2"].copy().normalise()),
             336.83937176,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_efficacy(SDS_LIGHT_SOURCES["Neodimium Incandescent"]),
             136.21708032,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             luminous_efficacy(SDS_LIGHT_SOURCES["F32T8/TL841 (Triphosphor)"]),
             348.88267549,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         sd = sd_zeros()
         sd[555] = 1
-        self.assertAlmostEqual(luminous_efficacy(sd), 683.00000000, places=7)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        np.testing.assert_allclose(
+            luminous_efficacy(sd), 683.00000000, atol=TOLERANCE_ABSOLUTE_TESTS
+        )

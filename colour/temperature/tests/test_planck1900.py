@@ -1,11 +1,10 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.temperature.planck1900` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.temperature import CCT_to_uv_Planck1900, uv_to_CCT_Planck1900
 from colour.utilities import ignore_numpy_errors
 
@@ -22,7 +21,7 @@ __all__ = [
 ]
 
 
-class TestUv_to_CCT_Planck1900(unittest.TestCase):
+class TestUv_to_CCT_Planck1900:
     """
     Define :func:`colour.temperature.planck1900.uv_to_CCT_Planck1900`
     definition unit tests methods.
@@ -40,8 +39,7 @@ class TestUv_to_CCT_Planck1900(unittest.TestCase):
                 optimisation_kwargs={"method": "Nelder-Mead"},
             ),
             4000,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         np.testing.assert_allclose(
@@ -50,8 +48,7 @@ class TestUv_to_CCT_Planck1900(unittest.TestCase):
                 optimisation_kwargs={"method": "Nelder-Mead"},
             ),
             7000,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         np.testing.assert_allclose(
@@ -60,8 +57,7 @@ class TestUv_to_CCT_Planck1900(unittest.TestCase):
                 optimisation_kwargs={"method": "Nelder-Mead"},
             ),
             25000,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_uv_to_CCT_Planck1900(self):
@@ -75,14 +71,14 @@ class TestUv_to_CCT_Planck1900(unittest.TestCase):
 
         uv = np.tile(uv, (6, 1))
         CCT = np.tile(CCT, 6)
-        np.testing.assert_array_almost_equal(
-            uv_to_CCT_Planck1900(uv), CCT, decimal=7
+        np.testing.assert_allclose(
+            uv_to_CCT_Planck1900(uv), CCT, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         uv = np.reshape(uv, (2, 3, 2))
         CCT = np.reshape(CCT, (2, 3))
-        np.testing.assert_array_almost_equal(
-            uv_to_CCT_Planck1900(uv), CCT, decimal=7
+        np.testing.assert_allclose(
+            uv_to_CCT_Planck1900(uv), CCT, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     @ignore_numpy_errors
@@ -97,7 +93,7 @@ class TestUv_to_CCT_Planck1900(unittest.TestCase):
         uv_to_CCT_Planck1900(cases)
 
 
-class TestCCT_to_uv_Planck1900(unittest.TestCase):
+class TestCCT_to_uv_Planck1900:
     """
     Define :func:`colour.temperature.planck1900.CCT_to_uv_Planck1900` definition
     unit tests methods.
@@ -109,22 +105,22 @@ class TestCCT_to_uv_Planck1900(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             CCT_to_uv_Planck1900(4000),
             np.array([0.225109670227493, 0.334387366663923]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             CCT_to_uv_Planck1900(7000),
             np.array([0.198126929048352, 0.307025980523306]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             CCT_to_uv_Planck1900(25000),
             np.array([0.182932683590136, 0.274073232217536]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_CCT_to_uv_Planck1900(self):
@@ -138,14 +134,14 @@ class TestCCT_to_uv_Planck1900(unittest.TestCase):
 
         CCT = np.tile(CCT, 6)
         uv = np.tile(uv, (6, 1))
-        np.testing.assert_array_almost_equal(
-            CCT_to_uv_Planck1900(CCT), uv, decimal=7
+        np.testing.assert_allclose(
+            CCT_to_uv_Planck1900(CCT), uv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         CCT = np.reshape(CCT, (2, 3))
         uv = np.reshape(uv, (2, 3, 2))
-        np.testing.assert_array_almost_equal(
-            CCT_to_uv_Planck1900(CCT), uv, decimal=7
+        np.testing.assert_allclose(
+            CCT_to_uv_Planck1900(CCT), uv, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     @ignore_numpy_errors
@@ -158,7 +154,3 @@ class TestCCT_to_uv_Planck1900(unittest.TestCase):
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=2))))
         CCT_to_uv_Planck1900(cases)
-
-
-if __name__ == "__main__":
-    unittest.main()

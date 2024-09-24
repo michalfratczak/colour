@@ -1,4 +1,3 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.io.tm2714` module."""
 
 from __future__ import annotations
@@ -8,12 +7,13 @@ import re
 import shutil
 import tempfile
 import textwrap
-import unittest
 from copy import deepcopy
 
 import numpy as np
+import pytest
 
 from colour.colorimetry import SpectralDistribution
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.hints import List, Tuple, cast
 from colour.io.tm2714 import Header_IESTM2714, SpectralDistribution_IESTM2714
 from colour.utilities import optional
@@ -144,13 +144,13 @@ FLUORESCENT_FILE_SPECTRAL_DATA: dict = {
 }
 
 
-class TestIES_TM2714_Header(unittest.TestCase):
+class TestIES_TM2714_Header:
     """
     Define :class:`colour.io.tm2714.Header_IESTM2714` class unit tests
     methods.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """Initialise the common tests attributes."""
 
         self._header = Header_IESTM2714(
@@ -186,7 +186,7 @@ class TestIES_TM2714_Header(unittest.TestCase):
         )
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(Header_IESTM2714))
+            assert attribute in dir(Header_IESTM2714)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -201,13 +201,12 @@ class TestIES_TM2714_Header(unittest.TestCase):
         )
 
         for method in required_methods:
-            self.assertIn(method, dir(Header_IESTM2714))
+            assert method in dir(Header_IESTM2714)
 
     def test__str__(self):
         """Test :meth:`colour.io.tm2714.Header_IESTM2714.__str__` method."""
 
-        self.assertEqual(
-            str(self._header),
+        assert str(self._header) == (
             textwrap.dedent(
                 """
                 Manufacturer           : a
@@ -222,14 +221,13 @@ class TestIES_TM2714_Header(unittest.TestCase):
                 Document Creation Date : j
                 Comments               : k
                 """
-            ).strip(),
+            ).strip()
         )
 
     def test__repr__(self):
         """Test :meth:`colour.io.tm2714.Header_IESTM2714.__repr__` method."""
 
-        self.assertEqual(
-            repr(self._header),
+        assert repr(self._header) == (
             textwrap.dedent(
                 """
                 Header_IESTM2714('a',
@@ -244,16 +242,17 @@ class TestIES_TM2714_Header(unittest.TestCase):
                                  'j',
                                  'k')
                 """
-            ).strip(),
+            ).strip()
         )
 
     def test__eq__(self):
         """Test :meth:`colour.io.tm2714.Header_IESTM2714.__eq__` method."""
 
         header = deepcopy(self._header)
-        self.assertEqual(self._header, header)
 
-        self.assertNotEqual(self._header, None)
+        assert self._header == header
+
+        assert self._header != ()
 
     def test__ne__(self):
         """Test :meth:`colour.io.tm2714.Header_IESTM2714.__ne__` method."""
@@ -261,24 +260,24 @@ class TestIES_TM2714_Header(unittest.TestCase):
         header = deepcopy(self._header)
 
         header.manufacturer = "aa"
-        self.assertNotEqual(self._header, header)
+        assert self._header != header
 
         header.manufacturer = "a"
-        self.assertEqual(self._header, header)
+        assert self._header == header
 
     def test__hash__(self):
         """Test :meth:`colour.io.tm2714.Header_IESTM2714.__hash__` method."""
 
-        self.assertIsInstance(hash(self._header), int)
+        assert isinstance(hash(self._header), int)
 
 
-class TestIES_TM2714_Sd(unittest.TestCase):
+class TestIES_TM2714_Sd:
     """
     Define :class:`colour.io.tm2714.SpectralDistribution_IESTM2714` class unit
     tests methods.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """Initialise the common tests attributes."""
 
         self._temporary_directory = tempfile.mkdtemp()
@@ -287,7 +286,7 @@ class TestIES_TM2714_Sd(unittest.TestCase):
             os.path.join(ROOT_RESOURCES, "Fluorescent.spdx")
         ).read()
 
-    def tearDown(self):
+    def teardown_method(self):
         """After tests actions."""
 
         shutil.rmtree(self._temporary_directory)
@@ -307,7 +306,7 @@ class TestIES_TM2714_Sd(unittest.TestCase):
         )
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(SpectralDistribution_IESTM2714))
+            assert attribute in dir(SpectralDistribution_IESTM2714)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -315,7 +314,7 @@ class TestIES_TM2714_Sd(unittest.TestCase):
         required_methods = ("__init__", "__str__", "__repr__", "read", "write")
 
         for method in required_methods:
-            self.assertIn(method, dir(SpectralDistribution_IESTM2714))
+            assert method in dir(SpectralDistribution_IESTM2714)
 
     def test__str__(self):
         """
@@ -323,12 +322,11 @@ class TestIES_TM2714_Sd(unittest.TestCase):
         method.
         """
 
-        self.assertEqual(
-            re.sub(
-                "Path                  :.*",
-                "Path                  :",
-                str(self._sd),
-            ),
+        assert re.sub(
+            "Path                  :.*",
+            "Path                  :",
+            str(self._sd),
+        ) == (
             textwrap.dedent(
                 """
                 IES TM-27-14 Spectral Distribution
@@ -445,7 +443,7 @@ class TestIES_TM2714_Sd(unittest.TestCase):
                  [  8.12700000e+02   3.00000000e-02]
                  [  8.50100000e+02   3.00000000e-02]]
                 """
-            ).strip(),
+            ).strip()
         )
 
     def test__repr__(self):
@@ -454,12 +452,11 @@ class TestIES_TM2714_Sd(unittest.TestCase):
         method.
         """
 
-        self.assertEqual(
-            re.sub(
-                "SpectralDistribution_IESTM2714.*",
-                "SpectralDistribution_IESTM2714(...,",
-                repr(self._sd),
-            ),
+        assert re.sub(
+            "SpectralDistribution_IESTM2714.*",
+            "SpectralDistribution_IESTM2714(...,",
+            repr(self._sd),
+        ) == (
             textwrap.dedent(
                 """
 SpectralDistribution_IESTM2714(...,
@@ -569,7 +566,7 @@ SpectralDistribution_IESTM2714(...,
                                Extrapolator,
                                {'method': 'Constant', 'left': None, 'right': None})
                 """
-            ).strip(),
+            ).strip()
         )
 
     def test_read(self, sd: SpectralDistribution | None = None):
@@ -596,7 +593,9 @@ SpectralDistribution_IESTM2714(...,
         sd_r = SpectralDistribution(FLUORESCENT_FILE_SPECTRAL_DATA)
 
         np.testing.assert_array_equal(sd_r.domain, sd.domain)
-        np.testing.assert_array_almost_equal(sd_r.values, sd.values, decimal=7)
+        np.testing.assert_allclose(
+            sd_r.values, sd.values, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
         test_read: List[
             Tuple[dict, Header_IESTM2714 | SpectralDistribution_IESTM2714]
@@ -608,9 +607,7 @@ SpectralDistribution_IESTM2714(...,
             for key, value in test.items():
                 for specification in read.mapping.elements:
                     if key == specification.element:
-                        self.assertEqual(
-                            getattr(read, specification.attribute), value
-                        )
+                        assert getattr(read, specification.attribute) == value
 
     def test_raise_exception_read(self):
         """
@@ -619,9 +616,9 @@ SpectralDistribution_IESTM2714(...,
         """
 
         sd = SpectralDistribution_IESTM2714()
-        self.assertRaises(ValueError, sd.read)
+        pytest.raises(ValueError, sd.read)
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             sd = SpectralDistribution_IESTM2714(
                 os.path.join(ROOT_RESOURCES, "Invalid.spdx")
             )
@@ -635,11 +632,11 @@ SpectralDistribution_IESTM2714(...,
         sd_r = self._sd
 
         sd_r.path = os.path.join(self._temporary_directory, "Fluorescent.spdx")
-        self.assertTrue(sd_r.write())
+        assert sd_r.write()
         sd_t = SpectralDistribution_IESTM2714(sd_r.path).read()
 
         self.test_read(sd_t)
-        self.assertEqual(sd_r, sd_t)
+        assert sd_r == sd_t
 
         for attribute in (
             "manufacturer",
@@ -654,10 +651,7 @@ SpectralDistribution_IESTM2714(...,
             "document_creation_date",
             "comments",
         ):
-            self.assertEqual(
-                getattr(sd_r.header, attribute),
-                getattr(sd_t.header, attribute),
-            )
+            assert getattr(sd_r.header, attribute) == getattr(sd_t.header, attribute)
 
         for attribute in (
             "spectral_quantity",
@@ -666,9 +660,7 @@ SpectralDistribution_IESTM2714(...,
             "bandwidth_FWHM",
             "bandwidth_corrected",
         ):
-            self.assertEqual(
-                getattr(sd_r, attribute), getattr(sd_t, attribute)
-            )
+            assert getattr(sd_r, attribute) == getattr(sd_t, attribute)
 
     def test_raise_exception_write(self):
         """
@@ -677,8 +669,4 @@ SpectralDistribution_IESTM2714(...,
         """
 
         sd = SpectralDistribution_IESTM2714()
-        self.assertRaises(ValueError, sd.write)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        pytest.raises(ValueError, sd.write)

@@ -2,7 +2,7 @@
 OpenColorIO Processing
 ======================
 
-Defines the object for *OpenColorIO* processing:
+Define the object for *OpenColorIO* processing:
 
 -   :func:`colour.io.process_image_OpenColorIO`
 """
@@ -154,7 +154,7 @@ def process_image_OpenColorIO(
 
     processor.apply(image_desc)
 
-    b = image_desc.getData().reshape([height, width, channels]).astype(dtype)
+    b = np.reshape(image_desc.getData(), (height, width, channels)).astype(dtype)
 
     if len(shape) == 0:
         return as_float(np.squeeze(b)[0])

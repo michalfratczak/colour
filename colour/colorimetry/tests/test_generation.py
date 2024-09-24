@@ -1,7 +1,5 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.colorimetry.generation` module."""
 
-import unittest
 
 import numpy as np
 
@@ -17,6 +15,7 @@ from colour.colorimetry.generation import (
     sd_single_led_Ohno2005,
     sd_zeros,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
@@ -39,7 +38,7 @@ __all__ = [
 ]
 
 
-class TestSdConstant(unittest.TestCase):
+class TestSdConstant:
     """
     Define :func:`colour.colorimetry.generation.sd_constant` definition unit
     tests methods.
@@ -50,14 +49,14 @@ class TestSdConstant(unittest.TestCase):
 
         sd = sd_constant(np.pi)
 
-        self.assertAlmostEqual(sd[360], np.pi, places=7)
+        np.testing.assert_allclose(sd[360], np.pi, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        self.assertAlmostEqual(sd[555], np.pi, places=7)
+        np.testing.assert_allclose(sd[555], np.pi, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        self.assertAlmostEqual(sd[780], np.pi, places=7)
+        np.testing.assert_allclose(sd[780], np.pi, atol=TOLERANCE_ABSOLUTE_TESTS)
 
 
-class TestSdZeros(unittest.TestCase):
+class TestSdZeros:
     """
     Define :func:`colour.colorimetry.generation.sd_zeros` definition unit
     tests methods.
@@ -71,14 +70,14 @@ class TestSdZeros(unittest.TestCase):
 
         sd = sd_zeros()
 
-        self.assertEqual(sd[360], 0)
+        assert sd[360] == 0
 
-        self.assertEqual(sd[555], 0)
+        assert sd[555] == 0
 
-        self.assertEqual(sd[780], 0)
+        assert sd[780] == 0
 
 
-class TestSdOnes(unittest.TestCase):
+class TestSdOnes:
     """
     Define :func:`colour.colorimetry.generation.sd_ones` definition unit
     tests methods.
@@ -89,14 +88,14 @@ class TestSdOnes(unittest.TestCase):
 
         sd = sd_ones()
 
-        self.assertEqual(sd[360], 1)
+        assert sd[360] == 1
 
-        self.assertEqual(sd[555], 1)
+        assert sd[555] == 1
 
-        self.assertEqual(sd[780], 1)
+        assert sd[780] == 1
 
 
-class TestMsdsConstant(unittest.TestCase):
+class TestMsdsConstant:
     """
     Define :func:`colour.colorimetry.generation.msds_constant` definition unit
     tests methods.
@@ -107,20 +106,26 @@ class TestMsdsConstant(unittest.TestCase):
 
         msds = msds_constant(np.pi, labels=["a", "b", "c"])
 
-        np.testing.assert_array_almost_equal(
-            msds[360], np.array([np.pi, np.pi, np.pi]), decimal=7
+        np.testing.assert_allclose(
+            msds[360],
+            np.array([np.pi, np.pi, np.pi]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            msds[555], np.array([np.pi, np.pi, np.pi]), decimal=7
+        np.testing.assert_allclose(
+            msds[555],
+            np.array([np.pi, np.pi, np.pi]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            msds[780], np.array([np.pi, np.pi, np.pi]), decimal=7
+        np.testing.assert_allclose(
+            msds[780],
+            np.array([np.pi, np.pi, np.pi]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestMsdsZeros(unittest.TestCase):
+class TestMsdsZeros:
     """
     Define :func:`colour.colorimetry.generation.msds_zeros` definition unit
     tests methods.
@@ -141,7 +146,7 @@ class TestMsdsZeros(unittest.TestCase):
         np.testing.assert_equal(msds[780], np.array([0, 0, 0]))
 
 
-class TestMsdsOnes(unittest.TestCase):
+class TestMsdsOnes:
     """
     Define :func:`colour.colorimetry.generation.msds_ones` definition unit
     tests methods.
@@ -159,7 +164,7 @@ class TestMsdsOnes(unittest.TestCase):
         np.testing.assert_equal(msds[780], np.array([1, 1, 1]))
 
 
-class TestSdGaussianNormal(unittest.TestCase):
+class TestSdGaussianNormal:
     """
     Define :func:`colour.colorimetry.generation.sd_gaussian_normal`
     definition unit tests methods.
@@ -173,14 +178,18 @@ class TestSdGaussianNormal(unittest.TestCase):
 
         sd = sd_gaussian_normal(555, 25)
 
-        self.assertAlmostEqual(sd[530], 0.606530659712633, places=7)
+        np.testing.assert_allclose(
+            sd[530], 0.606530659712633, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(sd[555], 1, places=7)
+        np.testing.assert_allclose(sd[555], 1, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        self.assertAlmostEqual(sd[580], 0.606530659712633, places=7)
+        np.testing.assert_allclose(
+            sd[580], 0.606530659712633, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
 
-class TestSdGaussianFwhm(unittest.TestCase):
+class TestSdGaussianFwhm:
     """
     Define :func:`colour.colorimetry.generation.sd_gaussian_fwhm` definition
     unit tests methods.
@@ -193,16 +202,18 @@ class TestSdGaussianFwhm(unittest.TestCase):
 
         sd = sd_gaussian_fwhm(555, 25)
 
-        self.assertAlmostEqual(sd[530], 0.0625, places=7)
+        np.testing.assert_allclose(sd[530], 0.0625, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        self.assertAlmostEqual(sd[555], 1, places=7)
+        np.testing.assert_allclose(sd[555], 1, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        self.assertAlmostEqual(sd[580], 0.062499999999999, places=7)
+        np.testing.assert_allclose(
+            sd[580], 0.062499999999999, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(sd[555 - 25 / 2], 0.5, places=7)
+        np.testing.assert_allclose(sd[555 - 25 / 2], 0.5, atol=TOLERANCE_ABSOLUTE_TESTS)
 
 
-class TestSdSingleLedOhno2005(unittest.TestCase):
+class TestSdSingleLedOhno2005:
     """
     Define :func:`colour.colorimetry.generation.sd_single_led_Ohno2005`
     definition unit tests methods.
@@ -216,14 +227,18 @@ class TestSdSingleLedOhno2005(unittest.TestCase):
 
         sd = sd_single_led_Ohno2005(555, 25)
 
-        self.assertAlmostEqual(sd[530], 0.127118445056538, places=7)
+        np.testing.assert_allclose(
+            sd[530], 0.127118445056538, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(sd[555], 1, places=7)
+        np.testing.assert_allclose(sd[555], 1, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        self.assertAlmostEqual(sd[580], 0.127118445056538, places=7)
+        np.testing.assert_allclose(
+            sd[580], 0.127118445056538, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
 
-class TestSdMultiLedsOhno2005(unittest.TestCase):
+class TestSdMultiLedsOhno2005:
     """
     Define :func:`colour.colorimetry.generation.sd_multi_leds_Ohno2005`
     definition unit tests methods.
@@ -241,23 +256,31 @@ class TestSdMultiLedsOhno2005(unittest.TestCase):
             np.array([0.731, 1.000, 1.660]),
         )
 
-        self.assertAlmostEqual(sd[500], 0.129513248576116, places=7)
+        np.testing.assert_allclose(
+            sd[500], 0.129513248576116, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(sd[570], 0.059932156222703, places=7)
+        np.testing.assert_allclose(
+            sd[570], 0.059932156222703, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(sd[640], 0.116433257970624, places=7)
+        np.testing.assert_allclose(
+            sd[640], 0.116433257970624, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
         sd = sd_multi_leds_Ohno2005(
             np.array([457, 530, 615]),
             np.array([20, 30, 20]),
         )
 
-        self.assertAlmostEqual(sd[500], 0.130394510062799, places=7)
+        np.testing.assert_allclose(
+            sd[500], 0.130394510062799, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(sd[570], 0.058539618824187, places=7)
+        np.testing.assert_allclose(
+            sd[570], 0.058539618824187, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(sd[640], 0.070140708922879, places=7)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        np.testing.assert_allclose(
+            sd[640], 0.070140708922879, atol=TOLERANCE_ABSOLUTE_TESTS
+        )

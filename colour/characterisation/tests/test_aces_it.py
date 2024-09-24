@@ -1,4 +1,3 @@
-# !/usr/bin/env python
 """
 Define the unit tests for the :mod:`colour.characterisation.aces_it` module.
 """
@@ -6,7 +5,6 @@ Define the unit tests for the :mod:`colour.characterisation.aces_it` module.
 from __future__ import annotations
 
 import os
-import unittest
 
 import numpy as np
 
@@ -41,6 +39,7 @@ from colour.colorimetry import (
     sd_ones,
     sds_and_msds_to_msds,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.io import read_sds_from_csv_file
 from colour.utilities import domain_range_scale
 
@@ -81,14 +80,12 @@ MSDS_CANON_EOS_5DMARK_II: MultiSpectralDistributions = sds_and_msds_to_msds(
     )
 )
 
-SD_AMPAS_ISO7589_STUDIO_TUNGSTEN: SpectralDistribution = (
-    read_sds_from_csv_file(
-        os.path.join(ROOT_RESOURCES_RAWTOACES, "AMPAS_ISO_7589_Tungsten.csv")
-    )["iso7589"]
-)
+SD_AMPAS_ISO7589_STUDIO_TUNGSTEN: SpectralDistribution = read_sds_from_csv_file(
+    os.path.join(ROOT_RESOURCES_RAWTOACES, "AMPAS_ISO_7589_Tungsten.csv")
+)["iso7589"]
 
 
-class TestSdToAcesRelativeExposureValues(unittest.TestCase):
+class TestSdToAcesRelativeExposureValues:
     """
     Define :func:`colour.characterisation.aces_it.\
 sd_to_aces_relative_exposure_values` definition unit tests methods.
@@ -102,50 +99,45 @@ sd_to_aces_relative_exposure_values` definition.
 
         shape = MSDS_ACES_RICD.shape
         grey_reflector = sd_constant(0.18, shape)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sd_to_aces_relative_exposure_values(grey_reflector),
             np.array([0.18, 0.18, 0.18]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         perfect_reflector = sd_ones(shape)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sd_to_aces_relative_exposure_values(perfect_reflector),
             np.array([0.97783784, 0.97783784, 0.97783784]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         dark_skin = SDS_COLOURCHECKERS["ColorChecker N Ohta"]["dark skin"]
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sd_to_aces_relative_exposure_values(dark_skin),
             np.array([0.11807796, 0.08690312, 0.05891252]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        dark_skin = SDS_COLOURCHECKERS["ColorChecker N Ohta"]["dark skin"]
-        np.testing.assert_array_almost_equal(
-            sd_to_aces_relative_exposure_values(
-                dark_skin, SDS_ILLUMINANTS["A"]
-            ),
+        np.testing.assert_allclose(
+            sd_to_aces_relative_exposure_values(dark_skin, SDS_ILLUMINANTS["A"]),
             np.array([0.12937082, 0.09120875, 0.06110636]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        dark_skin = SDS_COLOURCHECKERS["ColorChecker N Ohta"]["dark skin"]
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sd_to_aces_relative_exposure_values(dark_skin),
             np.array([0.11807796, 0.08690312, 0.05891252]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        dark_skin = SDS_COLOURCHECKERS["ColorChecker N Ohta"]["dark skin"]
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sd_to_aces_relative_exposure_values(
                 dark_skin,
                 chromatic_adaptation_transform="Bradford",
             ),
             np.array([0.11805993, 0.08689013, 0.05900396]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_domain_range_scale_spectral_to_aces_relative_exposure_values(
@@ -164,14 +156,14 @@ sd_to_aces_relative_exposure_values` definition.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     sd_to_aces_relative_exposure_values(grey_reflector),
                     RGB * factor,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
 
-class TestReadTrainingDataRawtoacesV1(unittest.TestCase):
+class TestReadTrainingDataRawtoacesV1:
     """
     Define :func:`colour.characterisation.aces_it.\
 read_training_data_rawtoaces_v1` definition unit tests methods.
@@ -183,10 +175,10 @@ read_training_data_rawtoaces_v1` definition unit tests methods.
         read_training_data_rawtoaces_v1` definition.
         """
 
-        self.assertEqual(len(read_training_data_rawtoaces_v1().labels), 190)
+        assert len(read_training_data_rawtoaces_v1().labels) == 190
 
 
-class TestGenerateIlluminantsRawtoacesV1(unittest.TestCase):
+class TestGenerateIlluminantsRawtoacesV1:
     """
     Define :func:`colour.characterisation.aces_it.\
 generate_illuminants_rawtoaces_v1` definition unit tests methods.
@@ -198,64 +190,61 @@ generate_illuminants_rawtoaces_v1` definition unit tests methods.
         generate_illuminants_rawtoaces_v1` definition.
         """
 
-        self.assertListEqual(
-            sorted(generate_illuminants_rawtoaces_v1().keys()),
-            [
-                "1000K Blackbody",
-                "1500K Blackbody",
-                "2000K Blackbody",
-                "2500K Blackbody",
-                "3000K Blackbody",
-                "3500K Blackbody",
-                "D100",
-                "D105",
-                "D110",
-                "D115",
-                "D120",
-                "D125",
-                "D130",
-                "D135",
-                "D140",
-                "D145",
-                "D150",
-                "D155",
-                "D160",
-                "D165",
-                "D170",
-                "D175",
-                "D180",
-                "D185",
-                "D190",
-                "D195",
-                "D200",
-                "D205",
-                "D210",
-                "D215",
-                "D220",
-                "D225",
-                "D230",
-                "D235",
-                "D240",
-                "D245",
-                "D250",
-                "D40",
-                "D45",
-                "D50",
-                "D55",
-                "D60",
-                "D65",
-                "D70",
-                "D75",
-                "D80",
-                "D85",
-                "D90",
-                "D95",
-                "iso7589",
-            ],
-        )
+        assert sorted(generate_illuminants_rawtoaces_v1().keys()) == [
+            "1000K Blackbody",
+            "1500K Blackbody",
+            "2000K Blackbody",
+            "2500K Blackbody",
+            "3000K Blackbody",
+            "3500K Blackbody",
+            "D100",
+            "D105",
+            "D110",
+            "D115",
+            "D120",
+            "D125",
+            "D130",
+            "D135",
+            "D140",
+            "D145",
+            "D150",
+            "D155",
+            "D160",
+            "D165",
+            "D170",
+            "D175",
+            "D180",
+            "D185",
+            "D190",
+            "D195",
+            "D200",
+            "D205",
+            "D210",
+            "D215",
+            "D220",
+            "D225",
+            "D230",
+            "D235",
+            "D240",
+            "D245",
+            "D250",
+            "D40",
+            "D45",
+            "D50",
+            "D55",
+            "D60",
+            "D65",
+            "D70",
+            "D75",
+            "D80",
+            "D85",
+            "D90",
+            "D95",
+            "iso7589",
+        ]
 
 
-class TestWhiteBalanceMultipliers(unittest.TestCase):
+class TestWhiteBalanceMultipliers:
     """
     Define :func:`colour.characterisation.aces_it.white_balance_multipliers`
     definition unit tests methods.
@@ -267,25 +256,23 @@ class TestWhiteBalanceMultipliers(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
-            white_balance_multipliers(
-                MSDS_CANON_EOS_5DMARK_II, SDS_ILLUMINANTS["D55"]
-            ),
+        np.testing.assert_allclose(
+            white_balance_multipliers(MSDS_CANON_EOS_5DMARK_II, SDS_ILLUMINANTS["D55"]),
             np.array([2.34141541, 1.00000000, 1.51633759]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             white_balance_multipliers(
                 MSDS_CANON_EOS_5DMARK_II,
                 SDS_ILLUMINANTS["ISO 7589 Studio Tungsten"],
             ),
             np.array([1.57095278, 1.00000000, 2.43560477]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestBestIlluminant(unittest.TestCase):
+class TestBestIlluminant:
     """
     Define :func:`colour.characterisation.aces_it.best_illuminant` definition
     unit tests methods.
@@ -297,30 +284,30 @@ class TestBestIlluminant(unittest.TestCase):
         definition.
         """
 
-        self.assertEqual(
+        assert (
             best_illuminant(
                 white_balance_multipliers(
                     MSDS_CANON_EOS_5DMARK_II, SDS_ILLUMINANTS["FL2"]
                 ),
                 MSDS_CANON_EOS_5DMARK_II,
                 generate_illuminants_rawtoaces_v1(),
-            ).name,
-            "D40",
+            ).name
+            == "D40"
         )
 
-        self.assertEqual(
+        assert (
             best_illuminant(
                 white_balance_multipliers(
                     MSDS_CANON_EOS_5DMARK_II, SDS_ILLUMINANTS["A"]
                 ),
                 MSDS_CANON_EOS_5DMARK_II,
                 generate_illuminants_rawtoaces_v1(),
-            ).name,
-            "3000K Blackbody",
+            ).name
+            == "3000K Blackbody"
         )
 
 
-class TestNormaliseIlluminant(unittest.TestCase):
+class TestNormaliseIlluminant:
     """
     Define :func:`colour.characterisation.aces_it.normalise_illuminant`
     definition unit tests methods.
@@ -332,18 +319,18 @@ class TestNormaliseIlluminant(unittest.TestCase):
         definition.
         """
 
-        self.assertAlmostEqual(
+        np.testing.assert_allclose(
             np.sum(
                 normalise_illuminant(
                     SDS_ILLUMINANTS["D55"], MSDS_CANON_EOS_5DMARK_II
                 ).values
             ),
             3.439037388220850,
-            places=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestTrainingDataSdsToRGB(unittest.TestCase):
+class TestTrainingDataSdsToRGB:
     """
     Define :func:`colour.characterisation.aces_it.training_data_sds_to_RGB`
     definition unit tests methods.
@@ -360,7 +347,7 @@ class TestTrainingDataSdsToRGB(unittest.TestCase):
             MSDS_CANON_EOS_5DMARK_II,
             SDS_ILLUMINANTS["D55"],
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             RGB,
             np.array(
                 [
@@ -556,11 +543,13 @@ class TestTrainingDataSdsToRGB(unittest.TestCase):
                     [909.87331348, 498.83253656, 750.09672276],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            RGB_w, np.array([2.34141541, 1.00000000, 1.51633759]), decimal=7
+        np.testing.assert_allclose(
+            RGB_w,
+            np.array([2.34141541, 1.00000000, 1.51633759]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         training_data = sds_and_msds_to_msds(
@@ -569,7 +558,7 @@ class TestTrainingDataSdsToRGB(unittest.TestCase):
         RGB, RGB_w = training_data_sds_to_RGB(
             training_data, MSDS_CANON_EOS_5DMARK_II, SDS_ILLUMINANTS["D55"]
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             RGB,
             np.array(
                 [
@@ -599,15 +588,17 @@ class TestTrainingDataSdsToRGB(unittest.TestCase):
                     [64.77754952, 64.80020759, 65.45515287],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            RGB_w, np.array([2.34141541, 1.00000000, 1.51633759]), decimal=7
+        np.testing.assert_allclose(
+            RGB_w,
+            np.array([2.34141541, 1.00000000, 1.51633759]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestTrainingDataSdsToXYZ(unittest.TestCase):
+class TestTrainingDataSdsToXYZ:
     """
     Define :func:`colour.characterisation.aces_it.training_data_sds_to_XYZ`
     definition unit tests methods.
@@ -619,7 +610,7 @@ class TestTrainingDataSdsToXYZ(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             training_data_sds_to_XYZ(
                 read_training_data_rawtoaces_v1(),
                 MSDS_CMFS["CIE 1931 2 Degree Standard Observer"],
@@ -819,14 +810,14 @@ class TestTrainingDataSdsToXYZ(unittest.TestCase):
                     [0.41991006, 0.29457037, 0.40780639],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         training_data = sds_and_msds_to_msds(
             SDS_COLOURCHECKERS["BabelColor Average"].values()
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             training_data_sds_to_XYZ(
                 training_data,
                 MSDS_CMFS["CIE 1931 2 Degree Standard Observer"],
@@ -860,10 +851,10 @@ class TestTrainingDataSdsToXYZ(unittest.TestCase):
                     [0.03058273, 0.03200953, 0.03277947],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             training_data_sds_to_XYZ(
                 training_data,
                 MSDS_CMFS["CIE 1931 2 Degree Standard Observer"],
@@ -898,11 +889,11 @@ class TestTrainingDataSdsToXYZ(unittest.TestCase):
                     [0.03058222, 0.03200864, 0.03278183],
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestWhitepointPreservingMatrix(unittest.TestCase):
+class TestWhitepointPreservingMatrix:
     """
     Define :func:`colour.characterisation.aces_it.whitepoint_preserving_matrix`
     definition unit tests methods.
@@ -915,24 +906,24 @@ whitepoint_preserving_matrix` definition.
         """
 
         np.testing.assert_array_equal(
-            whitepoint_preserving_matrix(np.arange(9).reshape([3, 3])),
+            whitepoint_preserving_matrix(np.reshape(np.arange(9), (3, 3))),
             np.array([[0, 1, 0], [3, 4, -6], [6, 7, -12]]),
         )
 
         np.testing.assert_array_equal(
-            whitepoint_preserving_matrix(np.arange(12).reshape([3, 4])),
+            whitepoint_preserving_matrix(np.reshape(np.arange(12), (3, 4))),
             np.array([[0, 1, 2, -2], [4, 5, 6, -14], [8, 9, 10, -26]]),
         )
 
         np.testing.assert_array_equal(
             whitepoint_preserving_matrix(
-                np.arange(9).reshape([3, 3]), np.array([1, 2, 3])
+                np.reshape(np.arange(9), (3, 3)), np.array([1, 2, 3])
             ),
             np.array([[0, 1, 0], [3, 4, -5], [6, 7, -10]]),
         )
 
 
-class TestOptimizationFactoryRawtoacesV1(unittest.TestCase):
+class TestOptimizationFactoryRawtoacesV1:
     """
     Define :func:`colour.characterisation.aces_it.\
 optimisation_factory_rawtoaces_v1` definition unit tests methods.
@@ -944,10 +935,10 @@ optimisation_factory_rawtoaces_v1` definition unit tests methods.
 optimisation_factory_rawtoaces_v1` definition.
         """
 
-        self.assertEqual(len(optimisation_factory_rawtoaces_v1()), 4)
+        assert len(optimisation_factory_rawtoaces_v1()) == 4
 
 
-class TestOptimizationFactoryJzazbz(unittest.TestCase):
+class TestOptimizationFactoryJzazbz:
     """
     Define :func:`colour.characterisation.aces_it.\
 optimisation_factory_Jzazbz` definition unit tests methods.
@@ -959,10 +950,10 @@ optimisation_factory_Jzazbz` definition unit tests methods.
 optimisation_factory_Jzazbz` definition.
         """
 
-        self.assertEqual(len(optimisation_factory_Jzazbz()), 4)
+        assert len(optimisation_factory_Jzazbz()) == 4
 
 
-class TestOptimizationFactoryOklab18(unittest.TestCase):
+class TestOptimizationFactoryOklab18:
     """
     Define :func:`colour.characterisation.aces_it.\
 optimisation_factory_Oklab_15` definition unit tests methods.
@@ -974,10 +965,10 @@ optimisation_factory_Oklab_15` definition unit tests methods.
 optimisation_factory_Oklab_15` definition.
         """
 
-        self.assertEqual(len(optimisation_factory_Oklab_15()), 4)
+        assert len(optimisation_factory_Oklab_15()) == 4
 
 
-class TestMatrixIdt(unittest.TestCase):
+class TestMatrixIdt:
     """
     Define :func:`colour.characterisation.aces_it.matrix_idt` definition unit
     tests methods.
@@ -1003,7 +994,6 @@ class TestMatrixIdt(unittest.TestCase):
                     [0.02369089, -0.20253026, 1.17883937],
                 ]
             ),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -1014,9 +1004,7 @@ class TestMatrixIdt(unittest.TestCase):
         # 0.021805 1.066614 -0.088418
         # -0.019718 -0.206664 1.226381
         np.testing.assert_allclose(
-            matrix_idt(
-                MSDS_CANON_EOS_5DMARK_II, SD_AMPAS_ISO7589_STUDIO_TUNGSTEN
-            )[0],
+            matrix_idt(MSDS_CANON_EOS_5DMARK_II, SD_AMPAS_ISO7589_STUDIO_TUNGSTEN)[0],
             np.array(
                 [
                     [0.88849143, -0.07750529, 0.18901385],
@@ -1024,7 +1012,6 @@ class TestMatrixIdt(unittest.TestCase):
                     [-0.01971799, -0.20666347, 1.22638146],
                 ]
             ),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -1042,13 +1029,11 @@ class TestMatrixIdt(unittest.TestCase):
                     [0.02327675, -0.22372411, 1.20044737],
                 ]
             ),
-            rtol=0.0001,
             atol=0.0001,
         )
         np.testing.assert_allclose(
             RGB_w,
             np.array([2.34141541, 1.00000000, 1.51633759]),
-            rtol=0.0001,
             atol=0.0001,
         )
         M, RGB_w = matrix_idt(
@@ -1086,13 +1071,11 @@ class TestMatrixIdt(unittest.TestCase):
                     ],
                 ]
             ),
-            rtol=0.0001,
             atol=0.0001,
         )
         np.testing.assert_allclose(
             RGB_w,
             np.array([2.34141541, 1.00000000, 1.51633759]),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -1110,13 +1093,11 @@ class TestMatrixIdt(unittest.TestCase):
                     [0.015048, -0.150215, 1.135168],
                 ]
             ),
-            rtol=0.0001,
             atol=0.0001,
         )
         np.testing.assert_allclose(
             RGB_w,
             np.array([2.34141541, 1.00000000, 1.51633759]),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -1140,7 +1121,6 @@ class TestMatrixIdt(unittest.TestCase):
                     [0.06964389, -0.31098445, 1.24134056],
                 ]
             ),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -1157,7 +1137,6 @@ class TestMatrixIdt(unittest.TestCase):
                     [0.02450723, -0.20931423, 1.18480700],
                 ]
             ),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -1167,11 +1146,11 @@ class TestMatrixIdt(unittest.TestCase):
             additional_data=True,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             RGB_w, np.array([2.34141541, 1.00000000, 1.51633759])
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ[:5, ...],
             np.array(
                 [
@@ -1182,9 +1161,10 @@ class TestMatrixIdt(unittest.TestCase):
                     [0.56264334, 0.59145486, 0.58950505],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             RGB[:5, ...],
             np.array(
                 [
@@ -1195,10 +1175,11 @@ class TestMatrixIdt(unittest.TestCase):
                     [0.58984787, 0.59040152, 0.58510766],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestCamera_RGB_to_ACES2065_1(unittest.TestCase):
+class TestCamera_RGB_to_ACES2065_1:
     """
     Define :func:`colour.characterisation.aces_it.camera_RGB_to_ACES2065_1`
     definition unit tests methods.
@@ -1211,21 +1192,20 @@ class TestCamera_RGB_to_ACES2065_1(unittest.TestCase):
         """
 
         B, b = matrix_idt(MSDS_CANON_EOS_5DMARK_II, SDS_ILLUMINANTS["D55"])
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             camera_RGB_to_ACES2065_1(np.array([0.1, 0.2, 0.3]), B, b),
             np.array([0.27064400, 0.15614871, 0.50129650]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             camera_RGB_to_ACES2065_1(np.array([1.5, 1.5, 1.5]), B, b),
             np.array([3.36538176, 1.47467189, 2.46068761]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             camera_RGB_to_ACES2065_1(np.array([1.0, 1.0, 1.0]), B, b, True),
             np.array([2.24358784, 0.98311459, 1.64045840]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

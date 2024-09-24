@@ -2,7 +2,7 @@
 Geometry Primitives
 ===================
 
-Defines various geometry primitives and their generation methods:
+Define various geometry primitives and their generation methods:
 
 -   :attr:`colour.geometry.MAPPING_PLANE_TO_AXIS`
 -   :func:`colour.geometry.primitive_grid`
@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from colour.constants import DEFAULT_FLOAT_DTYPE, DEFAULT_INT_DTYPE
+from colour.constants import DTYPE_FLOAT_DEFAULT, DTYPE_INT_DEFAULT
 from colour.hints import (
     Any,
     DTypeFloat,
@@ -101,11 +101,11 @@ def primitive_grid(
     dtype_vertices
         :class:`numpy.dtype` to use for the grid vertices, default to
         the :class:`numpy.dtype` defined by the
-        :attr:`colour.constant.DEFAULT_FLOAT_DTYPE` attribute.
+        :attr:`colour.constant.DTYPE_FLOAT_DEFAULT` attribute.
     dtype_indexes
         :class:`numpy.dtype` to use for the grid indexes, default to
         the :class:`numpy.dtype` defined by the
-        :attr:`colour.constant.DEFAULT_INT_DTYPE` attribute.
+        :attr:`colour.constant.DTYPE_INT_DEFAULT` attribute.
 
     Returns
     -------
@@ -137,8 +137,8 @@ def primitive_grid(
 
     axis = MAPPING_PLANE_TO_AXIS.get(axis, axis).lower()  # pyright: ignore
 
-    dtype_vertices = optional(dtype_vertices, DEFAULT_FLOAT_DTYPE)
-    dtype_indexes = optional(dtype_indexes, DEFAULT_INT_DTYPE)
+    dtype_vertices = optional(dtype_vertices, DTYPE_FLOAT_DEFAULT)
+    dtype_indexes = optional(dtype_indexes, DTYPE_INT_DEFAULT)
 
     x_grid = width_segments
     y_grid = height_segments
@@ -234,10 +234,23 @@ def primitive_cube(
     width_segments: int = 1,
     height_segments: int = 1,
     depth_segments: int = 1,
-    planes: Literal[
-        "-x", "+x", "-y", "+y", "-z", "+z", "xy", "xz", "yz", "yx", "zx", "zy"
-    ]
-    | None = None,
+    planes: (
+        Literal[
+            "-x",
+            "+x",
+            "-y",
+            "+y",
+            "-z",
+            "+z",
+            "xy",
+            "xz",
+            "yz",
+            "yx",
+            "zx",
+            "zy",
+        ]
+        | None
+    ) = None,
     dtype_vertices: Type[DTypeFloat] | None = None,
     dtype_indexes: Type[DTypeInt] | None = None,
 ) -> Tuple[NDArray, NDArray, NDArray]:
@@ -263,11 +276,11 @@ def primitive_cube(
     dtype_vertices
         :class:`numpy.dtype` to use for the grid vertices, default to
         the :class:`numpy.dtype` defined by the
-        :attr:`colour.constant.DEFAULT_FLOAT_DTYPE` attribute.
+        :attr:`colour.constant.DTYPE_FLOAT_DEFAULT` attribute.
     dtype_indexes
         :class:`numpy.dtype` to use for the grid indexes, default to
         the :class:`numpy.dtype` defined by the
-        :attr:`colour.constant.DEFAULT_INT_DTYPE` attribute.
+        :attr:`colour.constant.DTYPE_INT_DEFAULT` attribute.
 
     Returns
     -------
@@ -346,13 +359,11 @@ def primitive_cube(
     axis = (
         sorted(MAPPING_PLANE_TO_AXIS.values())
         if planes is None
-        else [
-            MAPPING_PLANE_TO_AXIS.get(plane, plane).lower() for plane in planes
-        ]
+        else [MAPPING_PLANE_TO_AXIS.get(plane, plane).lower() for plane in planes]
     )
 
-    dtype_vertices = optional(dtype_vertices, DEFAULT_FLOAT_DTYPE)
-    dtype_indexes = optional(dtype_indexes, DEFAULT_INT_DTYPE)
+    dtype_vertices = optional(dtype_vertices, DTYPE_FLOAT_DEFAULT)
+    dtype_indexes = optional(dtype_indexes, DTYPE_INT_DEFAULT)
 
     w_s, h_s, d_s = width_segments, height_segments, depth_segments
 
@@ -472,13 +483,13 @@ def primitive(
         :func:`colour.geometry.primitive_cube`},
         :class:`numpy.dtype` to use for the grid indexes, default to
         the :class:`numpy.dtype` defined by the
-        :attr:`colour.constant.DEFAULT_INT_DTYPE` attribute.
+        :attr:`colour.constant.DTYPE_INT_DEFAULT` attribute.
     dtype_vertices
         {:func:`colour.geometry.primitive_grid`,
         :func:`colour.geometry.primitive_cube`},
         :class:`numpy.dtype` to use for the grid vertices, default to
         the :class:`numpy.dtype` defined by the
-        :attr:`colour.constant.DEFAULT_FLOAT_DTYPE` attribute.
+        :attr:`colour.constant.DTYPE_FLOAT_DEFAULT` attribute.
     height
         {:func:`colour.geometry.primitive_grid`,
         :func:`colour.geometry.primitive_cube`},

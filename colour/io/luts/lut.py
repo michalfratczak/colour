@@ -2,7 +2,7 @@
 LUT Processing
 ==============
 
-Defines the classes and definitions handling *LUT* processing:
+Define the classes and definitions handling *LUT* processing:
 
 -   :class:`colour.LUT1D`
 -   :class:`colour.LUT3x1D`
@@ -42,7 +42,6 @@ from colour.hints import (
     List,
     Literal,
     NDArrayFloat,
-    Self,
     Sequence,
     Type,
     cast,
@@ -57,7 +56,6 @@ from colour.utilities import (
     full,
     is_iterable,
     is_numeric,
-    is_string,
     multiline_repr,
     multiline_str,
     optional,
@@ -213,7 +211,7 @@ class AbstractLUT(ABC):
         """Setter for the **self.name** property."""
 
         attest(
-            is_string(value),
+            isinstance(value, str),
             f'"name" property: "{value}" type is not "str"!',
         )
 
@@ -402,7 +400,7 @@ class AbstractLUT(ABC):
 
         return not (self == other)
 
-    def __add__(self, a: ArrayLike | Self) -> Self:
+    def __add__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for addition.
 
@@ -419,7 +417,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "+")
 
-    def __iadd__(self, a: ArrayLike | Self) -> Self:
+    def __iadd__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for in-place addition.
 
@@ -436,7 +434,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "+", True)
 
-    def __sub__(self, a: ArrayLike | Self) -> Self:
+    def __sub__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for subtraction.
 
@@ -453,7 +451,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "-")
 
-    def __isub__(self, a: ArrayLike | Self) -> Self:
+    def __isub__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for in-place subtraction.
 
@@ -470,7 +468,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "-", True)
 
-    def __mul__(self, a: ArrayLike | Self) -> Self:
+    def __mul__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for multiplication.
 
@@ -487,7 +485,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "*")
 
-    def __imul__(self, a: ArrayLike | Self) -> Self:
+    def __imul__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for in-place multiplication.
 
@@ -504,7 +502,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "*", True)
 
-    def __div__(self, a: ArrayLike | Self) -> Self:
+    def __div__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for division.
 
@@ -521,7 +519,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "/")
 
-    def __idiv__(self, a: ArrayLike | Self) -> Self:
+    def __idiv__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for in-place division.
 
@@ -541,7 +539,7 @@ class AbstractLUT(ABC):
     __itruediv__ = __idiv__
     __truediv__ = __div__
 
-    def __pow__(self, a: ArrayLike | Self) -> Self:
+    def __pow__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for exponentiation.
 
@@ -558,7 +556,7 @@ class AbstractLUT(ABC):
 
         return self.arithmetical_operation(a, "**")
 
-    def __ipow__(self, a: ArrayLike | Self) -> Self:
+    def __ipow__(self, a: ArrayLike | AbstractLUT) -> AbstractLUT:
         """
         Implement support for in-place exponentiation.
 
@@ -577,10 +575,10 @@ class AbstractLUT(ABC):
 
     def arithmetical_operation(
         self,
-        a: ArrayLike | Self,
+        a: ArrayLike | AbstractLUT,
         operation: Literal["+", "-", "*", "/", "**"],
         in_place: bool = False,
-    ) -> Self:
+    ) -> AbstractLUT:
         """
         Perform given arithmetical operation with :math:`a` operand, the
         operation can be either performed on a copy or in-place, must be
@@ -610,9 +608,7 @@ class AbstractLUT(ABC):
         }[operation]
 
         if in_place:
-            operand = (
-                a.table if isinstance(a, AbstractLUT) else as_float_array(a)
-            )
+            operand = a.table if isinstance(a, AbstractLUT) else as_float_array(a)
 
             self.table = operator(self.table, operand)
 
@@ -707,7 +703,7 @@ class AbstractLUT(ABC):
             Linear table.
         """
 
-    def copy(self) -> Self:
+    def copy(self) -> AbstractLUT:
         """
         Return a copy of the sub-class instance.
 
@@ -720,7 +716,7 @@ class AbstractLUT(ABC):
         return deepcopy(self)
 
     @abstractmethod
-    def invert(self, **kwargs: Any) -> Self:
+    def invert(self, **kwargs: Any) -> AbstractLUT:
         """
         Compute and returns an inverse copy of the *LUT*.
 
@@ -767,13 +763,12 @@ class AbstractLUT(ABC):
             Interpolated *RGB* colourspace array.
         """
 
-    @abstractmethod
     def convert(
         self,
-        cls: Type[Self],
+        cls: Type[AbstractLUT],
         force_conversion: bool = False,
         **kwargs: Any,
-    ) -> Self:
+    ) -> AbstractLUT:
         """
         Convert the *LUT* to given ``cls`` class instance.
 
@@ -810,6 +805,13 @@ class AbstractLUT(ABC):
             If the conversion is destructive.
         """
 
+        return LUT_to_LUT(
+            self,
+            cls,
+            force_conversion,
+            **kwargs,  # pyright: ignore
+        )
+
 
 class LUT1D(AbstractLUT):
     """
@@ -836,7 +838,6 @@ class LUT1D(AbstractLUT):
     -   :meth:`~colour.LUT1D.linear_table`
     -   :meth:`~colour.LUT1D.invert`
     -   :meth:`~colour.LUT1D.apply`
-    -   :meth:`~colour.LUT1D.convert`
 
     Examples
     --------
@@ -1010,7 +1011,7 @@ class LUT1D(AbstractLUT):
 
             return np.linspace(domain[0], domain[1], as_int_scalar(size))
 
-    def invert(self, **kwargs: Any) -> Self:  # noqa: ARG002
+    def invert(self, **kwargs: Any) -> LUT1D:  # noqa: ARG002
         """
         Compute and returns an inverse copy of the *LUT*.
 
@@ -1132,80 +1133,6 @@ class LUT1D(AbstractLUT):
 
         return RGB_interpolator(RGB)
 
-    def convert(
-        self,
-        cls: Type[AbstractLUT],
-        force_conversion: bool = False,
-        **kwargs: Any,
-    ) -> AbstractLUT:
-        """
-        Convert the *LUT* to given ``cls`` class instance.
-
-        Parameters
-        ----------
-        cls
-            *LUT* class instance.
-        force_conversion
-            Whether to force the conversion as it might be destructive.
-
-        Other Parameters
-        ----------------
-        interpolator
-            Interpolator class type to use as interpolating function.
-        interpolator_kwargs
-            Arguments to use when instantiating the interpolating function.
-        size
-            Expected table size in case of an upcast to a :class:`LUT3D` class
-            instance.
-
-        Returns
-        -------
-        :class:`colour.LUT1D` or :class:`colour.LUT3x1D` or \
-:class:`colour.LUT3D`
-            Converted *LUT* class instance.
-
-        Warnings
-        --------
-        Some conversions are destructive and raise a :class:`ValueError`
-        exception by default.
-
-        Raises
-        ------
-        ValueError
-            If the conversion is destructive.
-
-        Examples
-        --------
-        >>> LUT = LUT1D()
-        >>> print(LUT.convert(LUT1D))
-        LUT1D - Unity 10 - Converted 1D to 1D
-        -------------------------------------
-        <BLANKLINE>
-        Dimensions : 1
-        Domain     : [ 0.  1.]
-        Size       : (10,)
-        >>> print(LUT.convert(LUT3x1D))
-        LUT3x1D - Unity 10 - Converted 1D to 3x1D
-        -----------------------------------------
-        <BLANKLINE>
-        Dimensions : 2
-        Domain     : [[ 0.  0.  0.]
-                      [ 1.  1.  1.]]
-        Size       : (10, 3)
-        >>> print(LUT.convert(LUT3D, force_conversion=True))
-        LUT3D - Unity 10 - Converted 1D to 3D
-        -------------------------------------
-        <BLANKLINE>
-        Dimensions : 3
-        Domain     : [[ 0.  0.  0.]
-                      [ 1.  1.  1.]]
-        Size       : (33, 33, 33, 3)
-        """
-
-        return LUT_to_LUT(
-            self, cls, force_conversion, **kwargs  # pyright: ignore
-        )
-
     # ------------------------------------------------------------------------#
     # ---              API Changes and Deprecation Management              ---#
     # ------------------------------------------------------------------------#
@@ -1225,7 +1152,7 @@ class LUT1D(AbstractLUT):
             )
         )
 
-        return self.convert(cls, force_conversion, **kwargs)
+        return self.convert(cls, force_conversion, **kwargs)  # pyright: ignore
 
 
 class LUT3x1D(AbstractLUT):
@@ -1253,7 +1180,6 @@ class LUT3x1D(AbstractLUT):
     -   :meth:`~colour.LUT3x1D.linear_table`
     -   :meth:`~colour.LUT3x1D.invert`
     -   :meth:`~colour.LUT3x1D.apply`
-    -   :meth:`~colour.LUT3x1D.convert`
 
     Examples
     --------
@@ -1362,9 +1288,7 @@ class LUT3x1D(AbstractLUT):
             "The domain row count must be equal or greater than 2!",
         )
 
-        attest(
-            domain.shape[1] == 3, "The domain column count must be equal to 3!"
-        )
+        attest(domain.shape[1] == 3, "The domain column count must be equal to 3!")
 
         return domain
 
@@ -1434,9 +1358,7 @@ class LUT3x1D(AbstractLUT):
 
         Examples
         --------
-        >>> LUT3x1D.linear_table(
-        ...     5, np.array([[-0.1, -0.2, -0.4], [1.5, 3.0, 6.0]])
-        ... )
+        >>> LUT3x1D.linear_table(5, np.array([[-0.1, -0.2, -0.4], [1.5, 3.0, 6.0]]))
         array([[-0.1, -0.2, -0.4],
                [ 0.3,  0.6,  1.2],
                [ 0.7,  1.4,  2.8],
@@ -1474,15 +1396,12 @@ class LUT3x1D(AbstractLUT):
         if domain.shape != (2, 3):
             return domain
         else:
-            size_array = (
-                np.tile(size, 3) if is_numeric(size) else as_int_array(size)
-            )
+            size_array = np.tile(size, 3) if is_numeric(size) else as_int_array(size)
 
             R, G, B = tsplit(domain)
 
             samples = [
-                np.linspace(a[0], a[1], size_array[i])
-                for i, a in enumerate([R, G, B])
+                np.linspace(a[0], a[1], size_array[i]) for i, a in enumerate([R, G, B])
             ]
 
             if len(np.unique(size_array)) != 1:
@@ -1503,7 +1422,7 @@ class LUT3x1D(AbstractLUT):
 
             return tstack(samples)
 
-    def invert(self, **kwargs: Any) -> Self:  # noqa: ARG002
+    def invert(self, **kwargs: Any) -> LUT3x1D:  # noqa: ARG002
         """
         Compute and returns an inverse copy of the *LUT*.
 
@@ -1569,10 +1488,7 @@ class LUT3x1D(AbstractLUT):
             ]
         else:
             domain_min, domain_max = self.domain
-            domain = [
-                np.linspace(domain_min[i], domain_max[i], size)
-                for i in range(3)
-            ]
+            domain = [np.linspace(domain_min[i], domain_max[i], size) for i in range(3)]
 
         LUT_i = LUT3x1D(
             table=tstack(domain),
@@ -1669,8 +1585,7 @@ class LUT3x1D(AbstractLUT):
         else:
             domain_min, domain_max = LUT.domain
             samples = [
-                np.linspace(domain_min[i], domain_max[i], size)
-                for i in range(3)
+                np.linspace(domain_min[i], domain_max[i], size) for i in range(3)
             ]
             R_t, G_t, B_t = tsplit(LUT.table)
 
@@ -1685,80 +1600,6 @@ class LUT3x1D(AbstractLUT):
         ]
 
         return tstack(RGB_i)
-
-    def convert(
-        self,
-        cls: Type[AbstractLUT],
-        force_conversion: bool = False,
-        **kwargs: Any,
-    ) -> AbstractLUT:
-        """
-        Convert the *LUT* to given ``cls`` class instance.
-
-        Parameters
-        ----------
-        cls
-            *LUT* class instance.
-        force_conversion
-            Whether to force the conversion as it might be destructive.
-
-        Other Parameters
-        ----------------
-        interpolator
-            Interpolator class type to use as interpolating function.
-        interpolator_kwargs
-            Arguments to use when instantiating the interpolating function.
-        size
-            Expected table size in case of an upcast to a :class:`LUT3D` class
-            instance.
-
-        Returns
-        -------
-        :class:`colour.LUT1D` or :class:`colour.LUT3x1D` or \
-:class:`colour.LUT3D`
-            Converted *LUT* class instance.
-
-        Warnings
-        --------
-        Some conversions are destructive and raise a :class:`ValueError`
-        exception by default.
-
-        Raises
-        ------
-        ValueError
-            If the conversion is destructive.
-
-        Examples
-        --------
-        >>> LUT = LUT3x1D()
-        >>> print(LUT.convert(LUT1D, force_conversion=True))
-        LUT1D - Unity 10 - Converted 3x1D to 1D
-        ---------------------------------------
-        <BLANKLINE>
-        Dimensions : 1
-        Domain     : [ 0.  1.]
-        Size       : (10,)
-        >>> print(LUT.convert(LUT3x1D))
-        LUT3x1D - Unity 10 - Converted 3x1D to 3x1D
-        -------------------------------------------
-        <BLANKLINE>
-        Dimensions : 2
-        Domain     : [[ 0.  0.  0.]
-                      [ 1.  1.  1.]]
-        Size       : (10, 3)
-        >>> print(LUT.convert(LUT3D, force_conversion=True))
-        LUT3D - Unity 10 - Converted 3x1D to 3D
-        ---------------------------------------
-        <BLANKLINE>
-        Dimensions : 3
-        Domain     : [[ 0.  0.  0.]
-                      [ 1.  1.  1.]]
-        Size       : (33, 33, 33, 3)
-        """
-
-        return LUT_to_LUT(
-            self, cls, force_conversion, **kwargs  # pyright: ignore
-        )
 
     # ------------------------------------------------------------------------#
     # ---              API Changes and Deprecation Management              ---#
@@ -1779,7 +1620,7 @@ class LUT3x1D(AbstractLUT):
             )
         )
 
-        return self.convert(cls, force_conversion, **kwargs)
+        return self.convert(cls, force_conversion, **kwargs)  # pyright: ignore
 
 
 class LUT3D(AbstractLUT):
@@ -1807,7 +1648,6 @@ class LUT3D(AbstractLUT):
     -   :meth:`~colour.LUT3D.linear_table`
     -   :meth:`~colour.LUT3D.invert`
     -   :meth:`~colour.LUT3D.apply`
-    -   :meth:`~colour.LUT3D.convert`
 
     Examples
     --------
@@ -1919,9 +1759,7 @@ class LUT3D(AbstractLUT):
             "The domain row count must be equal or greater than 2!",
         )
 
-        attest(
-            domain.shape[1] == 3, "The domain column count must be equal to 3!"
-        )
+        attest(domain.shape[1] == 3, "The domain column count must be equal to 3!")
 
         return domain
 
@@ -1953,9 +1791,7 @@ class LUT3D(AbstractLUT):
         --------
         >>> LUT3D().is_domain_explicit()
         False
-        >>> domain = np.array(
-        ...     [[-0.1, -0.2, -0.4], [0.7, 1.4, 6.0], [1.5, 3.0, np.nan]]
-        ... )
+        >>> domain = np.array([[-0.1, -0.2, -0.4], [0.7, 1.4, 6.0], [1.5, 3.0, np.nan]])
         >>> LUT3D(domain=domain).is_domain_explicit()
         True
         """
@@ -1986,9 +1822,7 @@ class LUT3D(AbstractLUT):
 
         Examples
         --------
-        >>> LUT3D.linear_table(
-        ...     3, np.array([[-0.1, -0.2, -0.4], [1.5, 3.0, 6.0]])
-        ... )
+        >>> LUT3D.linear_table(3, np.array([[-0.1, -0.2, -0.4], [1.5, 3.0, 6.0]]))
         array([[[[-0.1, -0.2, -0.4],
                  [-0.1, -0.2,  2.8],
                  [-0.1, -0.2,  6. ]],
@@ -2058,9 +1892,7 @@ class LUT3D(AbstractLUT):
         <BLANKLINE>
                 [[ 1.5,  3. , -0.4],
                  [ 1.5,  3. ,  6. ]]]])
-        >>> domain = np.array(
-        ...     [[-0.1, -0.2, -0.4], [0.7, 1.4, 6.0], [1.5, 3.0, np.nan]]
-        ... )
+        >>> domain = np.array([[-0.1, -0.2, -0.4], [0.7, 1.4, 6.0], [1.5, 3.0, np.nan]])
         >>> LUT3D.linear_table(domain=domain)
         array([[[[-0.1, -0.2, -0.4],
                  [-0.1, -0.2,  6. ]],
@@ -2112,28 +1944,26 @@ class LUT3D(AbstractLUT):
             )
             size_array = as_int_array([len(axes) for axes in samples])
         else:
-            size_array = (
-                np.tile(size, 3) if is_numeric(size) else as_int_array(size)
-            )
+            size_array = np.tile(size, 3) if is_numeric(size) else as_int_array(size)
 
             R, G, B = tsplit(domain)
 
             size_array = np.flip(size_array, -1)
             samples = [
-                np.linspace(a[0], a[1], size_array[i])
-                for i, a in enumerate([B, G, R])
+                np.linspace(a[0], a[1], size_array[i]) for i, a in enumerate([B, G, R])
             ]
 
         table = np.flip(
-            np.transpose(np.meshgrid(*samples, indexing="ij")).reshape(
-                np.hstack([np.flip(size_array, -1), 3])
+            np.reshape(
+                np.transpose(np.meshgrid(*samples, indexing="ij")),
+                np.hstack([np.flip(size_array, -1), 3]),
             ),
             -1,
         )
 
         return table
 
-    def invert(self, **kwargs: Any) -> Self:
+    def invert(self, **kwargs: Any) -> LUT3D:
         """
         Compute and returns an inverse copy of the *LUT*.
 
@@ -2183,21 +2013,16 @@ class LUT3D(AbstractLUT):
 
         if self.is_domain_explicit():
             raise NotImplementedError(
-                'Inverting a "LUT3D" with an explicit domain is not '
-                "implemented!"
+                'Inverting a "LUT3D" with an explicit domain is not implemented!'
             )
 
-        interpolator = kwargs.get(
-            "interpolator", table_interpolation_trilinear
-        )
+        interpolator = kwargs.get("interpolator", table_interpolation_trilinear)
         extrapolate = kwargs.get("extrapolate", False)
         query_size = kwargs.get("query_size", 3)
 
         LUT = self.copy()
         source_size = LUT.size
-        target_size = kwargs.get(
-            "size", (as_int(2 ** (np.sqrt(source_size) + 1) + 1))
-        )
+        target_size = kwargs.get("size", (as_int(2 ** (np.sqrt(source_size) + 1) + 1)))
 
         if target_size > 129:  # pragma: no cover
             usage_warning("LUT3D inverse computation time could be excessive!")
@@ -2228,12 +2053,13 @@ class LUT3D(AbstractLUT):
         LUT_q = LUT3D(size=target_size, domain=LUT.domain)
         query = tree.query(table, query_size)[-1]
         if query_size == 1:
-            LUT_q.table = table[query].reshape(
-                [target_size, target_size, target_size, 3]
+            LUT_q.table = np.reshape(
+                table[query], (target_size, target_size, target_size, 3)
             )
         else:
-            LUT_q.table = np.mean(table[query], axis=-2).reshape(
-                [target_size, target_size, target_size, 3]
+            LUT_q.table = np.reshape(
+                np.mean(table[query], axis=-2),
+                (target_size, target_size, target_size, 3),
             )
 
         LUT_q.name = f"{self.name} - Inverse"
@@ -2306,9 +2132,7 @@ class LUT3D(AbstractLUT):
             kwargs.get("direction", "Forward"), ("Forward", "Inverse")
         )
 
-        interpolator = kwargs.get(
-            "interpolator", table_interpolation_trilinear
-        )
+        interpolator = kwargs.get("interpolator", table_interpolation_trilinear)
         interpolator_kwargs = kwargs.get("interpolator_kwargs", {})
 
         R, G, B = tsplit(RGB)
@@ -2340,80 +2164,6 @@ class LUT3D(AbstractLUT):
 
         return RGB_i
 
-    def convert(
-        self,
-        cls: Type[AbstractLUT],
-        force_conversion: bool = False,
-        **kwargs: Any,
-    ) -> AbstractLUT:
-        """
-        Convert the *LUT* to given ``cls`` class instance.
-
-        Parameters
-        ----------
-        cls
-            *LUT* class instance.
-        force_conversion
-            Whether to force the conversion as it might be destructive.
-
-        Other Parameters
-        ----------------
-        interpolator
-            Interpolator class type to use as interpolating function.
-        interpolator_kwargs
-            Arguments to use when instantiating the interpolating function.
-        size
-            Expected table size in case of a downcast from a :class:`LUT3D`
-            class instance.
-
-        Returns
-        -------
-        :class:`colour.LUT1D` or :class:`colour.LUT3x1D` or \
-:class:`colour.LUT3D`
-            Converted *LUT* class instance.
-
-        Warnings
-        --------
-        Some conversions are destructive and raise a :class:`ValueError`
-        exception by default.
-
-        Raises
-        ------
-        ValueError
-            If the conversion is destructive.
-
-        Examples
-        --------
-        >>> LUT = LUT3D()
-        >>> print(LUT.convert(LUT1D, force_conversion=True))
-        LUT1D - Unity 33 - Converted 3D to 1D
-        -------------------------------------
-        <BLANKLINE>
-        Dimensions : 1
-        Domain     : [ 0.  1.]
-        Size       : (10,)
-        >>> print(LUT.convert(LUT3x1D, force_conversion=True))
-        LUT3x1D - Unity 33 - Converted 3D to 3x1D
-        -----------------------------------------
-        <BLANKLINE>
-        Dimensions : 2
-        Domain     : [[ 0.  0.  0.]
-                      [ 1.  1.  1.]]
-        Size       : (10, 3)
-        >>> print(LUT.convert(LUT3D))
-        LUT3D - Unity 33 - Converted 3D to 3D
-        -------------------------------------
-        <BLANKLINE>
-        Dimensions : 3
-        Domain     : [[ 0.  0.  0.]
-                      [ 1.  1.  1.]]
-        Size       : (33, 33, 33, 3)
-        """
-
-        return LUT_to_LUT(
-            self, cls, force_conversion, **kwargs  # pyright: ignore
-        )
-
     # ------------------------------------------------------------------------#
     # ---              API Changes and Deprecation Management              ---#
     # ------------------------------------------------------------------------#
@@ -2433,12 +2183,12 @@ class LUT3D(AbstractLUT):
             )
         )
 
-        return self.convert(cls, force_conversion, **kwargs)
+        return self.convert(cls, force_conversion, **kwargs)  # pyright: ignore
 
 
 def LUT_to_LUT(
     LUT,
-    cls: LUT1D | LUT3x1D | LUT3D,
+    cls: Type[AbstractLUT],
     force_conversion: bool = False,
     **kwargs: Any,
 ) -> AbstractLUT:
@@ -2508,13 +2258,8 @@ def LUT_to_LUT(
 
     ranks = {LUT1D: 1, LUT3x1D: 2, LUT3D: 3}
     path = (ranks[LUT.__class__], ranks[cls])  # pyright: ignore
-    path_verbose = [
-        f"{element}D" if element != 2 else "3x1D" for element in path
-    ]
-    if (
-        path in ((1, 3), (2, 1), (2, 3), (3, 1), (3, 2))
-        and not force_conversion
-    ):
+    path_verbose = [f"{element}D" if element != 2 else "3x1D" for element in path]
+    if path in ((1, 3), (2, 1), (2, 3), (3, 1), (3, 2)) and not force_conversion:
         raise ValueError(
             f'Conversion of a "LUT" {path_verbose[0]} to a "LUT" '
             f"{path_verbose[1]} is destructive, please use the "
@@ -2533,9 +2278,7 @@ def LUT_to_LUT(
         if "size" in kwargs:
             del kwargs["size"]
 
-        channel_weights = as_float_array(
-            kwargs.get("channel_weights", full(3, 1 / 3))
-        )
+        channel_weights = as_float_array(kwargs.get("channel_weights", full(3, 1 / 3)))
         if "channel_weights" in kwargs:
             del kwargs["channel_weights"]
 

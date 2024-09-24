@@ -2,7 +2,7 @@
 Spectrum
 ========
 
-Defines the classes and objects handling spectral data computations:
+Define the classes and objects handling spectral data computations:
 
 -   :class:`colour.SPECTRAL_SHAPE_DEFAULT`
 -   :class:`colour.SpectralShape`
@@ -38,7 +38,7 @@ from colour.algebra import (
     sdiv,
     sdiv_mode,
 )
-from colour.constants import DEFAULT_FLOAT_DTYPE
+from colour.constants import DTYPE_FLOAT_DEFAULT
 from colour.continuous import MultiSignals, Signal
 from colour.hints import (
     TYPE_CHECKING,
@@ -66,10 +66,10 @@ from colour.utilities import (
     filter_kwargs,
     first_item,
     interval,
+    is_caching_enabled,
     is_iterable,
     is_numeric,
     is_pandas_installed,
-    is_string,
     is_uniform,
     optional,
     runtime_warning,
@@ -151,8 +151,8 @@ class SpectralShape:
     """
 
     def __init__(self, start: Real, end: Real, interval: Real) -> None:
-        self._start: Real = 360
-        self._end: Real = 780
+        self._start: Real = 0
+        self._end: Real = np.inf
         self._interval: Real = 1
         self.start = start
         self.end = end
@@ -187,8 +187,7 @@ class SpectralShape:
 
         attest(
             bool(value < self._end),
-            f'"start" attribute value must be strictly less than '
-            f'"{self._end}"!',
+            f'"start" attribute value must be strictly less than "{self._end}"!',
         )
 
         self._start = value
@@ -222,8 +221,7 @@ class SpectralShape:
 
         attest(
             bool(value > self._start),
-            f'"end" attribute value must be strictly greater than '
-            f'"{self._start}"!',
+            f'"end" attribute value must be strictly greater than "{self._start}"!',
         )
 
         self._end = value
@@ -283,8 +281,7 @@ class SpectralShape:
 
         attest(
             value.size == 2,
-            f'"boundaries" property: "{value}" must have exactly two '
-            f"elements!",
+            f'"boundaries" property: "{value}" must have exactly two elements!',
         )
 
         self.start, self.end = value
@@ -352,7 +349,6 @@ class SpectralShape:
         >>> shape = SpectralShape(0, 10, 1)
         >>> for wavelength in shape:
         ...     print(wavelength)
-        ...
         0.0
         1.0
         2.0
@@ -398,11 +394,11 @@ class SpectralShape:
         False
         """
 
-        decimals = np.finfo(cast(Any, DEFAULT_FLOAT_DTYPE)).precision
+        decimals = np.finfo(cast(Any, DTYPE_FLOAT_DEFAULT)).precision
 
         return bool(
             np.all(
-                np.in1d(
+                np.in1d(  # pyright: ignore
                     np.around(
                         wavelength,  # pyright: ignore
                         decimals,
@@ -483,9 +479,7 @@ class SpectralShape:
 
         return not (self == other)
 
-    def range(  # noqa: A003
-        self, dtype: Type[DTypeFloat] | None = None
-    ) -> NDArrayFloat:
+    def range(self, dtype: Type[DTypeFloat] | None = None) -> NDArrayFloat:
         """
         Return an iterable range for the spectral shape.
 
@@ -516,10 +510,10 @@ class SpectralShape:
                  9.9,  10. ])
         """
 
-        dtype = optional(dtype, DEFAULT_FLOAT_DTYPE)
+        dtype = optional(dtype, DTYPE_FLOAT_DEFAULT)
 
         hash_key = hash((self, dtype))
-        if hash_key in _CACHE_SHAPE_RANGE:
+        if is_caching_enabled() and hash_key in _CACHE_SHAPE_RANGE:
             return _CACHE_SHAPE_RANGE[hash_key].copy()
 
         start, end, interval = (
@@ -634,7 +628,6 @@ class SpectralDistribution(Signal):
     ... }
     >>> with numpy_print_options(suppress=True):
     ...     SpectralDistribution(data)  # doctest: +ELLIPSIS
-    ...
     SpectralDistribution([[ 500.    ,    0.0651],
                           [ 520.    ,    0.0705],
                           [ 540.    ,    0.0772],
@@ -652,7 +645,6 @@ class SpectralDistribution(Signal):
     >>> data[510] = 0.31416
     >>> with numpy_print_options(suppress=True):
     ...     SpectralDistribution(data)  # doctest: +ELLIPSIS
-    ...
     SpectralDistribution([[ 500.     ,    0.0651 ],
                           [ 510.     ,    0.31416],
                           [ 520.     ,    0.0705 ],
@@ -672,7 +664,6 @@ class SpectralDistribution(Signal):
     ...     from pandas import Series
     ...
     ...     print(SpectralDistribution(Series(data)))  # doctest: +SKIP
-    ...
     [[  5.0000000...e+02   6.5100000...e-02]
      [  5.2000000...e+02   7.0500000...e-02]
      [  5.4000000...e+02   7.7200000...e-02]
@@ -688,9 +679,7 @@ class SpectralDistribution(Signal):
         domain: ArrayLike | SpectralShape | None = None,
         **kwargs: Any,
     ) -> None:
-        domain = (
-            domain.wavelengths if isinstance(domain, SpectralShape) else domain
-        )
+        domain = domain.wavelengths if isinstance(domain, SpectralShape) else domain
 
         domain_unpacked, range_unpacked = self.signal_unpack_data(data, domain)
 
@@ -698,9 +687,11 @@ class SpectralDistribution(Signal):
         # defaults.
         kwargs["interpolator"] = kwargs.get(
             "interpolator",
-            SpragueInterpolator
-            if domain_unpacked.size != 0 and is_uniform(domain_unpacked)
-            else CubicSplineInterpolator,
+            (
+                SpragueInterpolator
+                if domain_unpacked.size != 0 and is_uniform(domain_unpacked)
+                else CubicSplineInterpolator
+            ),
         )
         kwargs["interpolator_kwargs"] = kwargs.get("interpolator_kwargs", {})
 
@@ -716,9 +707,7 @@ class SpectralDistribution(Signal):
 
         self._shape: SpectralShape | None = None
 
-        self.register_callback(
-            "_domain", "on_domain_changed", self._on_domain_changed
-        )
+        self.register_callback("_domain", "on_domain_changed", self._on_domain_changed)
 
     @staticmethod
     def _on_domain_changed(sd, name: str, value: NDArrayFloat) -> NDArrayFloat:
@@ -751,7 +740,7 @@ class SpectralDistribution(Signal):
         """Setter for the **self.display_name** property."""
 
         attest(
-            is_string(value),
+            isinstance(value, str),
             f'"display_name" property: "{value}" type is not "str"!',
         )
 
@@ -952,7 +941,6 @@ class SpectralDistribution(Signal):
         >>> with numpy_print_options(suppress=True):
         ...     print(sd.interpolate(SpectralShape(500, 600, 1)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 500.            0.0651   ...]
          [ 501.            0.0653522...]
          [ 502.            0.0656105...]
@@ -1063,7 +1051,6 @@ class SpectralDistribution(Signal):
         >>> with numpy_print_options(suppress=True):
         ...     print(sd.interpolate(SpectralShape(500, 600, 1)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 500.            0.0651   ...]
          [ 501.            0.1365202...]
          [ 502.            0.1953263...]
@@ -1187,13 +1174,8 @@ class SpectralDistribution(Signal):
 
         # Defining proper interpolation bounds.
         # TODO: Provide support for fractional interval like 0.1, etc...
-        if (
-            np.around(shape_start) != shape_start
-            or np.around(shape_end) != shape_end
-        ):
-            runtime_warning(
-                "Fractional bound encountered, rounding will occur!"
-            )
+        if np.around(shape_start) != shape_start or np.around(shape_end) != shape_end:
+            runtime_warning("Fractional bound encountered, rounding will occur!")
 
         shape.start = max([shape.start, np.ceil(shape_start)])
         shape.end = min([shape.end, np.floor(shape_end)])
@@ -1276,7 +1258,6 @@ class SpectralDistribution(Signal):
         SpectralShape(400.0, 700.0, 20.0)
         >>> with numpy_print_options(suppress=True):
         ...     print(sd)
-        ...
         [[ 400.        0.0651]
          [ 420.        0.0651]
          [ 440.        0.0651]
@@ -1306,8 +1287,7 @@ class SpectralDistribution(Signal):
         wavelengths = np.hstack(
             [
                 np.arange(shape.start, shape_start, shape_interval),
-                np.arange(shape_end, shape.end, shape_interval)
-                + shape_interval,
+                np.arange(shape_end, shape.end, shape_interval) + shape_interval,
             ]
         )
 
@@ -1409,7 +1389,6 @@ class SpectralDistribution(Signal):
         >>> with numpy_print_options(suppress=True):
         ...     print(sd.align(SpectralShape(505, 565, 1)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 505.            0.0663929...]
          [ 506.            0.0666509...]
          [ 507.            0.0669069...]
@@ -1508,7 +1487,6 @@ class SpectralDistribution(Signal):
         >>> with numpy_print_options(suppress=True):
         ...     print(sd.trim(SpectralShape(520, 580, 5)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 520.            0.0705   ...]
          [ 521.            0.0708155...]
          [ 522.            0.0711336...]
@@ -1575,9 +1553,7 @@ class SpectralDistribution(Signal):
         start = max([shape.start, self.shape.start])
         end = min([shape.end, self.shape.end])
 
-        indexes = np.where(
-            np.logical_and(self.domain >= start, self.domain <= end)
-        )
+        indexes = np.where(np.logical_and(self.domain >= start, self.domain <= end))
 
         wavelengths = self.wavelengths[indexes]
         values = self.values[indexes]
@@ -1620,7 +1596,6 @@ class SpectralDistribution(Signal):
         >>> sd = SpectralDistribution(data)
         >>> with numpy_print_options(suppress=True):
         ...     print(sd.normalise())  # doctest: +ELLIPSIS
-        ...
         [[ 500.            0.4786764...]
          [ 520.            0.5183823...]
          [ 540.            0.5676470...]
@@ -1838,32 +1813,26 @@ class MultiSpectralDistributions(MultiSignals):
 
     def __init__(
         self,
-        data: ArrayLike
-        | DataFrame
-        | dict
-        | MultiSignals
-        | Sequence
-        | Series
-        | Signal
-        | SpectralDistribution
-        | None = None,
+        data: (
+            ArrayLike
+            | DataFrame
+            | dict
+            | MultiSignals
+            | Sequence
+            | Series
+            | Signal
+            | SpectralDistribution
+            | None
+        ) = None,
         domain: ArrayLike | SpectralShape | None = None,
         labels: Sequence | None = None,
         **kwargs: Any,
     ) -> None:
-        domain = (
-            domain.wavelengths if isinstance(domain, SpectralShape) else domain
-        )
+        domain = domain.wavelengths if isinstance(domain, SpectralShape) else domain
         signals = self.multi_signals_unpack_data(data, domain, labels)
 
-        domain = (
-            signals[next(iter(signals.keys()))].domain if signals else None
-        )
-        uniform = (
-            is_uniform(domain)
-            if domain is not None and len(domain) > 0
-            else True
-        )
+        domain = signals[next(iter(signals.keys()))].domain if signals else None
+        uniform = is_uniform(domain) if domain is not None and len(domain) > 0 else True
 
         # Initialising with *CIE 15:2004* and *CIE 167:2005* recommendations
         # defaults.
@@ -1879,16 +1848,12 @@ class MultiSpectralDistributions(MultiSignals):
             {"method": "Constant", "left": None, "right": None},
         )
 
-        super().__init__(
-            signals, domain, signal_type=SpectralDistribution, **kwargs
-        )
+        super().__init__(signals, domain, signal_type=SpectralDistribution, **kwargs)
 
         self._display_name: str = self.name
         self.display_name = kwargs.get("display_name", self._display_name)
         self._display_labels: list = list(self.signals.keys())
-        self.display_labels = kwargs.get(
-            "display_labels", self._display_labels
-        )
+        self.display_labels = kwargs.get("display_labels", self._display_labels)
 
     @property
     def display_name(self) -> str:
@@ -1914,7 +1879,7 @@ class MultiSpectralDistributions(MultiSignals):
         """Setter for the **self.display_name** property."""
 
         attest(
-            is_string(value),
+            isinstance(value, str),
             f'"display_name" property: "{value}" type is not "str"!',
         )
 
@@ -1961,9 +1926,7 @@ class MultiSpectralDistributions(MultiSignals):
 
         self._display_labels = [str(label) for label in value]
         for i, signal in enumerate(self.signals.values()):
-            cast(
-                SpectralDistribution, signal
-            ).display_name = self._display_labels[i]
+            cast(SpectralDistribution, signal).display_name = self._display_labels[i]
 
     @property
     def wavelengths(self) -> NDArrayFloat:
@@ -2147,7 +2110,6 @@ class MultiSpectralDistributions(MultiSignals):
         >>> with numpy_print_options(suppress=True):
         ...     print(msds.interpolate(SpectralShape(500, 560, 1)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 500.            0.0049   ...    0.323    ...    0.272    ...]
          [ 501.            0.0043252...    0.3400642...    0.2599848...]
          [ 502.            0.0037950...    0.3572165...    0.2479849...]
@@ -2218,7 +2180,6 @@ class MultiSpectralDistributions(MultiSignals):
         >>> with numpy_print_options(suppress=True):
         ...     print(msds.interpolate(SpectralShape(500, 560, 1)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 500.            0.0049   ...    0.323    ...    0.272    ...]
          [ 501.            0.0300110...    0.9455153...    0.5985102...]
          [ 502.            0.0462136...    1.3563103...    0.8066498...]
@@ -2335,7 +2296,6 @@ class MultiSpectralDistributions(MultiSignals):
         SpectralShape(400.0, 700.0, 10.0)
         >>> with numpy_print_options(suppress=True):
         ...     print(msds)
-        ...
         [[ 400.         0.0049     0.323      0.272  ]
          [ 410.         0.0049     0.323      0.272  ]
          [ 420.         0.0049     0.323      0.272  ]
@@ -2454,7 +2414,6 @@ class MultiSpectralDistributions(MultiSignals):
         >>> with numpy_print_options(suppress=True):
         ...     print(msds.align(SpectralShape(505, 565, 1)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 505.            0.0031582...    0.4091067...    0.2126801...]
          [ 506.            0.0035019...    0.4268629...    0.2012748...]
          [ 507.            0.0042365...    0.4450668...    0.1900968...]
@@ -2560,7 +2519,6 @@ class MultiSpectralDistributions(MultiSignals):
         >>> with numpy_print_options(suppress=True):
         ...     print(msds.trim(SpectralShape(520, 580, 5)))
         ... # doctest: +ELLIPSIS
-        ...
         [[ 520.            0.06327  ...    0.71     ...    0.07825  ...]
          [ 521.            0.0715642...    0.7283456...    0.0728614...]
          [ 522.            0.0803970...    0.7459679...    0.0680051...]
@@ -2644,7 +2602,6 @@ class MultiSpectralDistributions(MultiSignals):
         >>> msds = MultiSpectralDistributions(data)
         >>> with numpy_print_options(suppress=True):
         ...     print(msds.normalise())  # doctest: +ELLIPSIS
-        ...
         [[ 500.            0.0082422...    0.3246231...    1.       ...]
          [ 510.            0.0156434...    0.5055276...    0.5816176...]
          [ 520.            0.1064255...    0.7135678...    0.2876838...]
@@ -2685,7 +2642,6 @@ class MultiSpectralDistributions(MultiSignals):
         >>> with numpy_print_options(suppress=True):
         ...     for sd in msds.to_sds():
         ...         print(sd)  # doctest: +ELLIPSIS
-        ...
         [[ 500.         0.0049 ...]
          [ 510.         0.0093 ...]
          [ 520.         0.06327...]
@@ -2786,8 +2742,7 @@ TypeSpectralDistribution = TypeVar(
 def reshape_sd(
     sd: TypeSpectralDistribution,
     shape: SpectralShape = SPECTRAL_SHAPE_DEFAULT,
-    method: Literal["Align", "Extrapolate", "Interpolate", "Trim"]
-    | str = "Align",
+    method: (Literal["Align", "Extrapolate", "Interpolate", "Trim"] | str) = "Align",
     copy: bool = True,
     **kwargs: Any,
 ) -> TypeSpectralDistribution:
@@ -2839,15 +2794,13 @@ def reshape_sd(
 
     hash_key = hash((sd, shape, method, tuple(kwargs_items)))
 
-    if hash_key in _CACHE_RESHAPED_SDS_AND_MSDS:
+    if is_caching_enabled() and hash_key in _CACHE_RESHAPED_SDS_AND_MSDS:
         reshaped_sd = _CACHE_RESHAPED_SDS_AND_MSDS[hash_key]
         return reshaped_sd.copy() if copy else reshaped_sd
 
     function = getattr(sd, method)
 
-    reshaped_sd = getattr(sd.copy(), method)(
-        shape, **filter_kwargs(function, **kwargs)
-    )
+    reshaped_sd = getattr(sd.copy(), method)(shape, **filter_kwargs(function, **kwargs))
 
     _CACHE_RESHAPED_SDS_AND_MSDS[hash_key] = reshaped_sd
 
@@ -2862,8 +2815,7 @@ TypeMultiSpectralDistributions = TypeVar(
 def reshape_msds(
     msds: TypeMultiSpectralDistributions,
     shape: SpectralShape = SPECTRAL_SHAPE_DEFAULT,
-    method: Literal["Align", "Extrapolate", "Interpolate", "Trim"]
-    | str = "Align",
+    method: (Literal["Align", "Extrapolate", "Interpolate", "Trim"] | str) = "Align",
     copy: bool = True,
     **kwargs: Any,
 ) -> TypeMultiSpectralDistributions:
@@ -2908,9 +2860,11 @@ def reshape_msds(
 
 
 def sds_and_msds_to_sds(
-    sds: Sequence[SpectralDistribution | MultiSpectralDistributions]
-    | SpectralDistribution
-    | MultiSpectralDistributions,
+    sds: (
+        Sequence[SpectralDistribution | MultiSpectralDistributions]
+        | SpectralDistribution
+        | MultiSpectralDistributions
+    ),
 ) -> List[SpectralDistribution]:
     """
     Convert given spectral and multi-spectral distributions to a list of
@@ -2962,18 +2916,18 @@ def sds_and_msds_to_sds(
         sds_converted = []
         for sd in sds:
             sds_converted += (
-                sd.to_sds()
-                if isinstance(sd, MultiSpectralDistributions)
-                else [sd]
+                sd.to_sds() if isinstance(sd, MultiSpectralDistributions) else [sd]
             )
 
     return sds_converted
 
 
 def sds_and_msds_to_msds(
-    sds: Sequence[SpectralDistribution | MultiSpectralDistributions]
-    | SpectralDistribution
-    | MultiSpectralDistributions,
+    sds: (
+        Sequence[SpectralDistribution | MultiSpectralDistributions]
+        | SpectralDistribution
+        | MultiSpectralDistributions
+    ),
 ) -> MultiSpectralDistributions:
     """
     Convert given spectral and multi-spectral distributions to
@@ -3073,12 +3027,10 @@ def sds_and_msds_to_msds(
         display_labels = []
         for sd in sds_converted:
             if sd.shape != shape:
-                sd = sd.align(shape)  # noqa: PLW2901
+                sd = sd.copy().align(shape)  # noqa: PLW2901
 
             values.append(sd.values)
-            labels.append(
-                sd.name if sd.name not in labels else f"{sd.name} ({id(sd)})"
-            )
+            labels.append(sd.name if sd.name not in labels else f"{sd.name} ({id(sd)})")
             display_labels.append(
                 sd.display_name
                 if sd.display_name not in display_labels

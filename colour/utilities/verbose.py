@@ -2,12 +2,13 @@
 Verbose
 =======
 
-Defines the verbose related objects.
+Define the verbose related objects.
 """
 
 from __future__ import annotations
 
 import functools
+import logging
 import os
 import sys
 import traceback
@@ -23,16 +24,17 @@ import numpy as np
 from colour.hints import (
     Any,
     Callable,
+    ClassVar,
     Dict,
     Generator,
     List,
+    Literal,
     LiteralWarning,
     Mapping,
     TextIO,
     Type,
     cast,
 )
-from colour.utilities import is_string, optional
 
 __author__ = "Colour Developers"
 __copyright__ = "Copyright 2013 Colour Developers"
@@ -42,6 +44,8 @@ __email__ = "colour-developers@colour-science.org"
 __status__ = "Production"
 
 __all__ = [
+    "LOGGER",
+    "MixinLogging",
     "ColourWarning",
     "ColourUsageWarning",
     "ColourRuntimeWarning",
@@ -51,6 +55,7 @@ __all__ = [
     "runtime_warning",
     "usage_warning",
     "filter_warnings",
+    "as_bool",
     "suppress_warnings",
     "suppress_stdout",
     "numpy_print_options",
@@ -62,6 +67,58 @@ __all__ = [
     "multiline_str",
     "multiline_repr",
 ]
+
+LOGGER = logging.getLogger(__name__)
+
+
+class MixinLogging:
+    """
+    A mixin providing a convenient logging method.
+
+    Attributes
+    ----------
+    -   :func:`~colour.utilities.MixinLogging.MAPPING_LOGGING_LEVEL_TO_CALLABLE`
+
+    Methods
+    -------
+    -   :func:`~colour.utilities.MixinLogging.log`
+    """
+
+    MAPPING_LOGGING_LEVEL_TO_CALLABLE: ClassVar = {  # pyright: ignore
+        "critical": LOGGER.critical,
+        "error": LOGGER.error,
+        "warning": LOGGER.warning,
+        "info": LOGGER.info,
+        "debug": LOGGER.debug,
+    }
+
+    def log(
+        self,
+        message: str,
+        verbosity: Literal[
+            "critical",
+            "error",
+            "warning",
+            "info",
+            "debug",
+        ] = "info",
+    ) -> None:
+        """
+        Log given message using given verbosity level.
+
+        Parameters
+        ----------
+        message
+            Message to log.
+        verbosity
+            Verbosity level.
+        """
+
+        self.MAPPING_LOGGING_LEVEL_TO_CALLABLE[verbosity](  # pyright: ignore
+            "%s: %s",
+            self.name,  # pyright: ignore
+            message,
+        )
 
 
 class ColourWarning(Warning):
@@ -210,7 +267,7 @@ def show_warning(
 
     frame_range = (1, None)
 
-    file = optional(file, sys.stderr)
+    file = file if file is None else sys.stderr
     if file is None:
         return
 
@@ -341,7 +398,7 @@ def filter_warnings(
         Whether to filter *Colour* warnings, this also filters *Colour* usage
         and runtime warnings according to the action value.
     python_warnings
-        Whether to filter *Python* warnings  according to the action value.
+        Whether to filter *Python* warnings according to the action value.
 
     Examples
     --------
@@ -383,7 +440,7 @@ def filter_warnings(
         if action is None:
             continue
 
-        if is_string(action):
+        if isinstance(action, str):
             action = cast(LiteralWarning, str(action))  # noqa: PLW2901
         else:
             action = "ignore" if action else "default"  # noqa: PLW2901
@@ -391,8 +448,74 @@ def filter_warnings(
         filterwarnings(action, category=category)
 
 
+def as_bool(a: str) -> bool:
+    """
+    Convert given string to bool.
+
+    The following string values evaluate to *True*: "1", "On", and "True".
+
+    Parameters
+    ----------
+    a
+        String to convert to bool.
+
+    Returns
+    -------
+    :class:`bool`
+        Whether the given string is *True*.
+
+    Examples
+    --------
+    >>> as_bool("1")
+    True
+    >>> as_bool("On")
+    True
+    >>> as_bool("True")
+    True
+    >>> as_bool("0")
+    False
+    >>> as_bool("Off")
+    False
+    >>> as_bool("False")
+    False
+    """
+
+    return a.lower() in ["1", "on", "true"]
+
+
 # Defaulting to filter *Colour* runtime warnings.
-filter_warnings(colour_runtime_warnings=True)
+filter_warnings(
+    colour_runtime_warnings=as_bool(
+        os.environ.get("COLOUR_SCIENCE__FILTER_RUNTIME_WARNINGS", "True")
+    )
+)
+
+if (
+    os.environ.get("COLOUR_SCIENCE__FILTER_USAGE_WARNINGS") is not None
+):  # pragma: no cover
+    filter_warnings(
+        colour_usage_warnings=as_bool(
+            os.environ["COLOUR_SCIENCE__FILTER_USAGE_WARNINGS"]
+        )
+    )
+
+if (
+    os.environ.get("COLOUR_SCIENCE__FILTER_COLOUR_WARNINGS") is not None
+):  # pragma: no cover
+    filter_warnings(
+        colour_usage_warnings=as_bool(
+            os.environ["COLOUR_SCIENCE__FILTER_WARNINGS"],
+        )
+    )
+
+if (
+    os.environ.get("COLOUR_SCIENCE__FILTER_PYTHON_WARNINGS") is not None
+):  # pragma: no cover
+    filter_warnings(
+        colour_usage_warnings=as_bool(
+            os.environ["COLOUR_SCIENCE__FILTER_PYTHON_WARNINGS"]
+        )
+    )
 
 
 @contextmanager
@@ -460,7 +583,6 @@ class suppress_stdout:
     --------
     >>> with suppress_stdout():
     ...     print("Hello World!")
-    ...
     >>> print("Hello World!")
     Hello World!
     """
@@ -479,7 +601,7 @@ class suppress_stdout:
         sys.stdout.close()
         sys.stdout = self._stdout
 
-    def __call__(self, function: Callable) -> Callable:
+    def __call__(self, function: Callable) -> Callable:  # pragma: no cover
         """Call the wrapped definition."""
 
         @functools.wraps(function)
@@ -732,6 +854,9 @@ def describe_environment(
         mapping = {
             "biblib.bib": "biblib-simple",
             "pre_commit": "pre-commit",
+            "pydata_sphinx_theme": "pydata-sphinx-theme",
+            "pytest_cov": "pytest-cov",
+            "pytest_xdist": "pytest-xdist",
             "restructuredtext_lint": "restructuredtext-lint",
             "sphinxcontrib.bibtex": "sphinxcontrib-bibtex",
         }
@@ -739,20 +864,18 @@ def describe_environment(
             "biblib.bib",
             "coverage",
             "coveralls",
-            "flake8",
             "invoke",
             "jupyter",
-            "mock",
-            "nose",
             "pre_commit",
+            "pydata_sphinx_theme",
+            "pyright",
             "pytest",
+            "pytest_cov",
+            "pytest_xdist",
             "restructuredtext_lint",
-            "sphinx",
-            "sphinx_rtd_theme",
             "sphinxcontrib.bibtex",
             "toml",
             "twine",
-            "yapf",
         ]:
             try:
                 version = _get_package_version(package, mapping)
@@ -795,7 +918,7 @@ def describe_environment(
                 lines = value.split("\n")
                 message += f"    {key} : {lines.pop(0)}\n"
                 indentation = len(f"    {key} : ")
-                for line in lines:
+                for line in lines:  # pragma: no cover
                     message += f"{' ' * indentation}{line}\n"
 
             message += "\n"
@@ -868,7 +991,6 @@ def multiline_str(
     ...                 },
     ...             ],
     ...         )
-    ...
     >>> print(Data("Foo", 1, ["John", "Doe"]))
     Object - Data
     =============
@@ -908,7 +1030,7 @@ def multiline_str(
                 and not attribute.get("section")
             )
         )
-    except ValueError:
+    except ValueError:  # pragma: no cover
         justify = 0
 
     representation = []
@@ -917,9 +1039,7 @@ def multiline_str(
 
         if not attribute["line_break"]:
             if attribute["name"] is not None:
-                formatted = attribute["formatter"](
-                    getattr(object_, attribute["name"])
-                )
+                formatted = attribute["formatter"](getattr(object_, attribute["name"]))
             else:
                 formatted = attribute["formatter"](None)
 
@@ -931,9 +1051,7 @@ def multiline_str(
                 lines = formatted.splitlines()
                 if len(lines) > 1:
                     for i, line in enumerate(lines[1:]):
-                        lines[
-                            i + 1
-                        ] = f"{'':{justify}}{' ' * len(separator)}{line}"
+                        lines[i + 1] = f"{'':{justify}}{' ' * len(separator)}{line}"
                 formatted = "\n".join(lines)
 
                 representation.append(
@@ -947,14 +1065,10 @@ def multiline_str(
                 representation.append(f"{formatted}")
 
             if attribute["header"]:
-                representation.append(
-                    header_underline * len(representation[-1])
-                )
+                representation.append(header_underline * len(representation[-1]))
 
             if attribute["section"]:
-                representation.append(
-                    section_underline * len(representation[-1])
-                )
+                representation.append(section_underline * len(representation[-1]))
         else:
             representation.append("")
 
@@ -1005,7 +1119,6 @@ def multiline_repr(
     ...                 },
     ...             ],
     ...         )
-    ...
     >>> Data("Foo", 1, ["John", "Doe"])
     Data('Foo',
          1,
@@ -1050,4 +1163,4 @@ def multiline_repr(
 
         representation.append(f"{'':{justify}}{_format(attribute)}")
 
-    return "{})".format(",\n".join(representation))
+    return "{})".format(",\n".join(representation))  # noqa: flynt

@@ -3,10 +3,10 @@ Define the unit tests for the
 :mod:`colour.models.rgb.transfer_functions.itut_h_273` module.
 """
 
-import unittest
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.models.rgb.transfer_functions import (
     eotf_H273_ST428_1,
     eotf_inverse_H273_ST428_1,
@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 
-class TestOetf_H273_Log(unittest.TestCase):
+class TestOetf_H273_Log:
     """
         Define :func:`colour.models.rgb.transfer_functions.itut_h_273.
     oetf_H273_Log` definition unit tests methods.
@@ -50,13 +50,19 @@ class TestOetf_H273_Log(unittest.TestCase):
 oetf_H273_Log` definition.
         """
 
-        self.assertAlmostEqual(oetf_H273_Log(0.0), 0.0, places=7)
-
-        self.assertAlmostEqual(
-            oetf_H273_Log(0.18), 0.627636252551653, places=7
+        np.testing.assert_allclose(
+            oetf_H273_Log(0.0), 0.0, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-        self.assertAlmostEqual(oetf_H273_Log(1.0), 1.0, places=7)
+        np.testing.assert_allclose(
+            oetf_H273_Log(0.18),
+            0.627636252551653,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            oetf_H273_Log(1.0), 1.0, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     def test_n_dimensional_oetf_H273_Log(self):
         """
@@ -69,15 +75,15 @@ oetf_H273_Log` definition n-dimensional arrays support.
 
         E = np.tile(E, 6)
         E_p = np.tile(E_p, 6)
-        np.testing.assert_array_almost_equal(oetf_H273_Log(E), E_p, decimal=7)
+        np.testing.assert_allclose(oetf_H273_Log(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS)
 
         E = np.reshape(E, (2, 3))
         E_p = np.reshape(E_p, (2, 3))
-        np.testing.assert_array_almost_equal(oetf_H273_Log(E), E_p, decimal=7)
+        np.testing.assert_allclose(oetf_H273_Log(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS)
 
         E = np.reshape(E, (2, 3, 1))
         E_p = np.reshape(E_p, (2, 3, 1))
-        np.testing.assert_array_almost_equal(oetf_H273_Log(E), E_p, decimal=7)
+        np.testing.assert_allclose(oetf_H273_Log(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS)
 
     def test_domain_range_scale_oetf_H273_Log(self):
         """
@@ -91,8 +97,10 @@ oetf_H273_Log` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    oetf_H273_Log(E * factor), E_p * factor, decimal=7
+                np.testing.assert_allclose(
+                    oetf_H273_Log(E * factor),
+                    E_p * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -105,7 +113,7 @@ oetf_H273_Log` definition nan support.
         oetf_H273_Log(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
 
 
-class TestOetf_inverse_H273_Log(unittest.TestCase):
+class TestOetf_inverse_H273_Log:
     """
     Define :func:`colour.models.rgb.transfer_functions.itut_h_273.\
 oetf_inverse_H273_Log` definition unit tests methods.
@@ -119,13 +127,19 @@ oetf_inverse_H273_Log` definition.
 
         # NOTE: The function is unfortunately clamped and cannot roundtrip
         # properly.
-        self.assertAlmostEqual(oetf_inverse_H273_Log(0.0), 0.01, places=7)
-
-        self.assertAlmostEqual(
-            oetf_inverse_H273_Log(0.627636252551653), 0.18, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_Log(0.0), 0.01, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-        self.assertAlmostEqual(oetf_inverse_H273_Log(1.0), 1.0, places=7)
+        np.testing.assert_allclose(
+            oetf_inverse_H273_Log(0.627636252551653),
+            0.18,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            oetf_inverse_H273_Log(1.0), 1.0, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     def test_n_dimensional_oetf_inverse_H273_Log(self):
         """
@@ -138,20 +152,20 @@ oetf_inverse_H273_Log` definition n-dimensional arrays support.
 
         E_p = np.tile(E_p, 6)
         E = np.tile(E, 6)
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_Log(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_Log(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3))
         E = np.reshape(E, (2, 3))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_Log(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_Log(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3, 1))
         E = np.reshape(E, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_Log(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_Log(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_oetf_inverse_H273_Log(self):
@@ -166,8 +180,10 @@ oetf_inverse_H273_Log` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    oetf_inverse_H273_Log(E_p * factor), E * factor, decimal=7
+                np.testing.assert_allclose(
+                    oetf_inverse_H273_Log(E_p * factor),
+                    E * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -177,12 +193,10 @@ oetf_inverse_H273_Log` definition domain and range scale support.
 oetf_inverse_H273_Log` definition nan support.
         """
 
-        oetf_inverse_H273_Log(
-            np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan])
-        )
+        oetf_inverse_H273_Log(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
 
 
-class TestOetf_H273_LogSqrt(unittest.TestCase):
+class TestOetf_H273_LogSqrt:
     """
         Define :func:`colour.models.rgb.transfer_functions.itut_h_273.
     oetf_H273_LogSqrt` definition unit tests methods.
@@ -194,13 +208,19 @@ class TestOetf_H273_LogSqrt(unittest.TestCase):
 oetf_H273_LogSqrt` definition.
         """
 
-        self.assertAlmostEqual(oetf_H273_LogSqrt(0.0), 0.0, places=7)
-
-        self.assertAlmostEqual(
-            oetf_H273_LogSqrt(0.18), 0.702109002041322, places=7
+        np.testing.assert_allclose(
+            oetf_H273_LogSqrt(0.0), 0.0, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-        self.assertAlmostEqual(oetf_H273_LogSqrt(1.0), 1.0, places=7)
+        np.testing.assert_allclose(
+            oetf_H273_LogSqrt(0.18),
+            0.702109002041322,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            oetf_H273_LogSqrt(1.0), 1.0, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     def test_n_dimensional_oetf_H273_LogSqrt(self):
         """
@@ -213,20 +233,20 @@ oetf_H273_LogSqrt` definition n-dimensional arrays support.
 
         E = np.tile(E, 6)
         E_p = np.tile(E_p, 6)
-        np.testing.assert_array_almost_equal(
-            oetf_H273_LogSqrt(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            oetf_H273_LogSqrt(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E = np.reshape(E, (2, 3))
         E_p = np.reshape(E_p, (2, 3))
-        np.testing.assert_array_almost_equal(
-            oetf_H273_LogSqrt(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            oetf_H273_LogSqrt(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E = np.reshape(E, (2, 3, 1))
         E_p = np.reshape(E_p, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            oetf_H273_LogSqrt(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            oetf_H273_LogSqrt(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_oetf_H273_LogSqrt(self):
@@ -241,8 +261,10 @@ oetf_H273_LogSqrt` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    oetf_H273_LogSqrt(E * factor), E_p * factor, decimal=7
+                np.testing.assert_allclose(
+                    oetf_H273_LogSqrt(E * factor),
+                    E_p * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -255,7 +277,7 @@ oetf_H273_LogSqrt` definition nan support.
         oetf_H273_LogSqrt(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
 
 
-class TestOetf_inverse_H273_LogSqrt(unittest.TestCase):
+class TestOetf_inverse_H273_LogSqrt:
     """
     Define :func:`colour.models.rgb.transfer_functions.itut_h_273.\
 oetf_inverse_H273_LogSqrt` definition unit tests methods.
@@ -269,15 +291,21 @@ oetf_inverse_H273_LogSqrt` definition.
 
         # NOTE: The function is unfortunately clamped and cannot roundtrip
         # properly.
-        self.assertAlmostEqual(
-            oetf_inverse_H273_LogSqrt(0.0), 0.003162277660168, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_LogSqrt(0.0),
+            0.003162277660168,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
-            oetf_inverse_H273_LogSqrt(0.702109002041322), 0.18, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_LogSqrt(0.702109002041322),
+            0.18,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(oetf_inverse_H273_LogSqrt(1.0), 1.0, places=7)
+        np.testing.assert_allclose(
+            oetf_inverse_H273_LogSqrt(1.0), 1.0, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     def test_n_dimensional_oetf_inverse_H273_LogSqrt(self):
         """
@@ -290,20 +318,20 @@ oetf_inverse_H273_LogSqrt` definition n-dimensional arrays support.
 
         E_p = np.tile(E_p, 6)
         E = np.tile(E, 6)
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_LogSqrt(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_LogSqrt(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3))
         E = np.reshape(E, (2, 3))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_LogSqrt(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_LogSqrt(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3, 1))
         E = np.reshape(E, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_LogSqrt(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_LogSqrt(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_oetf_inverse_H273_LogSqrt(self):
@@ -318,10 +346,10 @@ oetf_inverse_H273_LogSqrt` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     oetf_inverse_H273_LogSqrt(E_p * factor),
                     E * factor,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -331,12 +359,10 @@ oetf_inverse_H273_LogSqrt` definition domain and range scale support.
 oetf_inverse_H273_LogSqrt` definition nan support.
         """
 
-        oetf_inverse_H273_LogSqrt(
-            np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan])
-        )
+        oetf_inverse_H273_LogSqrt(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
 
 
-class TestOetf_H273_IEC61966_2(unittest.TestCase):
+class TestOetf_H273_IEC61966_2:
     """
         Define :func:`colour.models.rgb.transfer_functions.itut_h_273.
     oetf_H273_IEC61966_2` definition unit tests methods.
@@ -348,17 +374,25 @@ class TestOetf_H273_IEC61966_2(unittest.TestCase):
 oetf_H273_IEC61966_2` definition.
         """
 
-        self.assertAlmostEqual(
-            oetf_H273_IEC61966_2(-0.18), -0.461356129500442, places=7
+        np.testing.assert_allclose(
+            oetf_H273_IEC61966_2(-0.18),
+            -0.461356129500442,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(oetf_H273_IEC61966_2(0.0), 0.0, places=7)
-
-        self.assertAlmostEqual(
-            oetf_H273_IEC61966_2(0.18), 0.461356129500442, places=7
+        np.testing.assert_allclose(
+            oetf_H273_IEC61966_2(0.0), 0.0, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-        self.assertAlmostEqual(oetf_H273_IEC61966_2(1.0), 1.0, places=7)
+        np.testing.assert_allclose(
+            oetf_H273_IEC61966_2(0.18),
+            0.461356129500442,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            oetf_H273_IEC61966_2(1.0), 1.0, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     def test_n_dimensional_oetf_H273_IEC61966_2(self):
         """
@@ -371,20 +405,20 @@ oetf_H273_IEC61966_2` definition n-dimensional arrays support.
 
         E = np.tile(E, 6)
         E_p = np.tile(E_p, 6)
-        np.testing.assert_array_almost_equal(
-            oetf_H273_IEC61966_2(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            oetf_H273_IEC61966_2(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E = np.reshape(E, (2, 3))
         E_p = np.reshape(E_p, (2, 3))
-        np.testing.assert_array_almost_equal(
-            oetf_H273_IEC61966_2(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            oetf_H273_IEC61966_2(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E = np.reshape(E, (2, 3, 1))
         E_p = np.reshape(E_p, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            oetf_H273_IEC61966_2(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            oetf_H273_IEC61966_2(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_oetf_H273_IEC61966_2(self):
@@ -399,8 +433,10 @@ oetf_H273_IEC61966_2` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    oetf_H273_IEC61966_2(E * factor), E_p * factor, decimal=7
+                np.testing.assert_allclose(
+                    oetf_H273_IEC61966_2(E * factor),
+                    E_p * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -410,12 +446,10 @@ oetf_H273_IEC61966_2` definition domain and range scale support.
 oetf_H273_IEC61966_2` definition nan support.
         """
 
-        oetf_H273_IEC61966_2(
-            np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan])
-        )
+        oetf_H273_IEC61966_2(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
 
 
-class TestOetf_inverse_H273_IEC61966_2(unittest.TestCase):
+class TestOetf_inverse_H273_IEC61966_2:
     """
     Define :func:`colour.models.rgb.transfer_functions.itut_h_273.\
 oetf_inverse_H273_IEC61966_2` definition unit tests methods.
@@ -427,20 +461,28 @@ oetf_inverse_H273_IEC61966_2` definition unit tests methods.
 oetf_inverse_H273_IEC61966_2` definition.
         """
 
-        self.assertAlmostEqual(
-            oetf_inverse_H273_IEC61966_2(-0.461356129500442), -0.18, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_IEC61966_2(-0.461356129500442),
+            -0.18,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
-            oetf_inverse_H273_IEC61966_2(0.0), 0.0, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_IEC61966_2(0.0),
+            0.0,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
-            oetf_inverse_H273_IEC61966_2(0.461356129500442), 0.18, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_IEC61966_2(0.461356129500442),
+            0.18,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(
-            oetf_inverse_H273_IEC61966_2(1.0), 1.0, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_IEC61966_2(1.0),
+            1.0,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_oetf_inverse_H273_IEC61966_2(self):
@@ -454,20 +496,20 @@ oetf_inverse_H273_IEC61966_2` definition n-dimensional arrays support.
 
         E_p = np.tile(E_p, 6)
         E = np.tile(E, 6)
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_IEC61966_2(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_IEC61966_2(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3))
         E = np.reshape(E, (2, 3))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_IEC61966_2(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_IEC61966_2(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3, 1))
         E = np.reshape(E, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_H273_IEC61966_2(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_H273_IEC61966_2(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_oetf_inverse_H273_IEC61966_2(self):
@@ -482,10 +524,10 @@ oetf_inverse_H273_IEC61966_2` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     oetf_inverse_H273_IEC61966_2(E_p * factor),
                     E * factor,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -500,7 +542,7 @@ oetf_inverse_H273_IEC61966_2` definition nan support.
         )
 
 
-class TestEotf_inverse_H273_ST428_1(unittest.TestCase):
+class TestEotf_inverse_H273_ST428_1:
     """
         Define :func:`colour.models.rgb.transfer_functions.itut_h_273.
     eotf_inverse_H273_ST428_1` definition unit tests methods.
@@ -512,14 +554,20 @@ class TestEotf_inverse_H273_ST428_1(unittest.TestCase):
 eotf_inverse_H273_ST428_1` definition.
         """
 
-        self.assertAlmostEqual(eotf_inverse_H273_ST428_1(0.0), 0.0, places=7)
-
-        self.assertAlmostEqual(
-            eotf_inverse_H273_ST428_1(0.18), 0.500048337717236, places=7
+        np.testing.assert_allclose(
+            eotf_inverse_H273_ST428_1(0.0), 0.0, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-        self.assertAlmostEqual(
-            eotf_inverse_H273_ST428_1(1.0), 0.967042675317934, places=7
+        np.testing.assert_allclose(
+            eotf_inverse_H273_ST428_1(0.18),
+            0.500048337717236,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            eotf_inverse_H273_ST428_1(1.0),
+            0.967042675317934,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_eotf_inverse_H273_ST428_1(self):
@@ -533,20 +581,20 @@ eotf_inverse_H273_ST428_1` definition n-dimensional arrays support.
 
         E = np.tile(E, 6)
         E_p = np.tile(E_p, 6)
-        np.testing.assert_array_almost_equal(
-            eotf_inverse_H273_ST428_1(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            eotf_inverse_H273_ST428_1(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E = np.reshape(E, (2, 3))
         E_p = np.reshape(E_p, (2, 3))
-        np.testing.assert_array_almost_equal(
-            eotf_inverse_H273_ST428_1(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            eotf_inverse_H273_ST428_1(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E = np.reshape(E, (2, 3, 1))
         E_p = np.reshape(E_p, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            eotf_inverse_H273_ST428_1(E), E_p, decimal=7
+        np.testing.assert_allclose(
+            eotf_inverse_H273_ST428_1(E), E_p, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_eotf_inverse_H273_ST428_1(self):
@@ -561,10 +609,10 @@ eotf_inverse_H273_ST428_1` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     eotf_inverse_H273_ST428_1(E * factor),
                     E_p * factor,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -574,12 +622,10 @@ eotf_inverse_H273_ST428_1` definition domain and range scale support.
 eotf_inverse_H273_ST428_1` definition nan support.
         """
 
-        eotf_inverse_H273_ST428_1(
-            np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan])
-        )
+        eotf_inverse_H273_ST428_1(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
 
 
-class TestEotf_H273_ST428_1(unittest.TestCase):
+class TestEotf_H273_ST428_1:
     """
     Define :func:`colour.models.rgb.transfer_functions.itut_h_273.\
 eotf_H273_ST428_1` definition unit tests methods.
@@ -591,14 +637,20 @@ eotf_H273_ST428_1` definition unit tests methods.
 eotf_H273_ST428_1` definition.
         """
 
-        self.assertAlmostEqual(eotf_H273_ST428_1(0.0), 0.0, places=7)
-
-        self.assertAlmostEqual(
-            eotf_H273_ST428_1(0.500048337717236), 0.18, places=7
+        np.testing.assert_allclose(
+            eotf_H273_ST428_1(0.0), 0.0, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-        self.assertAlmostEqual(
-            eotf_H273_ST428_1(0.967042675317934), 1.0, places=7
+        np.testing.assert_allclose(
+            eotf_H273_ST428_1(0.500048337717236),
+            0.18,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            eotf_H273_ST428_1(0.967042675317934),
+            1.0,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_eotf_H273_ST428_1(self):
@@ -612,20 +664,20 @@ eotf_H273_ST428_1` definition n-dimensional arrays support.
 
         E_p = np.tile(E_p, 6)
         E = np.tile(E, 6)
-        np.testing.assert_array_almost_equal(
-            eotf_H273_ST428_1(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            eotf_H273_ST428_1(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3))
         E = np.reshape(E, (2, 3))
-        np.testing.assert_array_almost_equal(
-            eotf_H273_ST428_1(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            eotf_H273_ST428_1(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         E_p = np.reshape(E_p, (2, 3, 1))
         E = np.reshape(E, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            eotf_H273_ST428_1(E_p), E, decimal=7
+        np.testing.assert_allclose(
+            eotf_H273_ST428_1(E_p), E, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_eotf_H273_ST428_1(self):
@@ -640,8 +692,10 @@ eotf_H273_ST428_1` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    eotf_H273_ST428_1(E_p * factor), E * factor, decimal=7
+                np.testing.assert_allclose(
+                    eotf_H273_ST428_1(E_p * factor),
+                    E * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -652,7 +706,3 @@ eotf_H273_ST428_1` definition nan support.
         """
 
         eotf_H273_ST428_1(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
-
-
-if __name__ == "__main__":
-    unittest.main()

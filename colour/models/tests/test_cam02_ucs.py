@@ -1,7 +1,5 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.models.cam02_ucs` module."""
 
-import unittest
 from itertools import product
 
 import numpy as np
@@ -11,6 +9,7 @@ from colour.appearance import (
     CAM_KWARGS_CIECAM02_sRGB,
     XYZ_to_CIECAM02,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.models import (
     CAM02LCD_to_JMh_CIECAM02,
     CAM02LCD_to_XYZ,
@@ -49,13 +48,13 @@ __all__ = [
 ]
 
 
-class TestJMh_CIECAM02_to_UCS_Luo2006(unittest.TestCase):
+class TestJMh_CIECAM02_to_UCS_Luo2006:
     """
     Define :func:`colour.models.cam02_ucs.JMh_CIECAM02_to_UCS_Luo2006`
     definition unit tests methods.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """Initialise the common tests attributes."""
 
         XYZ = np.array([19.01, 20.00, 21.78])
@@ -65,9 +64,7 @@ class TestJMh_CIECAM02_to_UCS_Luo2006(unittest.TestCase):
         surround = VIEWING_CONDITIONS_CIECAM02["Average"]
         specification = XYZ_to_CIECAM02(XYZ, XYZ_w, L_A, Y_b, surround)
 
-        self._JMh = np.array(
-            [specification.J, specification.M, specification.h]
-        )
+        self._JMh = np.array([specification.J, specification.M, specification.h])
 
     def test_JMh_CIECAM02_to_UCS_Luo2006(self):
         """
@@ -75,52 +72,52 @@ class TestJMh_CIECAM02_to_UCS_Luo2006(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             JMh_CIECAM02_to_UCS_Luo2006(
                 self._JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
             ),
             np.array([54.90433134, -0.08450395, -0.06854831]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             JMh_CIECAM02_to_UCS_Luo2006(
                 self._JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
             ),
             JMh_CIECAM02_to_CAM02LCD(self._JMh),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             JMh_CIECAM02_to_UCS_Luo2006(
                 self._JMh, COEFFICIENTS_UCS_LUO2006["CAM02-SCD"]
             ),
             np.array([54.90433134, -0.08436178, -0.06843298]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             JMh_CIECAM02_to_UCS_Luo2006(
                 self._JMh, COEFFICIENTS_UCS_LUO2006["CAM02-SCD"]
             ),
             JMh_CIECAM02_to_CAM02SCD(self._JMh),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             JMh_CIECAM02_to_UCS_Luo2006(
                 self._JMh, COEFFICIENTS_UCS_LUO2006["CAM02-UCS"]
             ),
             np.array([54.90433134, -0.08442362, -0.06848314]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             JMh_CIECAM02_to_UCS_Luo2006(
                 self._JMh, COEFFICIENTS_UCS_LUO2006["CAM02-UCS"]
             ),
             JMh_CIECAM02_to_CAM02UCS(self._JMh),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_JMh_CIECAM02_to_UCS_Luo2006(self):
@@ -130,28 +127,22 @@ class TestJMh_CIECAM02_to_UCS_Luo2006(unittest.TestCase):
         """
 
         JMh = self._JMh
-        Jpapbp = JMh_CIECAM02_to_UCS_Luo2006(
-            JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-        )
+        Jpapbp = JMh_CIECAM02_to_UCS_Luo2006(JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
 
         JMh = np.tile(JMh, (6, 1))
         Jpapbp = np.tile(Jpapbp, (6, 1))
-        np.testing.assert_array_almost_equal(
-            JMh_CIECAM02_to_UCS_Luo2006(
-                JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-            ),
+        np.testing.assert_allclose(
+            JMh_CIECAM02_to_UCS_Luo2006(JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             Jpapbp,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         JMh = np.reshape(JMh, (2, 3, 3))
         Jpapbp = np.reshape(Jpapbp, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            JMh_CIECAM02_to_UCS_Luo2006(
-                JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-            ),
+        np.testing.assert_allclose(
+            JMh_CIECAM02_to_UCS_Luo2006(JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             Jpapbp,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_domain_range_scale_JMh_CIECAM02_to_UCS_Luo2006(self):
@@ -161,9 +152,7 @@ class TestJMh_CIECAM02_to_UCS_Luo2006(unittest.TestCase):
         """
 
         JMh = self._JMh
-        Jpapbp = JMh_CIECAM02_to_UCS_Luo2006(
-            JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-        )
+        Jpapbp = JMh_CIECAM02_to_UCS_Luo2006(JMh, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
 
         d_r = (
             ("reference", 1, 1),
@@ -172,12 +161,12 @@ class TestJMh_CIECAM02_to_UCS_Luo2006(unittest.TestCase):
         )
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     JMh_CIECAM02_to_UCS_Luo2006(
                         JMh * factor_a, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
                     ),
                     Jpapbp * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -189,12 +178,10 @@ class TestJMh_CIECAM02_to_UCS_Luo2006(unittest.TestCase):
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
-        JMh_CIECAM02_to_UCS_Luo2006(
-            cases, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-        )
+        JMh_CIECAM02_to_UCS_Luo2006(cases, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
 
 
-class TestUCS_Luo2006_to_JMh_CIECAM02(unittest.TestCase):
+class TestUCS_Luo2006_to_JMh_CIECAM02:
     """
     Define :func:`colour.models.cam02_ucs.UCS_Luo2006_to_JMh_CIECAM02`
     definition unit tests methods.
@@ -206,64 +193,58 @@ class TestUCS_Luo2006_to_JMh_CIECAM02(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_JMh_CIECAM02(
                 np.array([54.90433134, -0.08442362, -0.06848314]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
             ),
             np.array([41.73109113, 0.10873867, 219.04843202]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_JMh_CIECAM02(
                 np.array([54.90433134, -0.08442362, -0.06848314]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
             ),
-            CAM02LCD_to_JMh_CIECAM02(
-                np.array([54.90433134, -0.08442362, -0.06848314])
-            ),
-            decimal=7,
+            CAM02LCD_to_JMh_CIECAM02(np.array([54.90433134, -0.08442362, -0.06848314])),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_JMh_CIECAM02(
                 np.array([54.90433134, -0.08442362, -0.06848314]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-SCD"],
             ),
             np.array([41.73109113, 0.10892212, 219.04843202]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_JMh_CIECAM02(
                 np.array([54.90433134, -0.08442362, -0.06848314]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-SCD"],
             ),
-            CAM02SCD_to_JMh_CIECAM02(
-                np.array([54.90433134, -0.08442362, -0.06848314])
-            ),
-            decimal=7,
+            CAM02SCD_to_JMh_CIECAM02(np.array([54.90433134, -0.08442362, -0.06848314])),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_JMh_CIECAM02(
                 np.array([54.90433134, -0.08442362, -0.06848314]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-UCS"],
             ),
             np.array([41.73109113, 0.10884218, 219.04843202]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_JMh_CIECAM02(
                 np.array([54.90433134, -0.08442362, -0.06848314]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-UCS"],
             ),
-            CAM02UCS_to_JMh_CIECAM02(
-                np.array([54.90433134, -0.08442362, -0.06848314])
-            ),
-            decimal=7,
+            CAM02UCS_to_JMh_CIECAM02(np.array([54.90433134, -0.08442362, -0.06848314])),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_UCS_Luo2006_to_JMh_CIECAM02(self):
@@ -273,28 +254,22 @@ class TestUCS_Luo2006_to_JMh_CIECAM02(unittest.TestCase):
         """
 
         Jpapbp = np.array([54.90433134, -0.08442362, -0.06848314])
-        JMh = UCS_Luo2006_to_JMh_CIECAM02(
-            Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-        )
+        JMh = UCS_Luo2006_to_JMh_CIECAM02(Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
 
         Jpapbp = np.tile(Jpapbp, (6, 1))
         JMh = np.tile(JMh, (6, 1))
-        np.testing.assert_array_almost_equal(
-            UCS_Luo2006_to_JMh_CIECAM02(
-                Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-            ),
+        np.testing.assert_allclose(
+            UCS_Luo2006_to_JMh_CIECAM02(Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             JMh,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         Jpapbp = np.reshape(Jpapbp, (2, 3, 3))
         JMh = np.reshape(JMh, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
-            UCS_Luo2006_to_JMh_CIECAM02(
-                Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-            ),
+        np.testing.assert_allclose(
+            UCS_Luo2006_to_JMh_CIECAM02(Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             JMh,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_domain_range_scale_UCS_Luo2006_to_JMh_CIECAM02(self):
@@ -304,9 +279,7 @@ class TestUCS_Luo2006_to_JMh_CIECAM02(unittest.TestCase):
         """
 
         Jpapbp = np.array([54.90433134, -0.08442362, -0.06848314])
-        JMh = UCS_Luo2006_to_JMh_CIECAM02(
-            Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-        )
+        JMh = UCS_Luo2006_to_JMh_CIECAM02(Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
 
         d_r = (
             ("reference", 1, 1),
@@ -315,13 +288,13 @@ class TestUCS_Luo2006_to_JMh_CIECAM02(unittest.TestCase):
         )
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     UCS_Luo2006_to_JMh_CIECAM02(
                         Jpapbp * factor_a,
                         COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
                     ),
                     JMh * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -333,12 +306,10 @@ class TestUCS_Luo2006_to_JMh_CIECAM02(unittest.TestCase):
 
         cases = [-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]
         cases = np.array(list(set(product(cases, repeat=3))))
-        UCS_Luo2006_to_JMh_CIECAM02(
-            cases, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]
-        )
+        UCS_Luo2006_to_JMh_CIECAM02(cases, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
 
 
-class TestXYZ_to_UCS_Luo2006(unittest.TestCase):
+class TestXYZ_to_UCS_Luo2006:
     """
     Define :func:`colour.models.cam02_ucs.XYZ_to_UCS_Luo2006` definition
     unit tests methods.
@@ -347,58 +318,58 @@ class TestXYZ_to_UCS_Luo2006(unittest.TestCase):
     def test_XYZ_to_UCS_Luo2006(self):
         """Test :func:`colour.models.cam02_ucs.XYZ_to_UCS_Luo2006` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
             ),
             np.array([46.61386154, 39.35760236, 15.96730435]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
             ),
             XYZ_to_CAM02LCD(np.array([0.20654008, 0.12197225, 0.05136952])),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-SCD"],
             ),
             np.array([46.61386154, 25.62879882, 10.39755489]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-SCD"],
             ),
             XYZ_to_CAM02SCD(np.array([0.20654008, 0.12197225, 0.05136952])),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-UCS"],
             ),
             np.array([46.61386154, 29.88310013, 12.12351683]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(
                 np.array([0.20654008, 0.12197225, 0.05136952]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-UCS"],
             ),
             XYZ_to_CAM02UCS(np.array([0.20654008, 0.12197225, 0.05136952])),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_XYZ_to_UCS_Luo2006(self):
@@ -412,18 +383,18 @@ class TestXYZ_to_UCS_Luo2006(unittest.TestCase):
 
         XYZ = np.tile(XYZ, (6, 1))
         Jpapbp = np.tile(Jpapbp, (6, 1))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(XYZ, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             Jpapbp,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         XYZ = np.reshape(XYZ, (2, 3, 3))
         Jpapbp = np.reshape(Jpapbp, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             XYZ_to_UCS_Luo2006(XYZ, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             Jpapbp,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_domain_range_scale_XYZ_to_UCS_Luo2006(self):
@@ -439,14 +410,14 @@ class TestXYZ_to_UCS_Luo2006(unittest.TestCase):
         d_r = (("reference", 1, 1), ("1", 1, 0.01), ("100", 100, 1))
         for scale, factor_a, factor_b in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     XYZ_to_UCS_Luo2006(
                         XYZ * factor_a,
                         COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
                         XYZ_w=XYZ_w * factor_a,
                     ),
                     Jpapbp * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -461,7 +432,7 @@ class TestXYZ_to_UCS_Luo2006(unittest.TestCase):
         XYZ_to_UCS_Luo2006(cases, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
 
 
-class TestUCS_Luo2006_to_XYZ(unittest.TestCase):
+class TestUCS_Luo2006_to_XYZ:
     """
     Define :func:`colour.models.cam02_ucs.UCS_Luo2006_to_XYZ` definition
     unit tests methods.
@@ -470,58 +441,58 @@ class TestUCS_Luo2006_to_XYZ(unittest.TestCase):
     def test_UCS_Luo2006_to_XYZ(self):
         """Test :func:`colour.models.cam02_ucs.UCS_Luo2006_to_XYZ` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(
                 np.array([46.61386154, 39.35760236, 15.96730435]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
             ),
             np.array([0.20654008, 0.12197225, 0.05136952]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(
                 np.array([46.61386154, 39.35760236, 15.96730435]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
             ),
             CAM02LCD_to_XYZ(np.array([46.61386154, 39.35760236, 15.96730435])),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(
                 np.array([46.61386154, 39.35760236, 15.96730435]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-SCD"],
             ),
             np.array([0.28264475, 0.11036927, 0.00824593]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(
                 np.array([46.61386154, 39.35760236, 15.96730435]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-SCD"],
             ),
             CAM02SCD_to_XYZ(np.array([46.61386154, 39.35760236, 15.96730435])),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(
                 np.array([46.61386154, 39.35760236, 15.96730435]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-UCS"],
             ),
             np.array([0.24229809, 0.11573005, 0.02517649]),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(
                 np.array([46.61386154, 39.35760236, 15.96730435]),
                 COEFFICIENTS_UCS_LUO2006["CAM02-UCS"],
             ),
             CAM02UCS_to_XYZ(np.array([46.61386154, 39.35760236, 15.96730435])),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_n_dimensional_UCS_Luo2006_to_XYZ(self):
@@ -535,18 +506,18 @@ class TestUCS_Luo2006_to_XYZ(unittest.TestCase):
 
         Jpapbp = np.tile(Jpapbp, (6, 1))
         XYZ = np.tile(XYZ, (6, 1))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             XYZ,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         Jpapbp = np.reshape(Jpapbp, (2, 3, 3))
         XYZ = np.reshape(XYZ, (2, 3, 3))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             UCS_Luo2006_to_XYZ(Jpapbp, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"]),
             XYZ,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_domain_range_scale_UCS_Luo2006_to_XYZ(self):
@@ -562,14 +533,14 @@ class TestUCS_Luo2006_to_XYZ(unittest.TestCase):
         d_r = (("reference", 1, 1, 1), ("1", 0.01, 1, 1), ("100", 1, 100, 100))
         for scale, factor_a, factor_b, factor_c in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
+                np.testing.assert_allclose(
                     UCS_Luo2006_to_XYZ(
                         Jpapbp * factor_a,
                         COEFFICIENTS_UCS_LUO2006["CAM02-LCD"],
                         XYZ_w=XYZ_w * factor_c,
                     ),
                     XYZ * factor_b,
-                    decimal=7,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -586,7 +557,3 @@ class TestUCS_Luo2006_to_XYZ(unittest.TestCase):
                 UCS_Luo2006_to_XYZ(case, COEFFICIENTS_UCS_LUO2006["CAM02-LCD"])
             except ValueError as error:
                 attest("CAM_Specification_CIECAM02" in str(error))
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,4 +1,3 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.io.ctl` module."""
 
 from __future__ import annotations
@@ -7,10 +6,10 @@ import os
 import shutil
 import tempfile
 import textwrap
-import unittest
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.io import (
     ctl_render,
     process_image_ctl,
@@ -41,15 +40,15 @@ ROOT_RESOURCES: str = os.path.join(os.path.dirname(__file__), "resources")
 # cross-platform.
 
 
-class TestCtlRender(unittest.TestCase):
+class TestCtlRender:
     """Define :func:`colour.io.ctl.ctl_render` definition unit tests methods."""
 
-    def setUp(self):
+    def setup_method(self):
         """Initialise the common tests attributes."""
 
         self._temporary_directory = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def teardown_method(self):
         """After tests actions."""
 
         shutil.rmtree(self._temporary_directory)
@@ -92,10 +91,10 @@ class TestCtlRender(unittest.TestCase):
             "-force",
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             read_image(path_output)[..., 0:3],
             read_image(path_input) * [1, 2, 4],
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         ctl_render(
@@ -111,14 +110,14 @@ class TestCtlRender(unittest.TestCase):
             env=dict(os.environ, CTL_MODULE_PATH=ROOT_RESOURCES),
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             read_image(path_output)[..., 0:3],
             read_image(path_input) * 2,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestProcessImageCtl(unittest.TestCase):
+class TestProcessImageCtl:
     """
     Define :func:`colour.io.ctl.process_image_ctl` definition unit tests
     methods.
@@ -148,7 +147,6 @@ class TestProcessImageCtl(unittest.TestCase):
                 "-force",
             ),
             0.18 / 2,
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -160,7 +158,6 @@ class TestProcessImageCtl(unittest.TestCase):
                 },
             ),
             np.array([0.18 / 2, 0.18, 0.18 * 2]),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -172,7 +169,6 @@ class TestProcessImageCtl(unittest.TestCase):
                 },
             ),
             np.array([[0.18 / 2, 0.18, 0.18 * 2]]),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -184,7 +180,6 @@ class TestProcessImageCtl(unittest.TestCase):
                 },
             ),
             np.array([[[0.18 / 2, 0.18, 0.18 * 2]]]),
-            rtol=0.0001,
             atol=0.0001,
         )
 
@@ -196,12 +191,11 @@ class TestProcessImageCtl(unittest.TestCase):
                 },
             ),
             full([4, 2, 3], 0.18) * [0.5, 1.0, 2.0],
-            rtol=0.0001,
             atol=0.0001,
         )
 
 
-class TestTemplateCtlTransformFloat(unittest.TestCase):
+class TestTemplateCtlTransformFloat:
     """
     Define :func:`colour.io.ctl.template_ctl_transform_float` definition unit
     tests methods.
@@ -249,14 +243,12 @@ class TestTemplateCtlTransformFloat(unittest.TestCase):
                 gOut = gIn + foo[1];
                 bOut = bIn + foo[2];
                 aOut = aIn;
-            }"""[
-                1:
-            ]
+            }"""[1:]
         )
-        self.assertEqual(ctl_foo_bar_float, target)
+        assert ctl_foo_bar_float == target
 
 
-class TestTemplateCtlTransformFloat3(unittest.TestCase):
+class TestTemplateCtlTransformFloat3:
     """
     Define :func:`colour.io.ctl.template_ctl_transform_float3` definition unit
     tests methods.
@@ -289,9 +281,7 @@ class TestTemplateCtlTransformFloat3(unittest.TestCase):
 
                     return rgbOut;
                 }
-"""[
-                    1:
-                ]
+"""[1:]
             ),
         )
         # fmt: off
@@ -340,8 +330,4 @@ class TestTemplateCtlTransformFloat3(unittest.TestCase):
                 1:
             ]
         )
-        self.assertEqual(ctl_foo_bar_float3, target)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert ctl_foo_bar_float3 == target

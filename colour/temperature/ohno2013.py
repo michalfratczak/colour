@@ -2,7 +2,7 @@
 Ohno (2013) Correlated Colour Temperature
 =========================================
 
-Defines the *Ohno (2013)* correlated colour temperature :math:`T_{cp}`
+Define the *Ohno (2013)* correlated colour temperature :math:`T_{cp}`
 computations objects:
 
 -   :func:`colour.temperature.uv_to_CCT_Ohno2013`: Correlated colour
@@ -35,6 +35,7 @@ from colour.utilities import (
     CACHE_REGISTRY,
     as_float_array,
     attest,
+    is_caching_enabled,
     optional,
     runtime_warning,
     tsplit,
@@ -114,9 +115,9 @@ def planckian_table(
            [  1.01000000e+03,   4.4563...e-01,   3.5483...e-01]])
     """
 
-    cache_key = hash((cmfs, start, end, spacing))
-    if cache_key in _CACHE_PLANCKIAN_TABLE:
-        table = _CACHE_PLANCKIAN_TABLE[cache_key].copy()
+    hash_key = hash((cmfs, start, end, spacing))
+    if is_caching_enabled() and hash_key in _CACHE_PLANCKIAN_TABLE:
+        table = _CACHE_PLANCKIAN_TABLE[hash_key].copy()
     else:
         attest(spacing > 1, "Spacing value must be greater than 1!")
 
@@ -135,9 +136,9 @@ def planckian_table(
         Ti = np.concatenate([Ti, [end - 1, end]])
 
         table = np.concatenate(
-            [Ti.reshape((-1, 1)), CCT_to_uv_Planck1900(Ti, cmfs)], axis=1
+            [np.reshape(Ti, (-1, 1)), CCT_to_uv_Planck1900(Ti, cmfs)], axis=1
         )
-        _CACHE_PLANCKIAN_TABLE[cache_key] = table.copy()
+        _CACHE_PLANCKIAN_TABLE[hash_key] = table.copy()
     return table
 
 
@@ -249,14 +250,7 @@ def uv_to_CCT_Ohno2013(
     # Parabolic solution.
     X = (Tin - Ti) * (Tip - Tin) * (Ti - Tip)
     a = (Tip * (din - di) + Ti * (dip - din) + Tin * (di - dip)) * X**-1
-    b = (
-        -(
-            Tip**2 * (din - di)
-            + Ti**2 * (dip - din)
-            + Tin**2 * (di - dip)
-        )
-        * X**-1
-    )
+    b = -(Tip**2 * (din - di) + Ti**2 * (dip - din) + Tin**2 * (di - dip)) * X**-1
     c = (
         -(
             dip * (Tin - Ti) * Ti * Tin
@@ -392,9 +386,7 @@ def XYZ_to_CCT_Ohno2013(
     array([  6.5074399...e+03,   3.2236914...e-03])
     """
 
-    return uv_to_CCT_Ohno2013(
-        UCS_to_uv(XYZ_to_UCS(XYZ)), cmfs, start, end, spacing
-    )
+    return uv_to_CCT_Ohno2013(UCS_to_uv(XYZ_to_UCS(XYZ)), cmfs, start, end, spacing)
 
 
 def CCT_to_XYZ_Ohno2013(

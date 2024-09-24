@@ -1,13 +1,11 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.colorimetry.uniformity` module."""
 
 from __future__ import annotations
 
-import unittest
-
 import numpy as np
 
 from colour.colorimetry import spectral_uniformity
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.hints import NDArrayFloat
 
 __author__ = "Colour Developers"
@@ -223,7 +221,7 @@ DATA_UNIFORMITY_SECOND_ORDER_DERIVATIVES: NDArrayFloat = np.array(
 )
 
 
-class TestSpectralUniformity(unittest.TestCase):
+class TestSpectralUniformity:
     """
     Define :func:`colour.colorimetry.uniformity.spectral_uniformity`
     definition unit tests methods.
@@ -237,20 +235,14 @@ class TestSpectralUniformity(unittest.TestCase):
 
         from colour.quality.datasets import SDS_TCS
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             spectral_uniformity(SDS_TCS.values()),
             DATA_UNIFORMITY_FIRST_ORDER_DERIVATIVES,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
-            spectral_uniformity(
-                SDS_TCS.values(), use_second_order_derivatives=True
-            ),
+        np.testing.assert_allclose(
+            spectral_uniformity(SDS_TCS.values(), use_second_order_derivatives=True),
             DATA_UNIFORMITY_SECOND_ORDER_DERIVATIVES,
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

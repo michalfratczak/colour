@@ -2,7 +2,7 @@
 Colour Quality Plotting
 =======================
 
-Defines the colour quality plotting objects:
+Define the colour quality plotting objects:
 
 -   :func:`colour.plotting.plot_single_sd_colour_rendering_index_bars`
 -   :func:`colour.plotting.plot_multi_sds_colour_rendering_indexes_bars`
@@ -23,7 +23,7 @@ from colour.colorimetry import (
     SpectralDistribution,
     sds_and_msds_to_sds,
 )
-from colour.constants import DEFAULT_FLOAT_DTYPE
+from colour.constants import DTYPE_FLOAT_DEFAULT
 from colour.hints import (
     Any,
     Dict,
@@ -152,14 +152,13 @@ def plot_colour_quality_bars(
                     0,
                     (count_Q_as + 1) * (count_s + 1),
                     (count_s + 1),
-                    dtype=DEFAULT_FLOAT_DTYPE,
+                    dtype=DTYPE_FLOAT_DEFAULT,
                 )
             )
             * bar_width
         )
         y = as_float_array(
-            [Q_a]
-            + [s[1].Q_a for s in sorted(Q_as.items(), key=lambda s: s[0])]
+            [Q_a] + [s[1].Q_a for s in sorted(Q_as.items(), key=lambda s: s[0])]
         )
 
         bars = axes.bar(
@@ -207,7 +206,7 @@ def plot_colour_quality_bars(
                 0,
                 (count_Q_as + 1) * (count_s + 1),
                 (count_s + 1),
-                dtype=DEFAULT_FLOAT_DTYPE,
+                dtype=DTYPE_FLOAT_DEFAULT,
             )
             - bar_width
         )
@@ -285,9 +284,11 @@ Plot_Single_SD_Colour_Rendering_Index_Bars.png
 
 @override_style()
 def plot_multi_sds_colour_rendering_indexes_bars(
-    sds: Sequence[SpectralDistribution | MultiSpectralDistributions]
-    | SpectralDistribution
-    | MultiSpectralDistributions,
+    sds: (
+        Sequence[SpectralDistribution | MultiSpectralDistributions]
+        | SpectralDistribution
+        | MultiSpectralDistributions
+    ),
     **kwargs: Any,
 ) -> Tuple[Figure, Axes]:
     """
@@ -339,10 +340,7 @@ Plot_Multi_SDS_Colour_Rendering_Indexes_Bars.png
 
     specifications = cast(
         List[ColourRendering_Specification_CRI],
-        [
-            colour_rendering_index(sd, additional_data=True)
-            for sd in sds_converted
-        ],
+        [colour_rendering_index(sd, additional_data=True) for sd in sds_converted],
     )
 
     # *colour rendering index* colorimetry data tristimulus values are
@@ -420,9 +418,11 @@ Plot_Single_SD_Colour_Quality_Scale_Bars.png
 
 @override_style()
 def plot_multi_sds_colour_quality_scales_bars(
-    sds: Sequence[SpectralDistribution | MultiSpectralDistributions]
-    | SpectralDistribution
-    | MultiSpectralDistributions,
+    sds: (
+        Sequence[SpectralDistribution | MultiSpectralDistributions]
+        | SpectralDistribution
+        | MultiSpectralDistributions
+    ),
     method: Literal["NIST CQS 7.4", "NIST CQS 9.0"] | str = "NIST CQS 9.0",
     **kwargs: Any,
 ) -> Tuple[Figure, Axes]:

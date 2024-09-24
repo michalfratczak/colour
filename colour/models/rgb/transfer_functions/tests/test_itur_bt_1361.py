@@ -3,10 +3,10 @@ Define the unit tests for the
 :mod:`colour.models.rgb.transfer_functions.itur_bt_1361` module.
 """
 
-import unittest
 
 import numpy as np
 
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.models.rgb.transfer_functions import (
     oetf_BT1361,
     oetf_inverse_BT1361,
@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 
-class TestOetf_BT1361(unittest.TestCase):
+class TestOetf_BT1361:
     """
     Define :func:`colour.models.rgb.transfer_functions.itur_bt_1361.oetf_BT1361`
     definition unit tests methods.
@@ -38,17 +38,25 @@ class TestOetf_BT1361(unittest.TestCase):
 oetf_BT1361` definition.
         """
 
-        self.assertAlmostEqual(
-            oetf_BT1361(-0.18), -0.212243985492969, places=7
+        np.testing.assert_allclose(
+            oetf_BT1361(-0.18),
+            -0.212243985492969,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(oetf_BT1361(0.0), 0.0, places=7)
+        np.testing.assert_allclose(oetf_BT1361(0.0), 0.0, atol=TOLERANCE_ABSOLUTE_TESTS)
 
-        self.assertAlmostEqual(oetf_BT1361(0.015), 0.067500000000000, places=7)
+        np.testing.assert_allclose(
+            oetf_BT1361(0.015),
+            0.067500000000000,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
-        self.assertAlmostEqual(oetf_BT1361(0.18), 0.409007728864150, places=7)
+        np.testing.assert_allclose(
+            oetf_BT1361(0.18), 0.409007728864150, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
-        self.assertAlmostEqual(oetf_BT1361(1.0), 1.0, places=7)
+        np.testing.assert_allclose(oetf_BT1361(1.0), 1.0, atol=TOLERANCE_ABSOLUTE_TESTS)
 
     def test_n_dimensional_oetf_BT1361(self):
         """
@@ -61,15 +69,15 @@ oetf_BT1361` definition n-dimensional arrays support.
 
         L = np.tile(L, 6)
         V = np.tile(V, 6)
-        np.testing.assert_array_almost_equal(oetf_BT1361(L), V, decimal=7)
+        np.testing.assert_allclose(oetf_BT1361(L), V, atol=TOLERANCE_ABSOLUTE_TESTS)
 
         L = np.reshape(L, (2, 3))
         V = np.reshape(V, (2, 3))
-        np.testing.assert_array_almost_equal(oetf_BT1361(L), V, decimal=7)
+        np.testing.assert_allclose(oetf_BT1361(L), V, atol=TOLERANCE_ABSOLUTE_TESTS)
 
         L = np.reshape(L, (2, 3, 1))
         V = np.reshape(V, (2, 3, 1))
-        np.testing.assert_array_almost_equal(oetf_BT1361(L), V, decimal=7)
+        np.testing.assert_allclose(oetf_BT1361(L), V, atol=TOLERANCE_ABSOLUTE_TESTS)
 
     def test_domain_range_scale_oetf_BT1361(self):
         """
@@ -83,8 +91,10 @@ oetf_BT1361` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    oetf_BT1361(L * factor), V * factor, decimal=7
+                np.testing.assert_allclose(
+                    oetf_BT1361(L * factor),
+                    V * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -97,7 +107,7 @@ oetf_BT1361` definition nan support.
         oetf_BT1361(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))
 
 
-class TestOetf_inverse_BT1361(unittest.TestCase):
+class TestOetf_inverse_BT1361:
     """
     Define :func:`colour.models.rgb.transfer_functions.itur_bt_1361.\
 oetf_inverse_BT1361` definition unit tests methods.
@@ -109,21 +119,31 @@ oetf_inverse_BT1361` definition unit tests methods.
 oetf_inverse_BT1361` definition.
         """
 
-        self.assertAlmostEqual(
-            oetf_inverse_BT1361(-0.212243985492969), -0.18, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(-0.212243985492969),
+            -0.18,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(oetf_inverse_BT1361(0.0), 0.0, places=7)
-
-        self.assertAlmostEqual(
-            oetf_inverse_BT1361(0.067500000000000), 0.015, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(0.0), 0.0, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
-        self.assertAlmostEqual(
-            oetf_inverse_BT1361(0.409007728864150), 0.18, places=7
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(0.067500000000000),
+            0.015,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        self.assertAlmostEqual(oetf_inverse_BT1361(1.0), 1.0, places=7)
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(0.409007728864150),
+            0.18,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
+
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(1.0), 1.0, atol=TOLERANCE_ABSOLUTE_TESTS
+        )
 
     def test_n_dimensional_oetf_inverse_BT1361(self):
         """
@@ -136,20 +156,20 @@ oetf_inverse_BT1361` definition n-dimensional arrays support.
 
         V = np.tile(V, 6)
         L = np.tile(L, 6)
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_BT1361(V), L, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(V), L, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         V = np.reshape(V, (2, 3))
         L = np.reshape(L, (2, 3))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_BT1361(V), L, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(V), L, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         V = np.reshape(V, (2, 3, 1))
         L = np.reshape(L, (2, 3, 1))
-        np.testing.assert_array_almost_equal(
-            oetf_inverse_BT1361(V), L, decimal=7
+        np.testing.assert_allclose(
+            oetf_inverse_BT1361(V), L, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
     def test_domain_range_scale_oetf_inverse_BT1361(self):
@@ -164,8 +184,10 @@ oetf_inverse_BT1361` definition domain and range scale support.
         d_r = (("reference", 1), ("1", 1), ("100", 100))
         for scale, factor in d_r:
             with domain_range_scale(scale):
-                np.testing.assert_array_almost_equal(
-                    oetf_inverse_BT1361(V * factor), L * factor, decimal=7
+                np.testing.assert_allclose(
+                    oetf_inverse_BT1361(V * factor),
+                    L * factor,
+                    atol=TOLERANCE_ABSOLUTE_TESTS,
                 )
 
     @ignore_numpy_errors
@@ -175,10 +197,4 @@ oetf_inverse_BT1361` definition domain and range scale support.
 oetf_inverse_BT1361` definition nan support.
         """
 
-        oetf_inverse_BT1361(
-            np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan])
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()
+        oetf_inverse_BT1361(np.array([-1.0, 0.0, 1.0, -np.inf, np.inf, np.nan]))

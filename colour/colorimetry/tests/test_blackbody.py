@@ -1,12 +1,11 @@
-# !/usr/bin/env python
 """Define the unit tests for the :mod:`colour.colorimetry.blackbody` module."""
 
 from __future__ import annotations
 
-import unittest
 from itertools import product
 
 import numpy as np
+import pytest
 
 from colour.colorimetry import (
     SpectralShape,
@@ -15,6 +14,7 @@ from colour.colorimetry import (
     sd_blackbody,
     sd_rayleigh_jeans,
 )
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.hints import NDArrayFloat
 from colour.utilities import ignore_numpy_errors
 
@@ -1196,7 +1196,7 @@ DATA_RAYLEIGH_JEANS: NDArrayFloat = np.array(
 )
 
 
-class TestPlanckLaw(unittest.TestCase):
+class TestPlanckLaw:
     """
     Define :func:`colour.colorimetry.blackbody.planck_law` definition unit
     tests methods.
@@ -1210,9 +1210,7 @@ class TestPlanckLaw(unittest.TestCase):
             np.testing.assert_allclose(
                 planck_law(wavelengths, temperature),
                 radiance,
-                rtol=0.0000001,
-                atol=0.0000001,
-                verbose=False,
+                atol=TOLERANCE_ABSOLUTE_TESTS,
             )
 
     def test_n_dimensional_planck_law(self):
@@ -1226,26 +1224,40 @@ class TestPlanckLaw(unittest.TestCase):
 
         wl = np.tile(wl, 6)
         p = np.tile(p, 6)
-        np.testing.assert_array_almost_equal(planck_law(wl, 5500), p)
+        np.testing.assert_allclose(
+            planck_law(wl, 5500),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
         wl = np.reshape(wl, (2, 3))
         # The "colour.colorimetry.planck_law" definition behaviour with
         # n-dimensional arrays is unusual.
         # p = np.np.reshape(p, (2, 3))
-        np.testing.assert_array_almost_equal(planck_law(wl, 5500), p)
+        np.testing.assert_allclose(
+            planck_law(wl, 5500),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
         wl = np.reshape(wl, (2, 3, 1))
         # The "colour.colorimetry.planck_law" definition behaviour with
         # n-dimensional arrays is unusual.
         # p = np.reshape(p, (2, 3, 1))
-        np.testing.assert_array_almost_equal(planck_law(wl, 5500), p)
+        np.testing.assert_allclose(
+            planck_law(wl, 5500),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
         # The "colour.colorimetry.planck_law" definition behaviour with
         # n-dimensional arrays is unusual.
         p = planck_law(500 * 1e-9, [5000, 5500, 6000])
         p = np.tile(p, (6, 1))
-        np.testing.assert_array_almost_equal(
-            planck_law(wl, [5000, 5500, 6000]), p
+        np.testing.assert_allclose(
+            planck_law(wl, [5000, 5500, 6000]),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_raise_exception_planck_law(self):
@@ -1255,7 +1267,7 @@ class TestPlanckLaw(unittest.TestCase):
         """
 
         for wavelength in [-1.0, 0.0, -np.inf, np.nan]:
-            self.assertRaises(AssertionError, planck_law, wavelength, 5500)
+            pytest.raises(AssertionError, planck_law, wavelength, 5500)
 
     @ignore_numpy_errors
     def test_nan_planck_law(self):
@@ -1270,7 +1282,7 @@ class TestPlanckLaw(unittest.TestCase):
         planck_law(cases, cases)
 
 
-class TestSdBlackbody(unittest.TestCase):
+class TestSdBlackbody:
     """
     Define :func:`colour.colorimetry.blackbody.sd_blackbody` definition unit
     tests methods.
@@ -1282,12 +1294,11 @@ class TestSdBlackbody(unittest.TestCase):
         np.testing.assert_allclose(
             sd_blackbody(5000, SpectralShape(360, 830, 1)).values,
             DATA_BLACKBODY,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestRayleighJeansLaw(unittest.TestCase):
+class TestRayleighJeansLaw:
     """
     Define :func:`colour.colorimetry.blackbody.rayleigh_jeans_law` definition unit
     tests methods.
@@ -1304,9 +1315,7 @@ class TestRayleighJeansLaw(unittest.TestCase):
             np.testing.assert_allclose(
                 rayleigh_jeans_law(wavelengths, temperature),
                 radiance,
-                rtol=0.0000001,
-                atol=0.0000001,
-                verbose=False,
+                atol=TOLERANCE_ABSOLUTE_TESTS,
             )
 
     def test_n_dimensional_rayleigh_jeans_law(self):
@@ -1320,26 +1329,40 @@ class TestRayleighJeansLaw(unittest.TestCase):
 
         wl = np.tile(wl, 6)
         p = np.tile(p, 6)
-        np.testing.assert_array_almost_equal(rayleigh_jeans_law(wl, 5500), p)
+        np.testing.assert_allclose(
+            rayleigh_jeans_law(wl, 5500),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
         wl = np.reshape(wl, (2, 3))
         # The "colour.colorimetry.rayleigh_jeans_law" definition behaviour with
         # n-dimensional arrays is unusual.
         # p = np.np.reshape(p, (2, 3))
-        np.testing.assert_array_almost_equal(rayleigh_jeans_law(wl, 5500), p)
+        np.testing.assert_allclose(
+            rayleigh_jeans_law(wl, 5500),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
         wl = np.reshape(wl, (2, 3, 1))
         # The "colour.colorimetry.rayleigh_jeans_law" definition behaviour with
         # n-dimensional arrays is unusual.
         # p = np.reshape(p, (2, 3, 1))
-        np.testing.assert_array_almost_equal(rayleigh_jeans_law(wl, 5500), p)
+        np.testing.assert_allclose(
+            rayleigh_jeans_law(wl, 5500),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
+        )
 
         # The "colour.colorimetry.rayleigh_jeans_law" definition behaviour with
         # n-dimensional arrays is unusual.
         p = rayleigh_jeans_law(500 * 1e-9, [5000, 5500, 6000])
         p = np.tile(p, (6, 1))
-        np.testing.assert_array_almost_equal(
-            rayleigh_jeans_law(wl, [5000, 5500, 6000]), p
+        np.testing.assert_allclose(
+            rayleigh_jeans_law(wl, [5000, 5500, 6000]),
+            p,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     @ignore_numpy_errors
@@ -1354,7 +1377,7 @@ class TestRayleighJeansLaw(unittest.TestCase):
         rayleigh_jeans_law(cases, cases)
 
 
-class TestSdRayleighJeans(unittest.TestCase):
+class TestSdRayleighJeans:
     """
     Define :func:`colour.colorimetry.blackbody.sd_rayleigh_jeans` definition unit
     tests methods.
@@ -1369,10 +1392,5 @@ class TestSdRayleighJeans(unittest.TestCase):
         np.testing.assert_allclose(
             sd_rayleigh_jeans(5000, SpectralShape(360, 830, 1)).values,
             DATA_RAYLEIGH_JEANS,
-            rtol=0.0000001,
-            atol=0.0000001,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

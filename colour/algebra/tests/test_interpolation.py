@@ -11,10 +11,10 @@ References
 from __future__ import annotations
 
 import os
-import unittest
 from itertools import product
 
 import numpy as np
+import pytest
 
 from colour.algebra import (
     CubicSplineInterpolator,
@@ -35,6 +35,7 @@ from colour.algebra import (
     table_interpolation_trilinear,
 )
 from colour.algebra.interpolation import vertices_and_relative_coordinates
+from colour.constants import TOLERANCE_ABSOLUTE_TESTS
 from colour.hints import NDArrayFloat, cast
 from colour.io import LUT3D, read_LUT
 from colour.utilities import ignore_numpy_errors
@@ -499,7 +500,7 @@ LUT_TABLE: NDArrayFloat = cast(
 ).table
 
 
-class TestKernelNearestNeighbour(unittest.TestCase):
+class TestKernelNearestNeighbour:
     """
     Define :func:`colour.algebra.interpolation.kernel_nearest_neighbour`
     definition unit tests methods.
@@ -511,7 +512,7 @@ class TestKernelNearestNeighbour(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_nearest_neighbour(np.linspace(-5, 5, 25)),
             np.array(
                 [
@@ -542,11 +543,11 @@ class TestKernelNearestNeighbour(unittest.TestCase):
                     0,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestKernelLinear(unittest.TestCase):
+class TestKernelLinear:
     """
     Define :func:`colour.algebra.interpolation.kernel_linear` definition
     unit tests methods.
@@ -555,7 +556,7 @@ class TestKernelLinear(unittest.TestCase):
     def test_kernel_linear(self):
         """Test :func:`colour.algebra.interpolation.kernel_linear` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_linear(np.linspace(-5, 5, 25)),
             np.array(
                 [
@@ -586,11 +587,11 @@ class TestKernelLinear(unittest.TestCase):
                     0.00000000,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestKernelSinc(unittest.TestCase):
+class TestKernelSinc:
     """
     Define :func:`colour.algebra.interpolation.kernel_sinc` definition
     unit tests methods.
@@ -599,7 +600,7 @@ class TestKernelSinc(unittest.TestCase):
     def test_kernel_sinc(self):
         """Test :func:`colour.algebra.interpolation.kernel_sinc` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_sinc(np.linspace(-5, 5, 25)),
             np.array(
                 [
@@ -630,10 +631,10 @@ class TestKernelSinc(unittest.TestCase):
                     0.00000000,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_sinc(np.linspace(-5, 5, 25), 1),
             np.array(
                 [
@@ -664,11 +665,11 @@ class TestKernelSinc(unittest.TestCase):
                     0.00000000,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestKernelLanczos(unittest.TestCase):
+class TestKernelLanczos:
     """
     Define :func:`colour.algebra.interpolation.kernel_lanczos` definition
     unit tests methods.
@@ -677,7 +678,7 @@ class TestKernelLanczos(unittest.TestCase):
     def test_kernel_lanczos(self):
         """Test :func:`colour.algebra.interpolation.kernel_lanczos` definition."""
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_lanczos(np.linspace(-5, 5, 25)),
             np.array(
                 [
@@ -708,10 +709,10 @@ class TestKernelLanczos(unittest.TestCase):
                     0.00000000e00,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_lanczos(np.linspace(-5, 5, 25), 1),
             np.array(
                 [
@@ -742,11 +743,11 @@ class TestKernelLanczos(unittest.TestCase):
                     0.00000000,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestKernelCardinalSpline(unittest.TestCase):
+class TestKernelCardinalSpline:
     """
     Define :func:`colour.algebra.interpolation.kernel_cardinal_spline`
     definition unit tests methods.
@@ -758,7 +759,7 @@ class TestKernelCardinalSpline(unittest.TestCase):
         definition.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_cardinal_spline(np.linspace(-5, 5, 25)),
             np.array(
                 [
@@ -789,10 +790,10 @@ class TestKernelCardinalSpline(unittest.TestCase):
                     0.00000000,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_cardinal_spline(np.linspace(-5, 5, 25), 0, 1),
             np.array(
                 [
@@ -823,11 +824,11 @@ class TestKernelCardinalSpline(unittest.TestCase):
                     0.00000000,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestKernelInterpolator(unittest.TestCase):
+class TestKernelInterpolator:
     """
     Define :class:`colour.algebra.interpolation.KernelInterpolator` class unit
     tests methods.
@@ -846,7 +847,7 @@ class TestKernelInterpolator(unittest.TestCase):
         )
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(KernelInterpolator))
+            assert attribute in dir(KernelInterpolator)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -854,7 +855,7 @@ class TestKernelInterpolator(unittest.TestCase):
         required_methods = ("__init__", "__call__")
 
         for method in required_methods:  # pragma: no cover
-            self.assertIn(method, dir(KernelInterpolator))
+            assert method in dir(KernelInterpolator)
 
     def test_x(self):
         """
@@ -887,7 +888,7 @@ class TestKernelInterpolator(unittest.TestCase):
         x = y = np.linspace(0, 1, 10)
         kernel_interpolator = KernelInterpolator(x, y, window=3)
 
-        self.assertEqual(kernel_interpolator.window, 3)
+        assert kernel_interpolator.window == 3
 
     def test_kernel(self):
         """
@@ -898,7 +899,7 @@ class TestKernelInterpolator(unittest.TestCase):
         x = y = np.linspace(0, 1, 10)
         kernel_interpolator = KernelInterpolator(x, y, kernel=kernel_linear)
 
-        self.assertIs(kernel_interpolator.kernel, kernel_linear)
+        assert kernel_interpolator.kernel is kernel_linear
 
     def test_kernel_kwargs(self):
         """
@@ -908,11 +909,9 @@ kernel_kwargs` property.
 
         x = y = np.linspace(0, 1, 10)
         kernel_kwargs = {"a": 1}
-        kernel_interpolator = KernelInterpolator(
-            x, y, kernel_kwargs=kernel_kwargs
-        )
+        kernel_interpolator = KernelInterpolator(x, y, kernel_kwargs=kernel_kwargs)
 
-        self.assertDictEqual(kernel_interpolator.kernel_kwargs, kernel_kwargs)
+        assert kernel_interpolator.kernel_kwargs == kernel_kwargs
 
     def test_padding_kwargs(self):
         """
@@ -922,13 +921,9 @@ padding_kwargs` property.
 
         x = y = np.linspace(0, 1, 10)
         padding_kwargs = {"pad_width": (3, 3), "mode": "mean"}
-        kernel_interpolator = KernelInterpolator(
-            x, y, padding_kwargs=padding_kwargs
-        )
+        kernel_interpolator = KernelInterpolator(x, y, padding_kwargs=padding_kwargs)
 
-        self.assertDictEqual(
-            kernel_interpolator.padding_kwargs, padding_kwargs
-        )
+        assert kernel_interpolator.padding_kwargs == padding_kwargs
 
     def test_raise_exception___init__(self):
         """
@@ -936,7 +931,7 @@ padding_kwargs` property.
         method raised exception.
         """
 
-        self.assertRaises(
+        pytest.raises(
             ValueError,
             KernelInterpolator,
             np.linspace(0, 1, 10),
@@ -954,7 +949,7 @@ padding_kwargs` property.
         x_i = np.linspace(11, 25, 25)
 
         kernel_interpolator = KernelInterpolator(x, y)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_interpolator(x_i),
             np.array(
                 [
@@ -985,11 +980,11 @@ padding_kwargs` property.
                     3.14159265,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         kernel_interpolator = KernelInterpolator(x, y, kernel=kernel_sinc)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_interpolator(x_i),
             np.array(
                 [
@@ -1020,11 +1015,11 @@ padding_kwargs` property.
                     3.14159265,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         kernel_interpolator = KernelInterpolator(x, y, window=1)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_interpolator(x_i),
             np.array(
                 [
@@ -1055,13 +1050,11 @@ padding_kwargs` property.
                     3.14159265,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        kernel_interpolator = KernelInterpolator(
-            x, y, window=1, kernel_kwargs={"a": 1}
-        )
-        np.testing.assert_array_almost_equal(
+        kernel_interpolator = KernelInterpolator(x, y, window=1, kernel_kwargs={"a": 1})
+        np.testing.assert_allclose(
             kernel_interpolator(x_i),
             np.array(
                 [
@@ -1092,13 +1085,13 @@ padding_kwargs` property.
                     3.14159265,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         kernel_interpolator = KernelInterpolator(
             x, y, padding_kwargs={"pad_width": (3, 3), "mode": "mean"}
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             kernel_interpolator(x_i),
             np.array(
                 [
@@ -1129,7 +1122,7 @@ padding_kwargs` property.
                     3.14159265,
                 ]
             ),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         x_1 = np.arange(1, 10, 1)
@@ -1138,16 +1131,16 @@ padding_kwargs` property.
         y = np.sin(x_1 / len(x_1) * np.pi * 6) / (x_1 / len(x_1))
         x_i = np.linspace(1, 9, 25)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             KernelInterpolator(x_1, y)(x_i),
             KernelInterpolator(x_2, y)(x_i * 10),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             KernelInterpolator(x_1, y)(x_i),
             KernelInterpolator(x_3, y)(x_i / 10),
-            decimal=7,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_raise_exception___call__(self):
@@ -1159,9 +1152,9 @@ padding_kwargs` property.
         x = y = np.linspace(0, 1, 10)
         kernel_interpolator = KernelInterpolator(x, y)
 
-        self.assertRaises(ValueError, kernel_interpolator, -1)
+        pytest.raises(ValueError, kernel_interpolator, -1)
 
-        self.assertRaises(ValueError, kernel_interpolator, 11)
+        pytest.raises(ValueError, kernel_interpolator, 11)
 
     @ignore_numpy_errors
     def test_nan__call__(self):
@@ -1176,7 +1169,7 @@ padding_kwargs` property.
         # independent variable.
 
 
-class TestNearestNeighbourInterpolator(unittest.TestCase):
+class TestNearestNeighbourInterpolator:
     """
     Define :class:`colour.algebra.interpolation.NearestNeighbourInterpolator`
     class unit tests methods.
@@ -1188,7 +1181,7 @@ class TestNearestNeighbourInterpolator(unittest.TestCase):
         required_attributes = ()
 
         for attribute in required_attributes:  # pragma: no cover
-            self.assertIn(attribute, dir(NearestNeighbourInterpolator))
+            assert attribute in dir(NearestNeighbourInterpolator)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1196,7 +1189,7 @@ class TestNearestNeighbourInterpolator(unittest.TestCase):
         required_methods = ("__init__",)
 
         for method in required_methods:  # pragma: no cover
-            self.assertIn(method, dir(NearestNeighbourInterpolator))
+            assert method in dir(NearestNeighbourInterpolator)
 
     def test___init__(self):
         """
@@ -1209,10 +1202,10 @@ class TestNearestNeighbourInterpolator(unittest.TestCase):
             x, y, kernel_kwargs={"a": 1}
         )
 
-        self.assertDictEqual(nearest_neighbour_interpolator.kernel_kwargs, {})
+        assert nearest_neighbour_interpolator.kernel_kwargs == {}
 
 
-class TestLinearInterpolator(unittest.TestCase):
+class TestLinearInterpolator:
     """
     Define :class:`colour.algebra.interpolation.LinearInterpolator` class unit
     tests methods.
@@ -1224,7 +1217,7 @@ class TestLinearInterpolator(unittest.TestCase):
         required_attributes = ("x", "y")
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(LinearInterpolator))
+            assert attribute in dir(LinearInterpolator)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1232,7 +1225,7 @@ class TestLinearInterpolator(unittest.TestCase):
         required_methods = ("__init__", "__call__")
 
         for method in required_methods:  # pragma: no cover
-            self.assertIn(method, dir(LinearInterpolator))
+            assert method in dir(LinearInterpolator)
 
     def test_raise_exception___init__(self):
         """
@@ -1241,7 +1234,7 @@ class TestLinearInterpolator(unittest.TestCase):
         """
 
         x, y = np.linspace(0, 1, 10), np.linspace(0, 1, 15)
-        self.assertRaises(ValueError, LinearInterpolator, x, y)
+        pytest.raises(ValueError, LinearInterpolator, x, y)
 
     def test__call__(self):
         """
@@ -1256,17 +1249,18 @@ class TestLinearInterpolator(unittest.TestCase):
         for i, value in enumerate(
             np.arange(0, len(DATA_POINTS_A) - 1 + interval, interval)
         ):
-            self.assertAlmostEqual(
+            np.testing.assert_allclose(
                 DATA_POINTS_A_LINEAR_INTERPOLATED_10_SAMPLES[i],
                 linear_interpolator(value),
-                places=7,
+                atol=TOLERANCE_ABSOLUTE_TESTS,
             )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             linear_interpolator(
                 np.arange(0, len(DATA_POINTS_A) - 1 + interval, interval)
             ),
             DATA_POINTS_A_LINEAR_INTERPOLATED_10_SAMPLES,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_raise_exception___call__(self):
@@ -1278,9 +1272,9 @@ class TestLinearInterpolator(unittest.TestCase):
         x = y = np.linspace(0, 1, 10)
         linear_interpolator = LinearInterpolator(x, y)
 
-        self.assertRaises(ValueError, linear_interpolator, -1)
+        pytest.raises(ValueError, linear_interpolator, -1)
 
-        self.assertRaises(ValueError, linear_interpolator, 11)
+        pytest.raises(ValueError, linear_interpolator, 11)
 
     @ignore_numpy_errors
     def test_nan__call__(self):
@@ -1299,7 +1293,7 @@ class TestLinearInterpolator(unittest.TestCase):
                 pass
 
 
-class TestSpragueInterpolator(unittest.TestCase):
+class TestSpragueInterpolator:
     """
     Define :class:`colour.algebra.interpolation.SpragueInterpolator` class
     unit tests methods.
@@ -1311,7 +1305,7 @@ class TestSpragueInterpolator(unittest.TestCase):
         required_attributes = ("x", "y")
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(SpragueInterpolator))
+            assert attribute in dir(SpragueInterpolator)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1319,7 +1313,7 @@ class TestSpragueInterpolator(unittest.TestCase):
         required_methods = ("__init__", "__call__")
 
         for method in required_methods:  # pragma: no cover
-            self.assertIn(method, dir(SpragueInterpolator))
+            assert method in dir(SpragueInterpolator)
 
     def test_raise_exception___init__(self):
         """
@@ -1328,7 +1322,7 @@ class TestSpragueInterpolator(unittest.TestCase):
         """
 
         x, y = np.linspace(0, 1, 10), np.linspace(0, 1, 15)
-        self.assertRaises(ValueError, SpragueInterpolator, x, y)
+        pytest.raises(ValueError, SpragueInterpolator, x, y)
 
     def test__call__(self):
         """
@@ -1343,17 +1337,18 @@ class TestSpragueInterpolator(unittest.TestCase):
         for i, value in enumerate(
             np.arange(0, len(DATA_POINTS_A) - 1 + interval, interval)
         ):
-            self.assertAlmostEqual(
+            np.testing.assert_allclose(
                 DATA_POINTS_A_SPRAGUE_INTERPOLATED_10_SAMPLES[i],
                 sprague_interpolator(value),
-                places=7,
+                atol=TOLERANCE_ABSOLUTE_TESTS,
             )
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             sprague_interpolator(
                 np.arange(0, len(DATA_POINTS_A) - 1 + interval, interval)
             ),
             DATA_POINTS_A_SPRAGUE_INTERPOLATED_10_SAMPLES,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_raise_exception___call__(self):
@@ -1365,9 +1360,9 @@ class TestSpragueInterpolator(unittest.TestCase):
         x = y = np.linspace(0, 1, 10)
         sprague_interpolator = SpragueInterpolator(x, y)
 
-        self.assertRaises(ValueError, sprague_interpolator, -1)
+        pytest.raises(ValueError, sprague_interpolator, -1)
 
-        self.assertRaises(ValueError, sprague_interpolator, 11)
+        pytest.raises(ValueError, sprague_interpolator, 11)
 
     @ignore_numpy_errors
     def test_nan__call__(self):
@@ -1386,7 +1381,7 @@ class TestSpragueInterpolator(unittest.TestCase):
                 pass
 
 
-class TestCubicSplineInterpolator(unittest.TestCase):
+class TestCubicSplineInterpolator:
     """
     Define :class:`colour.algebra.interpolation.CubicSplineInterpolator` class
     unit tests methods.
@@ -1403,15 +1398,16 @@ __call__` method.
             and is assumed to be unit tested thoroughly.
         """
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             CubicSplineInterpolator(
                 np.linspace(0, 1, len(DATA_POINTS_A)), DATA_POINTS_A
             )(np.linspace(0, 1, len(DATA_POINTS_A) * 2)),
             DATA_POINTS_A_CUBIC_SPLINE_INTERPOLATED_X2_SAMPLES,
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestPchipInterpolator(unittest.TestCase):
+class TestPchipInterpolator:
     """
     Define :class:`colour.algebra.interpolation.PchipInterpolator` class
     unit tests methods.
@@ -1423,7 +1419,7 @@ class TestPchipInterpolator(unittest.TestCase):
         required_attributes = ("x", "y")
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(PchipInterpolator))
+            assert attribute in dir(PchipInterpolator)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1431,10 +1427,21 @@ class TestPchipInterpolator(unittest.TestCase):
         required_methods = ("__init__",)
 
         for method in required_methods:  # pragma: no cover
-            self.assertIn(method, dir(PchipInterpolator))
+            assert method in dir(PchipInterpolator)
+
+    def test_y(self):
+        """
+        Test :attr:`colour.algebra.interpolation.PchipInterpolator.y` property.
+        """
+
+        interpolator = PchipInterpolator(np.linspace(0, 1, 10), np.linspace(0, 1, 10))
+
+        interpolator.y = np.linspace(0, 1, 10)
+
+        assert interpolator(5) == 5
 
 
-class TestNullInterpolator(unittest.TestCase):
+class TestNullInterpolator:
     """
     Define :class:`colour.algebra.interpolation.NullInterpolator` class
     unit tests methods.
@@ -1446,7 +1453,7 @@ class TestNullInterpolator(unittest.TestCase):
         required_attributes = ("x", "y")
 
         for attribute in required_attributes:
-            self.assertIn(attribute, dir(NullInterpolator))
+            assert attribute in dir(NullInterpolator)
 
     def test_required_methods(self):
         """Test the presence of required methods."""
@@ -1454,7 +1461,7 @@ class TestNullInterpolator(unittest.TestCase):
         required_methods = ("__init__", "__call__")
 
         for method in required_methods:  # pragma: no cover
-            self.assertIn(method, dir(NullInterpolator))
+            assert method in dir(NullInterpolator)
 
     def test_x(self):
         """
@@ -1518,7 +1525,7 @@ default` property.
         """
 
         x, y = np.linspace(0, 1, 10), np.linspace(0, 1, 15)
-        self.assertRaises(ValueError, NullInterpolator, x, y)
+        pytest.raises(ValueError, NullInterpolator, x, y)
 
     def test__call__(self):
         """
@@ -1528,15 +1535,17 @@ default` property.
 
         x = np.arange(len(DATA_POINTS_A))
         null_interpolator = NullInterpolator(x, DATA_POINTS_A)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             null_interpolator(np.array([0.75, 2.0, 3.0, 4.75])),
             np.array([np.nan, 12.46, 9.51, np.nan]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
         null_interpolator = NullInterpolator(x, DATA_POINTS_A, 0.25, 0.25)
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             null_interpolator(np.array([0.75, 2.0, 3.0, 4.75])),
             np.array([12.32, 12.46, 9.51, 4.33]),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
     def test_raise_exception___call__(self):
@@ -1548,9 +1557,9 @@ default` property.
         x = y = np.linspace(0, 1, 10)
         null_interpolator = NullInterpolator(x, y)
 
-        self.assertRaises(ValueError, null_interpolator, -1)
+        pytest.raises(ValueError, null_interpolator, -1)
 
-        self.assertRaises(ValueError, null_interpolator, 11)
+        pytest.raises(ValueError, null_interpolator, 11)
 
     @ignore_numpy_errors
     def test_nan__call__(self):
@@ -1569,7 +1578,7 @@ default` property.
                 pass
 
 
-class TestLagrangeCoefficients(unittest.TestCase):
+class TestLagrangeCoefficients:
     """
     Define :func:`colour.algebra.interpolation.lagrange_coefficients`
     definition unit tests methods.
@@ -1591,17 +1600,17 @@ class TestLagrangeCoefficients(unittest.TestCase):
         """
 
         lc = [lagrange_coefficients(i, 3) for i in np.linspace(0.05, 0.95, 19)]
-        np.testing.assert_array_almost_equal(
-            lc, LAGRANGE_COEFFICIENTS_A, decimal=7
+        np.testing.assert_allclose(
+            lc, LAGRANGE_COEFFICIENTS_A, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
         lc = [lagrange_coefficients(i, 4) for i in np.linspace(1.05, 1.95, 19)]
-        np.testing.assert_array_almost_equal(
-            lc, LAGRANGE_COEFFICIENTS_B, decimal=7
+        np.testing.assert_allclose(
+            lc, LAGRANGE_COEFFICIENTS_B, atol=TOLERANCE_ABSOLUTE_TESTS
         )
 
 
-class TestVerticesAndRelativeCoordinates(unittest.TestCase):
+class TestVerticesAndRelativeCoordinates:
     """
     Define :func:`colour.algebra.interpolation.\
 vertices_and_relative_coordinates` definition unit tests methods.
@@ -1618,7 +1627,7 @@ vertices_and_relative_coordinates` definition.
         V_xyz = random_triplet_generator(4, random_state=prng)
         vertices, V_xyzr = vertices_and_relative_coordinates(V_xyz, LUT_TABLE)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             vertices,
             np.array(
                 [
@@ -1672,8 +1681,10 @@ vertices_and_relative_coordinates` definition.
                     ],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-        np.testing.assert_array_almost_equal(
+
+        np.testing.assert_allclose(
             V_xyzr,
             np.array(
                 [
@@ -1683,10 +1694,11 @@ vertices_and_relative_coordinates` definition.
                     [0.14444798, 0.01869077, 0.59305522],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestTableInterpolationTrilinear(unittest.TestCase):
+class TestTableInterpolationTrilinear:
     """
     Define :func:`colour.algebra.interpolation.\
 table_interpolation_trilinear` definition unit tests methods.
@@ -1702,7 +1714,7 @@ table_interpolation_trilinear` definition.
 
         V_xyz = random_triplet_generator(16, random_state=prng)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             table_interpolation_trilinear(V_xyz, LUT_TABLE),
             np.array(
                 [
@@ -1724,10 +1736,11 @@ table_interpolation_trilinear` definition.
                     [0.59220355, 0.93136492, 0.30063692],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
 
 
-class TestTableInterpolationTetrahedral(unittest.TestCase):
+class TestTableInterpolationTetrahedral:
     """
     Define :func:`colour.algebra.interpolation.\
 table_interpolation_tetrahedral` definition unit tests methods.
@@ -1743,7 +1756,7 @@ table_interpolation_tetrahedral` definition.
 
         V_xyz = random_triplet_generator(16, random_state=prng)
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             table_interpolation_tetrahedral(V_xyz, LUT_TABLE),
             np.array(
                 [
@@ -1765,8 +1778,5 @@ table_interpolation_tetrahedral` definition.
                     [0.61272658, 0.92799297, 0.29650424],
                 ]
             ),
+            atol=TOLERANCE_ABSOLUTE_TESTS,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

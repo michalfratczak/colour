@@ -2,7 +2,7 @@
 LUT Operator
 ============
 
-Defines the *LUT* sequence class:
+Define the *LUT* sequence class:
 
 -   :class:`colour.LUTSequence`
 """
@@ -301,7 +301,7 @@ class LUTSequence(MutableSequence):
 
         return not (self == other)
 
-    def insert(self, index: int, item: ProtocolLUTSequenceItem):
+    def insert(self, index: int, value: ProtocolLUTSequenceItem):
         """
         Insert given *LUT* at given index into the *LUT* sequence.
 
@@ -309,17 +309,16 @@ class LUTSequence(MutableSequence):
         ----------
         index
             Index to insert the item at into the *LUT* sequence.
-        item
+        value
             *LUT* to insert into the *LUT* sequence.
         """
 
         attest(
-            isinstance(item, ProtocolLUTSequenceItem),
-            '"value" items must implement the "ProtocolLUTSequenceItem" '
-            "protocol!",
+            isinstance(value, ProtocolLUTSequenceItem),
+            '"value" items must implement the "ProtocolLUTSequenceItem" protocol!',
         )
 
-        self._sequence.insert(index, item)
+        self._sequence.insert(index, value)
 
     def apply(self, RGB: ArrayLike, **kwargs: Any) -> NDArrayFloat:
         """
@@ -371,9 +370,7 @@ class LUTSequence(MutableSequence):
 
         RGB_o = RGB
         for operator in self:
-            RGB_o = operator.apply(
-                RGB_o, **kwargs.get(operator.__class__.__name__, {})
-            )
+            RGB_o = operator.apply(RGB_o, **kwargs.get(operator.__class__.__name__, {}))
 
         return RGB_o
 
